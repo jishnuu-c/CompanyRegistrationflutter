@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/api_service.dart';
+import '../services/api_config.dart';
 import '../theme/app_theme.dart';
 
 class ServerConfigDialog extends StatefulWidget {
@@ -11,218 +11,191 @@ class ServerConfigDialog extends StatefulWidget {
 }
 
 class _ServerConfigDialogState extends State<ServerConfigDialog> {
-  final ApiService _apiService = ApiService();
-  late TextEditingController _urlController;
-  bool _testing = false;
+  final ApiConfig _apiConfig = ApiConfig();
+  late TextEditingController _hostController;
+  bool _isTesting = false;
   String? _testResult;
-  bool? _isSuccess;
+  bool _isSuccess = false;
 
   @override
   void initState() {
     super.initState();
-    _urlController = TextEditingController(text: _apiService.baseUrl);
+    _hostController = TextEditingController(text: _apiConfig.host);
   }
 
   @override
   void dispose() {
-    _urlController.dispose();
+    _hostController.dispose();
     super.dispose();
   }
 
   Future<void> _testConnection() async {
     setState(() {
-      _testing = true;
+      _isTesting = true;
       _testResult = null;
-      _isSuccess = null;
     });
 
-    _apiService.setBaseUrl(_urlController.text.trim());
-    final isOnline = await _apiService.checkConnection();
+    _apiConfig.setHost(_hostController.text.trim());
+    final success = await _apiConfig.checkConnection();
 
     if (mounted) {
       setState(() {
-        _testing = false;
-        _isSuccess = isOnline;
-        _testResult = isOnline
-            ? 'Connected to Laravel Backend successfully!'
-            : 'Could not reach ${_urlController.text.trim()}. Using offline store.';
+        _isTesting = false;
+        _isSuccess = success;
+        _testResult = success
+            ? 'Connected successfully to Spring Boot backend!'
+            : 'Connection failed: ${_apiConfig.lastError.isNotEmpty ? _apiConfig.lastError : 'Host unreachable.'}';
       });
     }
+  }
+
+  void _applyQuickPreset(String url) {
+    _hostController.text = url;
+    _testConnection();
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      insetPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 420),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Header Row
-              Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: AppTheme.cardBg,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: const Icon(Icons.dns_rounded, color: AppTheme.primaryNavy, size: 20),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Laravel Backend',
-                          style: GoogleFonts.lora(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                            color: AppTheme.primaryNavy,
-                          ),
-                        ),
-                        Text(
-                          'Configure API endpoint URL',
-                          style: GoogleFonts.outfit(
-                            fontSize: 11.5,
-                            color: Colors.grey.shade600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(Icons.close, size: 18),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-
-              Text(
-                'Server Base URL (IP / Host & Port):',
-                style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.w600),
-              ),
-              const SizedBox(height: 6),
-              TextField(
-                controller: _urlController,
-                decoration: InputDecoration(
-                  hintText: 'http://192.168.1.201:8000',
-                  prefixIcon: const Icon(Icons.link, size: 18),
-                  suffixIcon: IconButton(
-                    icon: const Icon(Icons.refresh, size: 18),
-                    tooltip: 'Reset to default IP',
-                    onPressed: () {
-                      _urlController.text = 'http://192.168.1.201:8000';
-                    },
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                ),
-                style: GoogleFonts.outfit(fontSize: 13),
-              ),
-              const SizedBox(height: 10),
-
-              // Quick preset chips
-              Wrap(
-                spacing: 6,
-                runSpacing: 6,
-                children: [
-                  _buildPresetChip('192.168.1.201:8000', 'http://192.168.1.201:8000'),
-                  _buildPresetChip('127.0.0.1:8000', 'http://127.0.0.1:8000'),
-                  _buildPresetChip('10.0.2.2:8000', 'http://10.0.2.2:8000'),
-                ],
-              ),
-              const SizedBox(height: 14),
-
-              // Test Result Box
-              if (_testResult != null)
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      backgroundColor: AppTheme.bgSurface,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
-                  margin: const EdgeInsets.only(bottom: 14),
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
-                    color: _isSuccess == true ? Colors.green.shade50 : Colors.orange.shade50,
-                    borderRadius: BorderRadius.circular(6),
-                    border: Border.all(
-                      color: _isSuccess == true ? Colors.green.shade300 : Colors.orange.shade300,
-                    ),
+                    color: AppTheme.primaryLight,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
+                  child: const Icon(Icons.dns_rounded, color: AppTheme.primary, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(
-                        _isSuccess == true ? Icons.check_circle : Icons.info_outline,
-                        color: _isSuccess == true ? Colors.green.shade800 : Colors.orange.shade800,
-                        size: 16,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          _testResult!,
-                          style: GoogleFonts.outfit(
-                            fontSize: 11.5,
-                            color: _isSuccess == true ? Colors.green.shade900 : Colors.orange.shade900,
-                          ),
+                      Text(
+                        'Backend Server Config',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: AppTheme.textPrimary,
                         ),
+                      ),
+                      Text(
+                        'Spring Boot REST API endpoint',
+                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
                       ),
                     ],
                   ),
                 ),
+                IconButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  icon: const Icon(Icons.close, size: 20),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
 
-              // Action Buttons Row (Responsive Full-Width Expanded)
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: _testing ? null : _testConnection,
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: AppTheme.primaryNavy,
-                        side: const BorderSide(color: AppTheme.primaryNavy),
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-                      ),
-                      child: _testing
-                          ? const SizedBox(
-                              width: 14,
-                              height: 14,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text('Test', style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold)),
+            Text(
+              'Spring Boot Host URL',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 6),
+            TextField(
+              controller: _hostController,
+              decoration: InputDecoration(
+                prefixIcon: const Icon(Icons.link_rounded, size: 20),
+                hintText: 'e.g. http://localhost:8080',
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.refresh_rounded),
+                  tooltip: 'Test Connection',
+                  onPressed: _isTesting ? null : _testConnection,
+                ),
+              ),
+            ),
+            const SizedBox(height: 10),
+
+            // Quick Presets
+            Text(
+              'Quick Presets:',
+              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
+            ),
+            const SizedBox(height: 6),
+            Wrap(
+              spacing: 6,
+              runSpacing: 6,
+              children: [
+                _buildPresetChip('Android Emulator (10.0.2.2)', 'http://10.0.2.2:8080'),
+                _buildPresetChip('Localhost (8080)', 'http://localhost:8080'),
+              ],
+            ),
+
+            if (_testResult != null) ...[
+              const SizedBox(height: 14),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: _isSuccess ? AppTheme.successBg : AppTheme.errorBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: _isSuccess ? AppTheme.successBorder : AppTheme.errorBorder),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      _isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
+                      size: 18,
+                      color: _isSuccess ? AppTheme.success : AppTheme.error,
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _apiService.setBaseUrl(_urlController.text.trim());
-                        Navigator.of(context).pop();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Server endpoint: ${_urlController.text.trim()}'),
-                            backgroundColor: AppTheme.primaryNavy,
-                          ),
-                        );
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppTheme.buttonNavy,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        _testResult!,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                          color: _isSuccess ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                        ),
                       ),
-                      child: Text('Save & Apply', style: GoogleFonts.outfit(fontSize: 12.5, fontWeight: FontWeight.bold)),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
-          ),
+
+            const SizedBox(height: 20),
+
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Cancel'),
+                ),
+                const SizedBox(width: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    _apiConfig.setHost(_hostController.text.trim());
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Save Host'),
+                ),
+              ],
+            ),
+          ],
         ),
       ),
     );
@@ -230,17 +203,11 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
 
   Widget _buildPresetChip(String label, String url) {
     return ActionChip(
-      label: Text(label, style: GoogleFonts.outfit(fontSize: 10.5)),
-      onPressed: () {
-        _urlController.text = url;
-      },
-      backgroundColor: Colors.grey.shade100,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14),
-        side: BorderSide(color: Colors.grey.shade300),
-      ),
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      label: Text(label, style: GoogleFonts.inter(fontSize: 11)),
+      onPressed: () => _applyQuickPreset(url),
+      backgroundColor: AppTheme.bgSubtle,
+      side: const BorderSide(color: AppTheme.borderLight),
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 0),
     );
   }
 }

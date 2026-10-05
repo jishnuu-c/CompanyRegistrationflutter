@@ -1,248 +1,227 @@
-import 'dart:convert';
-import 'dart:typed_data';
+import 'brand_model.dart';
+import 'product_model.dart';
 
-class DocumentItem {
-  final String id;
-  final String name;
-  final String? path;
-  final Uint8List? bytes;
-  final String? url;
-  final int? size;
-  final String? extension;
+class CompanyRequest {
+  final String companyName;
+  final String email;
+  final String? landline;
+  final String? address;
+  final String? city;
+  final String? country;
+  final String? website;
+  final String? description;
+  final String status;
+  final String? contactName;
+  final String? contactDesignation;
+  final String? contactEmail;
+  final String? contactMobileNumber;
+  final List<int> brandIds;
+  final List<int> productIds;
 
-  DocumentItem({
-    required this.id,
-    required this.name,
-    this.path,
-    this.bytes,
-    this.url,
-    this.size,
-    this.extension,
+  CompanyRequest({
+    required this.companyName,
+    required this.email,
+    this.landline,
+    this.address,
+    this.city,
+    this.country,
+    this.website,
+    this.description,
+    this.status = 'ACTIVE',
+    this.contactName,
+    this.contactDesignation,
+    this.contactEmail,
+    this.contactMobileNumber,
+    this.brandIds = const [],
+    this.productIds = const [],
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'name': name,
-      'path': path,
-      'url': url,
-      'size': size,
-      'extension': extension,
+      'companyName': companyName,
+      'email': email,
+      'landline': landline ?? '',
+      'address': address ?? '',
+      'city': city ?? '',
+      'country': country ?? '',
+      'website': website ?? '',
+      'description': description ?? '',
+      'status': status,
+      'contactName': contactName ?? '',
+      'contactDesignation': contactDesignation ?? '',
+      'contactEmail': contactEmail ?? '',
+      'contactMobileNumber': contactMobileNumber ?? '',
+      'brandIds': brandIds,
+      'productIds': productIds,
     };
   }
 
-  factory DocumentItem.fromJson(Map<String, dynamic> json) {
-    return DocumentItem(
-      id: json['id']?.toString() ?? UniqueIdGenerator.generate(),
-      name: json['name'] ?? json['file_name'] ?? 'Document',
-      path: json['path'] ?? json['file_path'],
-      url: json['url'] ?? json['file_url'],
-      size: json['size'] is int ? json['size'] : int.tryParse(json['size']?.toString() ?? ''),
-      extension: json['extension'] ?? json['ext'],
+  factory CompanyRequest.fromJson(Map<String, dynamic> json) {
+    return CompanyRequest(
+      companyName: json['companyName'] ?? json['company_name'] ?? '',
+      email: json['email'] ?? '',
+      landline: json['landline'],
+      address: json['address'],
+      city: json['city'],
+      country: json['country'],
+      website: json['website'],
+      description: json['description'],
+      status: json['status'] ?? 'ACTIVE',
+      contactName: json['contactName'] ?? json['contact_name'],
+      contactDesignation: json['contactDesignation'] ?? json['contact_designation'],
+      contactEmail: json['contactEmail'] ?? json['contact_email'],
+      contactMobileNumber: json['contactMobileNumber'] ?? json['contact_mobile_number'],
+      brandIds: json['brandIds'] != null
+          ? List<int>.from(json['brandIds'].map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
+          : const [],
+      productIds: json['productIds'] != null
+          ? List<int>.from(json['productIds'].map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
+          : const [],
     );
-  }
-
-  String get formattedSize {
-    if (size == null) return '';
-    if (size! < 1024) return '$size B';
-    if (size! < 1024 * 1024) return '${(size! / 1024).toStringAsFixed(1)} KB';
-    return '${(size! / (1024 * 1024)).toStringAsFixed(1)} MB';
   }
 }
 
-class Company {
-  final int? id;
+class CompanyResponse {
+  final int id;
   final String companyName;
-  final String? visitingCardPath;
-  final String? visitingCardUrl;
-  final String? visitingCardName;
-  final Uint8List? visitingCardBytes;
   final String email;
-  final String landline;
-  final String website;
-  final String mobile;
-  final String country;
-  final String city;
-  final String fullAddress;
-  final List<String> brands;
-  final List<String> products;
-  final List<DocumentItem> documents;
-  final String summary;
-  final double rating;
-  final DateTime? createdAt;
-  final DateTime? updatedAt;
+  final String? landline;
+  final String? address;
+  final String? city;
+  final String? country;
+  final String? website;
+  final String? description;
+  final String status;
+  final String? businessCard;
+  final String? contactName;
+  final String? contactDesignation;
+  final String? contactEmail;
+  final String? contactMobileNumber;
+  final String? createdAt;
+  final String? updatedAt;
+  final List<int> brandIds;
+  final List<BrandResponse> brands;
+  final List<int> productIds;
+  final List<ProductResponse> products;
 
-  Company({
-    this.id,
+  CompanyResponse({
+    required this.id,
     required this.companyName,
-    this.visitingCardPath,
-    this.visitingCardUrl,
-    this.visitingCardName,
-    this.visitingCardBytes,
     required this.email,
-    required this.landline,
-    required this.website,
-    required this.mobile,
-    required this.country,
-    required this.city,
-    required this.fullAddress,
-    required this.brands,
-    required this.products,
-    required this.documents,
-    required this.summary,
-    required this.rating,
+    this.landline,
+    this.address,
+    this.city,
+    this.country,
+    this.website,
+    this.description,
+    this.status = 'ACTIVE',
+    this.businessCard,
+    this.contactName,
+    this.contactDesignation,
+    this.contactEmail,
+    this.contactMobileNumber,
     this.createdAt,
     this.updatedAt,
+    this.brandIds = const [],
+    this.brands = const [],
+    this.productIds = const [],
+    this.products = const [],
   });
 
-  Company copyWith({
-    int? id,
-    String? companyName,
-    String? visitingCardPath,
-    String? visitingCardUrl,
-    String? visitingCardName,
-    Uint8List? visitingCardBytes,
-    String? email,
-    String? landline,
-    String? website,
-    String? mobile,
-    String? country,
-    String? city,
-    String? fullAddress,
-    List<String>? brands,
-    List<String>? products,
-    List<DocumentItem>? documents,
-    String? summary,
-    double? rating,
-    DateTime? createdAt,
-    DateTime? updatedAt,
-  }) {
-    return Company(
-      id: id ?? this.id,
-      companyName: companyName ?? this.companyName,
-      visitingCardPath: visitingCardPath ?? this.visitingCardPath,
-      visitingCardUrl: visitingCardUrl ?? this.visitingCardUrl,
-      visitingCardName: visitingCardName ?? this.visitingCardName,
-      visitingCardBytes: visitingCardBytes ?? this.visitingCardBytes,
-      email: email ?? this.email,
-      landline: landline ?? this.landline,
-      website: website ?? this.website,
-      mobile: mobile ?? this.mobile,
-      country: country ?? this.country,
-      city: city ?? this.city,
-      fullAddress: fullAddress ?? this.fullAddress,
-      brands: brands ?? this.brands,
-      products: products ?? this.products,
-      documents: documents ?? this.documents,
-      summary: summary ?? this.summary,
-      rating: rating ?? this.rating,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+  factory CompanyResponse.fromJson(Map<String, dynamic> json) {
+    List<BrandResponse> parsedBrands = [];
+    if (json['brands'] != null && json['brands'] is List) {
+      parsedBrands = (json['brands'] as List)
+          .map((b) => BrandResponse.fromJson(b is Map<String, dynamic> ? b : {}))
+          .toList();
+    }
+
+    List<int> parsedBrandIds = [];
+    if (json['brandIds'] != null && json['brandIds'] is List) {
+      parsedBrandIds = (json['brandIds'] as List)
+          .map((id) => id is int ? id : int.tryParse(id.toString()) ?? 0)
+          .where((id) => id > 0)
+          .toList();
+    } else if (parsedBrands.isNotEmpty) {
+      parsedBrandIds = parsedBrands.map((b) => b.id).toList();
+    }
+
+    List<ProductResponse> parsedProducts = [];
+    if (json['products'] != null && json['products'] is List) {
+      parsedProducts = (json['products'] as List)
+          .map((p) => ProductResponse.fromJson(p is Map<String, dynamic> ? p : {}))
+          .toList();
+    }
+
+    List<int> parsedProductIds = [];
+    if (json['productIds'] != null && json['productIds'] is List) {
+      parsedProductIds = (json['productIds'] as List)
+          .map((id) => id is int ? id : int.tryParse(id.toString()) ?? 0)
+          .where((id) => id > 0)
+          .toList();
+    } else if (parsedProducts.isNotEmpty) {
+      parsedProductIds = parsedProducts.map((p) => p.id).toList();
+    }
+
+    String? extractedBusinessCard;
+    if (json['businessCard'] != null && json['businessCard'].toString().isNotEmpty) {
+      extractedBusinessCard = json['businessCard'].toString();
+    } else if (json['business_card'] != null && json['business_card'].toString().isNotEmpty) {
+      extractedBusinessCard = json['business_card'].toString();
+    } else if (json['visitingCard'] != null && json['visitingCard'].toString().isNotEmpty) {
+      extractedBusinessCard = json['visitingCard'].toString();
+    } else if (json['businessCards'] is List && (json['businessCards'] as List).isNotEmpty) {
+      extractedBusinessCard = (json['businessCards'] as List).first?.toString();
+    }
+
+    return CompanyResponse(
+      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      companyName: json['companyName']?.toString() ?? json['company_name']?.toString() ?? json['name']?.toString() ?? '',
+      email: json['email']?.toString() ?? '',
+      landline: json['landline']?.toString(),
+      address: json['address']?.toString(),
+      city: json['city']?.toString(),
+      country: json['country']?.toString(),
+      website: json['website']?.toString(),
+      description: json['description']?.toString(),
+      status: json['status']?.toString() ?? 'ACTIVE',
+      businessCard: extractedBusinessCard,
+      contactName: (json['contactName'] ?? json['contact_name'])?.toString(),
+      contactDesignation: (json['contactDesignation'] ?? json['contact_designation'])?.toString(),
+      contactEmail: (json['contactEmail'] ?? json['contact_email'])?.toString(),
+      contactMobileNumber: (json['contactMobileNumber'] ?? json['contact_mobile_number'])?.toString(),
+      createdAt: json['createdAt']?.toString(),
+      updatedAt: json['updatedAt']?.toString(),
+      brandIds: parsedBrandIds,
+      brands: parsedBrands,
+      productIds: parsedProductIds,
+      products: parsedProducts,
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'company_name': companyName,
-      'visiting_card': visitingCardUrl ?? visitingCardPath,
-      'visiting_card_name': visitingCardName,
+      'companyName': companyName,
       'email': email,
       'landline': landline,
-      'website': website,
-      'mobile': mobile,
-      'country': country,
+      'address': address,
       'city': city,
-      'full_address': fullAddress,
-      'brands': brands,
-      'products': products,
-      'documents': documents.map((doc) => doc.toJson()).toList(),
-      'summary': summary,
-      'rating': rating,
-      'created_at': createdAt?.toIso8601String(),
-      'updated_at': updatedAt?.toIso8601String(),
+      'country': country,
+      'website': website,
+      'description': description,
+      'status': status,
+      'businessCard': businessCard,
+      'contactName': contactName,
+      'contactDesignation': contactDesignation,
+      'contactEmail': contactEmail,
+      'contactMobileNumber': contactMobileNumber,
+      'createdAt': createdAt,
+      'updatedAt': updatedAt,
+      'brandIds': brandIds,
+      'brands': brands.map((b) => b.toJson()).toList(),
+      'productIds': productIds,
+      'products': products.map((p) => p.toJson()).toList(),
     };
   }
-
-  factory Company.fromJson(Map<String, dynamic> json) {
-    List<String> parsedBrands = [];
-    if (json['brands'] != null) {
-      if (json['brands'] is List) {
-        parsedBrands = (json['brands'] as List)
-            .map((e) => e is Map ? (e['name']?.toString() ?? e.toString()) : e.toString())
-            .toList();
-      } else if (json['brands'] is String) {
-        try {
-          final decoded = jsonDecode(json['brands']);
-          if (decoded is List) {
-            parsedBrands = decoded.map((e) => e.toString()).toList();
-          } else {
-            parsedBrands = json['brands'].toString().split(',').map((e) => e.trim()).toList();
-          }
-        } catch (_) {
-          parsedBrands = json['brands'].toString().split(',').map((e) => e.trim()).toList();
-        }
-      }
-    }
-
-    List<String> parsedProducts = [];
-    if (json['products'] != null) {
-      if (json['products'] is List) {
-        parsedProducts = (json['products'] as List)
-            .map((e) => e is Map ? (e['name']?.toString() ?? e.toString()) : e.toString())
-            .toList();
-      } else if (json['products'] is String) {
-        try {
-          final decoded = jsonDecode(json['products']);
-          if (decoded is List) {
-            parsedProducts = decoded.map((e) => e.toString()).toList();
-          } else {
-            parsedProducts = json['products'].toString().split(',').map((e) => e.trim()).toList();
-          }
-        } catch (_) {
-          parsedProducts = json['products'].toString().split(',').map((e) => e.trim()).toList();
-        }
-      }
-    }
-
-    List<DocumentItem> parsedDocs = [];
-    if (json['documents'] != null) {
-      if (json['documents'] is List) {
-        parsedDocs = (json['documents'] as List)
-            .map((doc) => doc is Map<String, dynamic>
-                ? DocumentItem.fromJson(doc)
-                : DocumentItem(id: UniqueIdGenerator.generate(), name: doc.toString()))
-            .toList();
-      }
-    }
-
-    return Company(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? ''),
-      companyName: json['company_name'] ?? json['companyName'] ?? json['name'] ?? '',
-      visitingCardPath: json['visiting_card_path'],
-      visitingCardUrl: json['visiting_card_url'] ?? json['visiting_card'],
-      visitingCardName: json['visiting_card_name'],
-      email: json['email'] ?? '',
-      landline: json['landline'] ?? '',
-      website: json['website'] ?? '',
-      mobile: json['mobile'] ?? '',
-      country: json['country'] ?? '',
-      city: json['city'] ?? '',
-      fullAddress: json['full_address'] ?? json['address'] ?? '',
-      brands: parsedBrands,
-      products: parsedProducts,
-      documents: parsedDocs,
-      summary: json['summary'] ?? json['description'] ?? '',
-      rating: (json['rating'] is num)
-          ? (json['rating'] as num).toDouble()
-          : double.tryParse(json['rating']?.toString() ?? '0') ?? 0.0,
-      createdAt: json['created_at'] != null ? DateTime.tryParse(json['created_at'].toString()) : null,
-      updatedAt: json['updated_at'] != null ? DateTime.tryParse(json['updated_at'].toString()) : null,
-    );
-  }
-}
-
-class UniqueIdGenerator {
-  static int _counter = 0;
-  static String generate() => 'item_${DateTime.now().millisecondsSinceEpoch}_${++_counter}';
 }
