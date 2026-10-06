@@ -1536,38 +1536,42 @@ class _ProductScreenState extends State<ProductScreen> {
                 height: 160,
                 width: double.infinity,
                 decoration: const BoxDecoration(
-                  gradient: AppTheme.cardGlossGradient,
+                  color: Color(0xFFF8FAFC),
+                  border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
                     if (_selectedFileBytes != null)
-                      Image.memory(_selectedFileBytes!, fit: BoxFit.cover)
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.memory(_selectedFileBytes!, fit: BoxFit.contain),
+                      )
                     else if (_existingFileUrl != null)
-                      Image.network(_existingFileUrl!, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.inventory_2, size: 48, color: Colors.white54));
-                      })
+                      Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Image.network(_existingFileUrl!, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) {
+                          return const Center(child: Icon(Icons.inventory_2_outlined, size: 48, color: AppTheme.textMuted));
+                        }),
+                      )
                     else
                       Center(
-                        child: Icon(
-                          Icons.inventory_2_outlined,
-                          size: 52,
-                          color: Colors.white.withValues(alpha: 0.3),
-                        ),
-                      ),
-                    // Gradient overlay
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.topCenter,
-                          end: Alignment.bottomCenter,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.1),
-                            Colors.black.withValues(alpha: 0.6),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.inventory_2_outlined,
+                              size: 48,
+                              color: AppTheme.textMuted.withValues(alpha: 0.45),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              'Product Image Preview',
+                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+                            ),
                           ],
                         ),
                       ),
-                    ),
                     // Featured Star Badge
                     if (_isFeatured)
                       Positioned(
@@ -2068,7 +2072,7 @@ class _ProductScreenState extends State<ProductScreen> {
           crossAxisCount: crossAxisCount,
           crossAxisSpacing: 16,
           mainAxisSpacing: 16,
-          mainAxisExtent: 250,
+          mainAxisExtent: 295,
         ),
         itemCount: products.length,
         itemBuilder: (context, index) {
@@ -2096,49 +2100,65 @@ class _ProductScreenState extends State<ProductScreen> {
           children: [
             // Top Media Image
             Container(
-              height: 95,
+              height: 135,
               width: double.infinity,
               decoration: const BoxDecoration(
-                gradient: AppTheme.cardGlossGradient,
+                color: Color(0xFFF8FAFC),
+                border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
               ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
                   if (prod.image != null && prod.image!.isNotEmpty)
-                    Image.network(
-                      _productService.getFileUrl(prod.image),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => const Center(
-                        child: Icon(Icons.inventory_2, size: 36, color: Colors.white38),
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Image.network(
+                        _productService.getFileUrl(prod.image),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) => const Center(
+                          child: Icon(Icons.inventory_2_outlined, size: 38, color: AppTheme.textMuted),
+                        ),
                       ),
                     )
                   else
-                    const Center(
-                      child: Icon(Icons.inventory_2, size: 36, color: Colors.white30),
-                    ),
-                  // Gradient overlay
-                  Container(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topCenter,
-                        end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.black.withValues(alpha: 0.5),
+                    Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.inventory_2_outlined,
+                            size: 36,
+                            color: AppTheme.textMuted.withValues(alpha: 0.45),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            'No Image',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textMuted,
+                            ),
+                          ),
                         ],
                       ),
                     ),
-                  ),
                   // Featured Badge
                   if (prod.isFeatured)
                     Positioned(
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                         decoration: BoxDecoration(
                           color: const Color(0xFFD97706),
                           borderRadius: BorderRadius.circular(6),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.12),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ],
                         ),
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
@@ -2162,15 +2182,22 @@ class _ProductScreenState extends State<ProductScreen> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
+                        color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(6),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.12),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Text(
                         'ID #${prod.id}',
                         style: GoogleFonts.inter(
-                          fontSize: 10,
+                          fontSize: 9.5,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
                         ),

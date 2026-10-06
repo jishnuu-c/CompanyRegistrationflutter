@@ -2821,6 +2821,20 @@ class _CompanyScreenState extends State<CompanyScreen> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(5),
+                      border: Border.all(color: const Color(0xFFCBD5E1)),
+                    ),
+                    child: Text(
+                      '#${comp.id}',
+                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF64748B)),
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   StatusBadgeChip(status: comp.status, isMini: true),
                 ],
               ),
@@ -3001,7 +3015,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
               ),
             ),
 
-            // Actions Footer matching Angular screenshot
+            // Actions Footer (Fixed, zero-shift static layout)
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: const BoxDecoration(
@@ -3010,79 +3024,74 @@ class _CompanyScreenState extends State<CompanyScreen> {
               ),
               child: Row(
                 children: [
-                  Text(
-                    '# ID: ${comp.id}',
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: const Color(0xFF94A3B8), height: 1.1),
-                  ),
-                  const SizedBox(width: 8),
+                  // View Button
                   Expanded(
-                    child: SingleChildScrollView(
-                      scrollDirection: Axis.horizontal,
-                      reverse: true,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // View Button
-                          _buildCardActionButton(
-                            label: 'View',
-                            icon: Icons.visibility_outlined,
-                            bgColor: const Color(0xFFF1F5F9),
-                            borderColor: const Color(0xFFE2E8F0),
-                            textColor: const Color(0xFF475569),
-                            onTap: () => setState(() => _selectedCompany = comp),
-                          ),
-                          const SizedBox(width: 5),
+                    flex: 10,
+                    child: _buildCardActionButton(
+                      label: 'View',
+                      icon: Icons.visibility_outlined,
+                      bgColor: const Color(0xFFF1F5F9),
+                      borderColor: const Color(0xFFCBD5E1),
+                      textColor: const Color(0xFF334155),
+                      onTap: () => setState(() => _selectedCompany = comp),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
 
-                          // Share Button (Green)
-                          _buildCardActionButton(
-                            label: 'Share',
-                            icon: Icons.share,
-                            bgColor: const Color(0xFFECFDF5),
-                            borderColor: const Color(0xFFA7F3D0),
-                            textColor: const Color(0xFF059669),
-                            onTap: () => CompanyShareDialog.show(context, comp),
-                          ),
-                          const SizedBox(width: 5),
+                  // Share Button
+                  Expanded(
+                    flex: 11,
+                    child: _buildCardActionButton(
+                      label: 'Share',
+                      icon: Icons.share_rounded,
+                      bgColor: const Color(0xFFECFDF5),
+                      borderColor: const Color(0xFFA7F3D0),
+                      textColor: const Color(0xFF059669),
+                      onTap: () => CompanyShareDialog.show(context, comp),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
 
-                          // PDF Button (Red)
-                          _buildCardActionButton(
-                            label: 'PDF',
-                            icon: Icons.picture_as_pdf,
-                            bgColor: const Color(0xFFFEF2F2),
-                            borderColor: const Color(0xFFFECACA),
-                            textColor: const Color(0xFFDC2626),
-                            onTap: () => _downloadCompanyPdf(comp),
-                          ),
-                          const SizedBox(width: 5),
+                  // PDF Button
+                  Expanded(
+                    flex: 9,
+                    child: _buildCardActionButton(
+                      label: 'PDF',
+                      icon: Icons.picture_as_pdf_rounded,
+                      bgColor: const Color(0xFFFEF2F2),
+                      borderColor: const Color(0xFFFECACA),
+                      textColor: const Color(0xFFDC2626),
+                      onTap: () => _downloadCompanyPdf(comp),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
 
-                          // Edit Button (Blue)
-                          _buildCardActionButton(
-                            label: 'Edit',
-                            icon: Icons.edit_outlined,
-                            bgColor: const Color(0xFFEFF6FF),
-                            borderColor: const Color(0xFFBFDBFE),
-                            textColor: const Color(0xFF2563EB),
-                            onTap: () => _startEdit(comp),
-                          ),
-                          const SizedBox(width: 5),
+                  // Edit Button
+                  Expanded(
+                    flex: 9,
+                    child: _buildCardActionButton(
+                      label: 'Edit',
+                      icon: Icons.edit_outlined,
+                      bgColor: const Color(0xFFEFF6FF),
+                      borderColor: const Color(0xFFBFDBFE),
+                      textColor: const Color(0xFF2563EB),
+                      onTap: () => _startEdit(comp),
+                    ),
+                  ),
+                  const SizedBox(width: 4),
 
-                          // Delete Button (Trash Red)
-                          InkWell(
-                            onTap: () => _promptDelete(comp),
-                            borderRadius: BorderRadius.circular(6),
-                            child: Container(
-                              padding: const EdgeInsets.all(5),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
-                                borderRadius: BorderRadius.circular(6),
-                                border: Border.all(color: const Color(0xFFFECACA)),
-                              ),
-                              child: const Icon(Icons.delete_outline, size: 14, color: Color(0xFFDC2626)),
-                            ),
-                          ),
-                        ],
+                  // Delete Button
+                  InkWell(
+                    onTap: () => _promptDelete(comp),
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFEF2F2),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFECACA)),
                       ),
+                      child: const Icon(Icons.delete_outline_rounded, size: 14, color: Color(0xFFDC2626)),
                     ),
                   ),
                 ],
@@ -3106,20 +3115,25 @@ class _CompanyScreenState extends State<CompanyScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(6),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 5),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(color: borderColor),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 13, color: textColor),
-            const SizedBox(width: 4),
-            Text(
-              label,
-              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: textColor),
+            Icon(icon, size: 12, color: textColor),
+            const SizedBox(width: 3),
+            Flexible(
+              child: Text(
+                label,
+                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: textColor),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
             ),
           ],
         ),
@@ -3129,13 +3143,18 @@ class _CompanyScreenState extends State<CompanyScreen> {
 
   // --- View Detail Modal Dialog ---
   Widget _buildCompanyDetailModal(CompanyResponse comp) {
+    final screenHeight = MediaQuery.of(context).size.height;
     return Container(
       color: Colors.black54,
       alignment: Alignment.center,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+      child: Material(
+        color: Colors.transparent,
         child: Container(
-          constraints: const BoxConstraints(maxWidth: 520),
+          constraints: BoxConstraints(
+            maxWidth: 500,
+            maxHeight: screenHeight * 0.88,
+          ),
           decoration: BoxDecoration(
             color: AppTheme.bgSurface,
             borderRadius: BorderRadius.circular(16),
@@ -3147,9 +3166,9 @@ class _CompanyScreenState extends State<CompanyScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              // Header
+              // FIXED Header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
@@ -3161,13 +3180,13 @@ class _CompanyScreenState extends State<CompanyScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Enterprise Profile â€¢ ID #${comp.id}',
-                            style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppTheme.textMuted, letterSpacing: 0.2),
+                            'Enterprise Profile • ID #${comp.id}',
+                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textMuted, letterSpacing: 0.2),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             comp.companyName,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -3179,383 +3198,412 @@ class _CompanyScreenState extends State<CompanyScreen> {
                     const SizedBox(width: 4),
                     IconButton(
                       onPressed: () => setState(() => _selectedCompany = null),
-                      icon: const Icon(Icons.close, size: 20, color: AppTheme.textSecondary),
+                      icon: const Icon(Icons.close, size: 18, color: AppTheme.textSecondary),
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
                     ),
                   ],
                 ),
               ),
 
-              // Body
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Meta Bar (2x2 structured grid)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSubtle,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.borderLight),
-                      ),
-                      child: Column(
-                        children: [
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: _buildModalMetaItem('Corporate Email', comp.email, icon: Icons.mail_outline)),
-                              const SizedBox(width: 10),
-                              Expanded(child: _buildModalMetaItem('Landline', comp.landline?.isNotEmpty == true ? comp.landline! : 'Not Specified', icon: Icons.phone_outlined)),
-                            ],
-                          ),
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight.withValues(alpha: 0.6)),
-                          ),
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Expanded(child: _buildModalMetaItem('Contact Person', '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null ? ' (${comp.contactDesignation})' : ''}', icon: Icons.person_outline)),
-                              const SizedBox(width: 10),
-                              Expanded(child: _buildModalMetaItem('Contact Mobile', comp.contactMobileNumber?.isNotEmpty == true ? comp.contactMobileNumber! : 'N/A', icon: Icons.smartphone_outlined)),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Registered Address Card
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSurface,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.borderLight),
-                      ),
-                      child: Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(6),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryLight,
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: const Icon(Icons.location_on_outlined, size: 14, color: AppTheme.primary),
-                          ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'REGISTERED ADDRESS',
-                                  style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.5),
-                                ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  comp.address ?? 'Not Specified',
-                                  style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
-                                ),
-                                if ((comp.city != null && comp.city!.isNotEmpty) || (comp.country != null && comp.country!.isNotEmpty)) ...[
-                                  const SizedBox(height: 1),
-                                  Text(
-                                    [comp.city, comp.country].where((s) => s != null && s.isNotEmpty).join(', '),
-                                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
-                                  ),
-                                ],
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    // Online Presence / Website Card
-                    if (comp.website != null && comp.website!.trim().isNotEmpty) ...[
-                      const SizedBox(height: 8),
+              // SCROLLABLE Body (Header & Footer stay permanently fixed)
+              Flexible(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.all(12),
+                  physics: const BouncingScrollPhysics(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Meta Bar (2x2 structured grid)
                       Container(
-                        width: double.infinity,
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFEFF6FF),
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFFBFDBFE)),
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFDBEAFE),
-                                borderRadius: BorderRadius.circular(6),
-                              ),
-                              child: const Icon(Icons.language_outlined, size: 14, color: Color(0xFF2563EB)),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'ONLINE PRESENCE',
-                                    style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFF1E40AF), letterSpacing: 0.5),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  InkWell(
-                                    onTap: () async {
-                                      final uri = Uri.tryParse(comp.website!);
-                                      if (uri != null) launchUrl(uri);
-                                    },
-                                    child: Text(
-                                      comp.website!,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF2563EB),
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            const Icon(Icons.open_in_new, size: 14, color: Color(0xFF3B82F6)),
-                          ],
-                        ),
-                      ),
-                    ],
-                    const SizedBox(height: 12),
-
-                    // Brands Dealt With
-                    if (comp.brands.isNotEmpty) ...[
-                      Text(
-                        'Brands Dealt With (${comp.brands.length})',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: comp.brands.map((b) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: AppTheme.primaryLight.withValues(alpha: 0.7),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
-                            ),
-                            child: Text(
-                              b.brandName,
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Products Portfolio
-                    if (comp.products.isNotEmpty) ...[
-                      Text(
-                        'Products Portfolio (${comp.products.length})',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 6),
-                      Wrap(
-                        spacing: 6,
-                        runSpacing: 6,
-                        children: comp.products.map((p) {
-                          return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF3E8FF),
-                              borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFDDD6FE)),
-                            ),
-                            child: Text(
-                              '${p.name}${p.brandName != null ? ' (${p.brandName})' : ''}',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF6B21A8)),
-                            ),
-                          );
-                        }).toList(),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Description
-                    if (comp.description != null && comp.description!.trim().isNotEmpty) ...[
-                      Text(
-                        'Description',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(9),
                         decoration: BoxDecoration(
                           color: AppTheme.bgSubtle,
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AppTheme.borderLight),
                         ),
-                        child: Text(
-                          comp.description!,
-                          style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.4),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Attachment / Business Card
-                    if (comp.businessCard != null && comp.businessCard!.trim().isNotEmpty) ...[
-                      Text(
-                        'Business Card / Attachment',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 6),
-                      if (comp.businessCard!.toLowerCase().endsWith('.pdf'))
-                        InkWell(
-                          onTap: () {
-                            final url = _companyService.getFileUrl(comp.businessCard);
-                            final uri = Uri.tryParse(url);
-                            if (uri != null) launchUrl(uri);
-                          },
-                          child: Container(
-                            padding: const EdgeInsets.all(10),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFFEF2F2),
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: const Color(0xFFFECACA)),
-                            ),
-                            child: Row(
+                        child: Column(
+                          children: [
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Icon(Icons.picture_as_pdf, color: AppTheme.error, size: 18),
+                                Expanded(child: _buildModalMetaItem('Corporate Email', comp.email, icon: Icons.mail_outline)),
                                 const SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'View Business Card (PDF Document)',
-                                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.error),
-                                  ),
-                                ),
-                                const Icon(Icons.open_in_new, size: 14, color: AppTheme.error),
+                                Expanded(child: _buildModalMetaItem('Landline', comp.landline?.isNotEmpty == true ? comp.landline! : 'Not Specified', icon: Icons.phone_outlined)),
                               ],
                             ),
-                          ),
-                        )
-                      else
-                        Container(
-                          height: 150,
-                          width: double.infinity,
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: AppTheme.borderLight),
-                            color: AppTheme.bgSubtle,
-                          ),
-                          clipBehavior: Clip.antiAlias,
-                          child: Image.network(
-                            _companyService.getFileUrl(comp.businessCard),
-                            fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Center(
-                              child: Icon(Icons.broken_image, size: 36, color: AppTheme.textMuted),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 6),
+                              child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight.withValues(alpha: 0.6)),
                             ),
+                            Row(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Expanded(child: _buildModalMetaItem('Contact Person', '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null ? ' (${comp.contactDesignation})' : ''}', icon: Icons.person_outline)),
+                                const SizedBox(width: 8),
+                                Expanded(child: _buildModalMetaItem('Contact Mobile', comp.contactMobileNumber?.isNotEmpty == true ? comp.contactMobileNumber! : 'N/A', icon: Icons.smartphone_outlined)),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+
+                      // Registered Address Card
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: AppTheme.bgSurface,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(color: AppTheme.borderLight),
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(5),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryLight,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: const Icon(Icons.location_on_outlined, size: 13, color: AppTheme.primary),
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'REGISTERED ADDRESS',
+                                    style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.5),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    comp.address ?? 'Not Specified',
+                                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                  ),
+                                  if ((comp.city != null && comp.city!.isNotEmpty) || (comp.country != null && comp.country!.isNotEmpty)) ...[
+                                    const SizedBox(height: 1),
+                                    Text(
+                                      [comp.city, comp.country].where((s) => s != null && s.isNotEmpty).join(', '),
+                                      style: GoogleFonts.inter(fontSize: 10.5, color: AppTheme.textSecondary),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Online Presence / Website Card
+                      if (comp.website != null && comp.website!.trim().isNotEmpty) ...[
+                        const SizedBox(height: 8),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFEFF6FF),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: const Color(0xFFBFDBFE)),
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFDBEAFE),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: const Icon(Icons.language_outlined, size: 13, color: Color(0xFF2563EB)),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'ONLINE PRESENCE',
+                                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: const Color(0xFF1E40AF), letterSpacing: 0.5),
+                                    ),
+                                    const SizedBox(height: 2),
+                                    InkWell(
+                                      onTap: () async {
+                                        final uri = Uri.tryParse(comp.website!);
+                                        if (uri != null) launchUrl(uri);
+                                      },
+                                      child: Text(
+                                        comp.website!,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF2563EB),
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Icon(Icons.open_in_new, size: 13, color: Color(0xFF3B82F6)),
+                            ],
                           ),
                         ),
+                      ],
+                      const SizedBox(height: 8),
+
+                      // Brands Dealt With
+                      if (comp.brands.isNotEmpty) ...[
+                        Text(
+                          'Brands Dealt With (${comp.brands.length})',
+                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 5,
+                          runSpacing: 5,
+                          children: comp.brands.map((b) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: AppTheme.primaryLight.withValues(alpha: 0.7),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
+                              ),
+                              child: Text(
+                                b.brandName,
+                                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppTheme.primary),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Products Portfolio
+                      if (comp.products.isNotEmpty) ...[
+                        Text(
+                          'Products Portfolio (${comp.products.length})',
+                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 4),
+                        Wrap(
+                          spacing: 5,
+                          runSpacing: 5,
+                          children: comp.products.map((p) {
+                            return Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFF3E8FF),
+                                borderRadius: BorderRadius.circular(5),
+                                border: Border.all(color: const Color(0xFFDDD6FE)),
+                              ),
+                              child: Text(
+                                '${p.name}${p.brandName != null ? ' (${p.brandName})' : ''}',
+                                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: const Color(0xFF6B21A8)),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Description
+                      if (comp.description != null && comp.description!.trim().isNotEmpty) ...[
+                        Text(
+                          'Description',
+                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 4),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: AppTheme.bgSubtle,
+                            borderRadius: BorderRadius.circular(7),
+                            border: Border.all(color: AppTheme.borderLight),
+                          ),
+                          child: Text(
+                            comp.description!,
+                            style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.35),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                      ],
+
+                      // Attachment / Business Card
+                      if (comp.businessCard != null && comp.businessCard!.trim().isNotEmpty) ...[
+                        Text(
+                          'Business Card / Attachment',
+                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        ),
+                        const SizedBox(height: 4),
+                        if (comp.businessCard!.toLowerCase().endsWith('.pdf'))
+                          InkWell(
+                            onTap: () {
+                              final url = _companyService.getFileUrl(comp.businessCard);
+                              final uri = Uri.tryParse(url);
+                              if (uri != null) launchUrl(uri);
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFFEF2F2),
+                                borderRadius: BorderRadius.circular(7),
+                                border: Border.all(color: const Color(0xFFFECACA)),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.picture_as_pdf, color: AppTheme.error, size: 16),
+                                  const SizedBox(width: 6),
+                                  Expanded(
+                                    child: Text(
+                                      'View Business Card (PDF Document)',
+                                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.error),
+                                    ),
+                                  ),
+                                  const Icon(Icons.open_in_new, size: 13, color: AppTheme.error),
+                                ],
+                              ),
+                            ),
+                          )
+                        else
+                          Container(
+                            height: 125,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: AppTheme.borderLight),
+                              color: AppTheme.bgSubtle,
+                            ),
+                            clipBehavior: Clip.antiAlias,
+                            child: Image.network(
+                              _companyService.getFileUrl(comp.businessCard),
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) => const Center(
+                                child: Icon(Icons.broken_image, size: 32, color: AppTheme.textMuted),
+                              ),
+                            ),
+                          ),
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
 
-              // Footer Actions
+              // FIXED Footer Actions
               Container(
+                width: double.infinity,
                 padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(top: BorderSide(color: AppTheme.borderLight)),
                 ),
-                child: Wrap(
-                  alignment: WrapAlignment.spaceBetween,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 8,
-                  runSpacing: 8,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Primary Actions Row: Share Contact & PDF Profile
                     Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            final target = comp;
-                            setState(() => _selectedCompany = null);
-                            _promptDelete(target);
-                          },
-                          icon: const Icon(Icons.delete_outline, size: 14, color: AppTheme.error),
-                          label: Text('Delete', style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.error, fontWeight: FontWeight.w600)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFFECACA)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => CompanyShareDialog.show(context, comp),
+                            icon: const Icon(Icons.share_rounded, size: 15),
+                            label: Text(
+                              'Share Contact',
+                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF059669),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 9),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () => _startEdit(comp),
-                          icon: const Icon(Icons.edit, size: 13),
-                          label: Text('Edit', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _downloadCompanyPdf(comp),
+                            icon: const Icon(Icons.picture_as_pdf_rounded, size: 15),
+                            label: Text(
+                              'PDF Profile',
+                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFDC2626),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 9),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
                           ),
                         ),
                       ],
                     ),
+                    const SizedBox(height: 7),
+
+                    // Secondary Actions Row: Delete, Edit, Close
                     Row(
-                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Share Contact Button
-                        ElevatedButton.icon(
-                          onPressed: () => CompanyShareDialog.show(context, comp),
-                          icon: const Icon(Icons.share, size: 13),
-                          label: Text('Share Contact', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFF059669),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () {
+                              final target = comp;
+                              setState(() => _selectedCompany = null);
+                              _promptDelete(target);
+                            },
+                            icon: const Icon(Icons.delete_outline_rounded, size: 15, color: AppTheme.error),
+                            label: Text(
+                              'Delete',
+                              style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.error, fontWeight: FontWeight.w600),
+                            ),
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: const Color(0xFFFEF2F2),
+                              side: const BorderSide(color: Color(0xFFFECACA)),
+                              padding: const EdgeInsets.symmetric(vertical: 8.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        // PDF Profile Button
-                        ElevatedButton.icon(
-                          onPressed: () => _downloadCompanyPdf(comp),
-                          icon: const Icon(Icons.picture_as_pdf, size: 13),
-                          label: Text('PDF Profile', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xFFDC2626),
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () => _startEdit(comp),
+                            icon: const Icon(Icons.edit_rounded, size: 14),
+                            label: Text(
+                              'Edit',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: AppTheme.primary,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 8.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
-                        OutlinedButton(
-                          onPressed: () => setState(() => _selectedCompany = null),
-                          style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                            visualDensity: VisualDensity.compact,
+                        Expanded(
+                          child: OutlinedButton(
+                            onPressed: () => setState(() => _selectedCompany = null),
+                            style: OutlinedButton.styleFrom(
+                              side: const BorderSide(color: AppTheme.borderLight),
+                              backgroundColor: AppTheme.bgSurface,
+                              padding: const EdgeInsets.symmetric(vertical: 8.5),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            child: Text(
+                              'Close',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                            ),
                           ),
-                          child: Text('Close', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
                         ),
                       ],
                     ),
@@ -3576,13 +3624,13 @@ class _CompanyScreenState extends State<CompanyScreen> {
         Row(
           children: [
             if (icon != null) ...[
-              Icon(icon, size: 11, color: AppTheme.textMuted),
+              Icon(icon, size: 10, color: AppTheme.textMuted),
               const SizedBox(width: 3),
             ],
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
+                style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -3592,7 +3640,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
