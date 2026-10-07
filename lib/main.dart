@@ -1,5 +1,5 @@
-﻿import 'package:flutter/material.dart';
-import 'screens/main_shell_screen.dart';
+import 'package:flutter/material.dart';
+import 'screens/login_screen.dart';
 import 'services/api_config.dart';
 import 'theme/app_theme.dart';
 
@@ -19,10 +19,10 @@ class CompanyRegistrationApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'CorpRegistry PRO',
+      title: 'CorpRegistry',
       debugShowCheckedModeBanner: false,
       theme: AppTheme.lightTheme,
-      home: const MainShellScreen(),
+      home: const LoginScreen(),
     );
   }
 }

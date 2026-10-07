@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:company_reg_flutter/models/brand_model.dart';
 import 'package:company_reg_flutter/models/company_model.dart';
@@ -45,7 +45,6 @@ void main() {
     testWidgets('typing query opens matching companies dropdown with highlighted text and zero overflow', (WidgetTester tester) async {
       String currentQuery = '';
       CompanyResponse? inspectedCompany;
-      CompanyResponse? selectedCompany;
 
       await tester.pumpWidget(
         MaterialApp(
@@ -65,9 +64,7 @@ void main() {
                       onCompanyInspect: (comp) {
                         inspectedCompany = comp;
                       },
-                      onCompanySelected: (comp) {
-                        selectedCompany = comp;
-                      },
+                      onCompanySelected: (_) {},
                     );
                   },
                 ),

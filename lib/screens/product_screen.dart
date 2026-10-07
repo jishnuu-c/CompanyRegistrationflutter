@@ -2359,293 +2359,531 @@ class _ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  // --- View Detail Modal ---
+  // --- View Detail Modal (Matching Angular Reference Pixel-Perfect & Zero-Overflow) ---
   Widget _buildProductDetailModal(ProductResponse prod) {
+    final size = MediaQuery.of(context).size;
+    final maxDialogHeight = size.height * 0.86;
+
     return Container(
-      color: Colors.black54,
+      color: Colors.black.withValues(alpha: 0.55),
       alignment: Alignment.center,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 20),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 520),
-          decoration: BoxDecoration(
-            color: AppTheme.bgSurface,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: AppTheme.shadowLg,
-            border: Border.all(color: AppTheme.borderLight),
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: const BoxDecoration(
-                  color: AppTheme.bgSubtle,
-                  border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+      child: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
+          child: Container(
+            constraints: BoxConstraints(
+              maxWidth: 460,
+              maxHeight: maxDialogHeight,
+            ),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.20),
+                  blurRadius: 28,
+                  offset: const Offset(0, 12),
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Product Detail • ID #${prod.id}',
-                                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppTheme.textMuted, letterSpacing: 0.2),
+              ],
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 1. Fixed Header
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  color: Colors.white,
+                  child: Row(
+                    children: [
+                      // Mint Icon Container
+                      Container(
+                        width: 38,
+                        height: 38,
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFE6FFFA),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(color: const Color(0xFF99F6E4), width: 1.2),
+                        ),
+                        child: const Center(
+                          child: Icon(
+                            Icons.inventory_2_rounded,
+                            color: Color(0xFF0D9488),
+                            size: 20,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // Title & Subtitle
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              prod.name,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF0F172A),
+                                letterSpacing: -0.3,
                               ),
-                              if (prod.isFeatured) ...[
-                                const SizedBox(width: 8),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: const Color(0xFFFEF3C7),
-                                    borderRadius: BorderRadius.circular(6),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 1),
+                            Text(
+                              'Product Catalog Record #${prod.id}',
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF94A3B8),
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Close Button
+                      IconButton(
+                        onPressed: () => setState(() => _selectedProduct = null),
+                        icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                        visualDensity: VisualDensity.compact,
+                        padding: EdgeInsets.zero,
+                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        splashRadius: 18,
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+
+                // 2. Scrollable Body Content
+                Flexible(
+                  child: SingleChildScrollView(
+                    physics: const BouncingScrollPhysics(),
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Product Image Card
+                        Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF8FAFC),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFE2E8F0)),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: prod.image != null && prod.image!.trim().isNotEmpty
+                              ? Padding(
+                                  padding: const EdgeInsets.all(10),
+                                  child: Image.network(
+                                    _productService.getFileUrl(prod.image),
+                                    fit: BoxFit.contain,
+                                    errorBuilder: (context, error, stackTrace) => const Center(
+                                      child: Icon(Icons.inventory_2_outlined, size: 42, color: Color(0xFF94A3B8)),
+                                    ),
                                   ),
-                                  child: Row(
+                                )
+                              : Center(
+                                  child: Column(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.star, size: 10, color: Color(0xFFD97706)),
-                                      const SizedBox(width: 3),
+                                      Icon(
+                                        Icons.inventory_2_outlined,
+                                        size: 40,
+                                        color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
+                                      ),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        'Featured',
+                                        'No Image Available',
                                         style: GoogleFonts.inter(
-                                          fontSize: 9.5,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFFB45309),
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF94A3B8),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Details Info Box
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFFF1F6FB),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: const Color(0xFFDCE7F5)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Catalog ID
+                              _buildDetailRow(
+                                label: 'Catalog ID:',
+                                valueWidget: Text(
+                                  '#${prod.id}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 9),
+
+                              // Product Name
+                              _buildDetailRow(
+                                label: 'Product Name:',
+                                valueWidget: Text(
+                                  prod.name,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  textAlign: TextAlign.right,
+                                ),
+                              ),
+                              const SizedBox(height: 9),
+
+                              // Main Category Badge
+                              _buildDetailRow(
+                                label: 'Main Category:',
+                                valueWidget: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFECFDF5),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.folder_rounded, size: 12, color: Color(0xFF059669)),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          prod.categoryName ?? 'Category',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF059669),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+
+                              // Subcategory Badge (if available)
+                              if (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty) ...[
+                                const SizedBox(height: 9),
+                                _buildDetailRow(
+                                  label: 'Subcategory:',
+                                  valueWidget: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFF3E8FF),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: const Color(0xFFDDD6FE)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.subdirectory_arrow_right_rounded, size: 12, color: Color(0xFF7C3AED)),
+                                        const SizedBox(width: 4),
+                                        Flexible(
+                                          child: Text(
+                                            prod.subCategoryName!,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF7C3AED),
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
                               ],
+                              const SizedBox(height: 9),
+
+                              // Brand Badge
+                              _buildDetailRow(
+                                label: 'Brand:',
+                                valueWidget: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF3E8FF),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: const Color(0xFFDDD6FE)),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(Icons.verified_rounded, size: 12, color: Color(0xFF7C3AED)),
+                                      const SizedBox(width: 4),
+                                      Flexible(
+                                        child: Text(
+                                          prod.brandName ?? 'Brand',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w700,
+                                            color: const Color(0xFF7C3AED),
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 9),
+
+                              // Promotion Status Badge
+                              _buildDetailRow(
+                                label: 'Promotion Status:',
+                                valueWidget: prod.isFeatured
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEF3C7),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(color: const Color(0xFFFDE68A)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              'Featured Product',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFFB45309),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF1F5F9),
+                                          borderRadius: BorderRadius.circular(20),
+                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                        ),
+                                        child: Text(
+                                          'Standard Catalog',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: const Color(0xFF64748B),
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const SizedBox(height: 10),
+
+                              // Dashed Divider
+                              _buildDashedDivider(),
+                              const SizedBox(height: 9),
+
+                              // Description Section
+                              Text(
+                                'Description:',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                              const SizedBox(height: 3),
+                              Text(
+                                prod.description != null && prod.description!.trim().isNotEmpty
+                                    ? prod.description!
+                                    : 'No description provided.',
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: const Color(0xFF334155),
+                                  height: 1.4,
+                                ),
+                              ),
                             ],
                           ),
-                          const SizedBox(height: 2),
-                          Text(
-                            prod.name,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
-                    IconButton(
-                      onPressed: () => setState(() => _selectedProduct = null),
-                      icon: const Icon(Icons.close, size: 20, color: AppTheme.textSecondary),
-                      visualDensity: VisualDensity.compact,
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
 
-              // Body
-              Padding(
-                padding: const EdgeInsets.all(14),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Meta Bar
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSubtle,
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.borderLight),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(child: _buildModalMetaItem('Brand', prod.brandName ?? 'N/A')),
-                          Container(width: 1, height: 28, color: AppTheme.borderLight),
-                          Expanded(child: _buildModalMetaItem('Category', prod.categoryName ?? 'N/A')),
-                          if (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty) ...[
-                            Container(width: 1, height: 28, color: AppTheme.borderLight),
-                            Expanded(child: _buildModalMetaItem('Subcategory', prod.subCategoryName!)),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Hierarchy Breadcrumb Card
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFF8FAFC),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(color: AppTheme.borderLight),
-                      ),
-                      child: Row(
-                        children: [
-                          const Icon(Icons.account_tree_outlined, size: 14, color: AppTheme.primary),
-                          const SizedBox(width: 6),
-                          Text(
-                            'Taxonomy: ',
-                            style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
-                          ),
-                          Text(
-                            prod.categoryName ?? 'Category',
-                            style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
-                          ),
-                          if (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty) ...[
-                            const SizedBox(width: 4),
-                            const Icon(Icons.chevron_right, size: 12, color: AppTheme.textMuted),
-                            const SizedBox(width: 4),
-                            Text(
-                              prod.subCategoryName!,
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: const Color(0xFF7C3AED)),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Description
-                    if (prod.description != null && prod.description!.trim().isNotEmpty) ...[
-                      Text(
-                        'Description',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 4),
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(9),
-                        decoration: BoxDecoration(
-                          color: AppTheme.bgSubtle,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppTheme.borderLight),
-                        ),
-                        child: Text(
-                          prod.description!,
-                          style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.textSecondary, height: 1.4),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                    ],
-
-                    // Image Display
-                    if (prod.image != null && prod.image!.trim().isNotEmpty) ...[
-                      Text(
-                        'Product Photograph',
-                        style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        height: 150,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: AppTheme.borderLight),
-                          color: AppTheme.bgSubtle,
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.network(
-                          _productService.getFileUrl(prod.image),
-                          fit: BoxFit.contain,
-                          errorBuilder: (context, error, stackTrace) => const Center(
-                            child: Icon(Icons.broken_image, size: 36, color: AppTheme.textMuted),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-
-              // Footer Actions
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                decoration: const BoxDecoration(
-                  color: AppTheme.bgSubtle,
-                  border: Border(top: BorderSide(color: AppTheme.borderLight)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                // 3. Fixed Footer Actions Bar (Fitted and Scaled to Prevent Horizontal Overflow)
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  decoration: const BoxDecoration(
+                    color: Colors.white,
+                    border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+                  ),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    alignment: Alignment.centerRight,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      mainAxisSize: MainAxisSize.min,
                       children: [
-                        OutlinedButton.icon(
+                        // Edit Product Button (Teal filled)
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            _startEdit(prod);
+                          },
+                          icon: const Icon(Icons.edit_note_rounded, size: 17, color: Colors.white),
+                          label: Text(
+                            'Edit Product',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.white,
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF0D9488),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+
+                        // Delete Button (Soft Pink/Red)
+                        ElevatedButton.icon(
                           onPressed: () {
                             final target = prod;
                             setState(() => _selectedProduct = null);
                             _promptDelete(target);
                           },
-                          icon: const Icon(Icons.delete_outline, size: 14, color: AppTheme.error),
-                          label: Text('Delete', style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.error, fontWeight: FontWeight.w600)),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFFECACA)),
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                          icon: const Icon(Icons.delete_outline_rounded, size: 15, color: Color(0xFFEF4444)),
+                          label: Text(
+                            'Delete',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFEF4444),
+                            ),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFFEE2E2),
+                            foregroundColor: const Color(0xFFEF4444),
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              side: const BorderSide(color: Color(0xFFFECACA)),
+                            ),
                             visualDensity: VisualDensity.compact,
                           ),
                         ),
                         const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _startEdit(prod);
-                          },
-                          icon: const Icon(Icons.edit, size: 13),
-                          label: Text('Edit', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600)),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+
+                        // Close Button (White outlined)
+                        OutlinedButton(
+                          onPressed: () => setState(() => _selectedProduct = null),
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.white,
+                            foregroundColor: const Color(0xFF475569),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                             visualDensity: VisualDensity.compact,
+                          ),
+                          child: Text(
+                            'Close',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF475569),
+                            ),
                           ),
                         ),
                       ],
                     ),
-                    OutlinedButton(
-                      onPressed: () => setState(() => _selectedProduct = null),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                        visualDensity: VisualDensity.compact,
-                      ),
-                      child: Text('Close', style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
-                    ),
-                  ],
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildModalMetaItem(String label, String value) {
-    return Column(
+  Widget _buildDetailRow({
+    required String label,
+    required Widget valueWidget,
+  }) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Text(
           label,
-          style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 11.5,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF64748B),
           ),
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
+        ),
+        const SizedBox(width: 8),
+        Flexible(
+          child: Align(
+            alignment: Alignment.centerRight,
+            child: valueWidget,
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildDashedDivider() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final boxWidth = constraints.constrainWidth();
+        const dashWidth = 4.0;
+        const dashSpace = 3.0;
+        final dashCount = (boxWidth / (dashWidth + dashSpace)).floor();
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: List.generate(dashCount, (_) {
+            return const SizedBox(
+              width: dashWidth,
+              height: 1,
+              child: DecoratedBox(
+                decoration: BoxDecoration(color: Color(0xFFCBD5E1)),
+              ),
+            );
+          }),
+        );
+      },
     );
   }
 }
