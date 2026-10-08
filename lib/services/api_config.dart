@@ -16,8 +16,10 @@ class ApiConfig extends ChangeNotifier {
 
   void _initDefaultHost() {
     // Default to the actual network backend server matching Angular environment.ts
-    _host = 'http://192.168.1.201:8080';
+    // _host = 'http://192.168.1.201:8080';
     // _host = 'http://103.199.210.172:8080';
+    _host = 'http://192.168.1.142:8080';
+
     checkConnection();
   }
 

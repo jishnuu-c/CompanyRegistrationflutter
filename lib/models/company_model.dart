@@ -93,6 +93,7 @@ class CompanyResponse {
   final String? description;
   final String status;
   final String? businessCard;
+  final List<String> businessCards;
   final String? contactName;
   final String? contactDesignation;
   final String? contactEmail;
@@ -116,6 +117,7 @@ class CompanyResponse {
     this.description,
     this.status = 'ACTIVE',
     this.businessCard,
+    this.businessCards = const [],
     this.contactName,
     this.contactDesignation,
     this.contactEmail,
@@ -127,6 +129,14 @@ class CompanyResponse {
     this.productIds = const [],
     this.products = const [],
   });
+
+  List<String> get allCards {
+    if (businessCards.isNotEmpty) return businessCards;
+    if (businessCard != null && businessCard!.trim().isNotEmpty) {
+      return [businessCard!.trim()];
+    }
+    return const [];
+  }
 
   factory CompanyResponse.fromJson(Map<String, dynamic> json) {
     List<BrandResponse> parsedBrands = [];
@@ -163,6 +173,14 @@ class CompanyResponse {
       parsedProductIds = parsedProducts.map((p) => p.id).toList();
     }
 
+    List<String> parsedCards = [];
+    if (json['businessCards'] is List) {
+      parsedCards = (json['businessCards'] as List)
+          .map((e) => e?.toString() ?? '')
+          .where((e) => e.isNotEmpty)
+          .toList();
+    }
+
     String? extractedBusinessCard;
     if (json['businessCard'] != null && json['businessCard'].toString().isNotEmpty) {
       extractedBusinessCard = json['businessCard'].toString();
@@ -170,8 +188,12 @@ class CompanyResponse {
       extractedBusinessCard = json['business_card'].toString();
     } else if (json['visitingCard'] != null && json['visitingCard'].toString().isNotEmpty) {
       extractedBusinessCard = json['visitingCard'].toString();
-    } else if (json['businessCards'] is List && (json['businessCards'] as List).isNotEmpty) {
-      extractedBusinessCard = (json['businessCards'] as List).first?.toString();
+    } else if (parsedCards.isNotEmpty) {
+      extractedBusinessCard = parsedCards.first;
+    }
+
+    if (parsedCards.isEmpty && extractedBusinessCard != null && extractedBusinessCard.isNotEmpty) {
+      parsedCards = [extractedBusinessCard];
     }
 
     return CompanyResponse(
@@ -186,6 +208,7 @@ class CompanyResponse {
       description: json['description']?.toString(),
       status: json['status']?.toString() ?? 'ACTIVE',
       businessCard: extractedBusinessCard,
+      businessCards: parsedCards,
       contactName: (json['contactName'] ?? json['contact_name'])?.toString(),
       contactDesignation: (json['contactDesignation'] ?? json['contact_designation'])?.toString(),
       contactEmail: (json['contactEmail'] ?? json['contact_email'])?.toString(),

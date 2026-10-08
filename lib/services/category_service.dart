@@ -3,16 +3,18 @@ import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/category_model.dart';
 import 'api_config.dart';
+import 'auth_service.dart';
 
 class CategoryService {
   final ApiConfig _config = ApiConfig();
+  final AuthService _auth = AuthService();
 
   String get _apiUrl => '${_config.apiUrl}/categories';
 
   Future<List<CategoryResponse>> getAllCategories() async {
     final response = await http.get(
       Uri.parse('$_apiUrl/get-all'),
-      headers: {'Accept': 'application/json'},
+      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -29,7 +31,7 @@ class CategoryService {
   Future<CategoryResponse> getCategoryById(int id) async {
     final response = await http.get(
       Uri.parse('$_apiUrl/$id'),
-      headers: {'Accept': 'application/json'},
+      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -48,7 +50,7 @@ class CategoryService {
   }) async {
     final uri = Uri.parse('$_apiUrl/create');
     final request = http.MultipartRequest('POST', uri);
-    request.headers['Accept'] = 'application/json';
+    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
 
     final jsonStr = jsonEncode(categoryData.toJson());
     request.files.add(http.MultipartFile.fromString(
@@ -97,7 +99,7 @@ class CategoryService {
   }) async {
     final uri = Uri.parse('$_apiUrl/update/$id');
     final request = http.MultipartRequest('PUT', uri);
-    request.headers['Accept'] = 'application/json';
+    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
 
     final jsonStr = jsonEncode(categoryData.toJson());
     request.files.add(http.MultipartFile.fromString(
@@ -140,7 +142,7 @@ class CategoryService {
   Future<void> deleteCategory(int id) async {
     final response = await http.delete(
       Uri.parse('$_apiUrl/delete/$id'),
-      headers: {'Accept': 'application/json'},
+      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
     ).timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../screens/login_screen.dart';
 import '../services/api_config.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import 'server_config_dialog.dart';
 
@@ -62,6 +63,7 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
           ),
           ElevatedButton(
             onPressed: () {
+              AuthService().logout();
               Navigator.pop(ctx);
               Navigator.pushAndRemoveUntil(
                 context,

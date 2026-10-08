@@ -19,14 +19,31 @@ class ProductScreen extends StatefulWidget {
   const ProductScreen({super.key, this.onSwitchTab});
 
   @override
-  State<ProductScreen> createState() => _ProductScreenState();
+  State<ProductScreen> createState() => ProductScreenState();
 }
 
-class _ProductScreenState extends State<ProductScreen> {
+class ProductScreenState extends State<ProductScreen> {
   final ProductService _productService = ProductService();
   final CategoryService _categoryService = CategoryService();
   final BrandService _brandService = BrandService();
   final ApiConfig _apiConfig = ApiConfig();
+
+  // Handle device back press
+  bool handleBackPress() {
+    if (_selectedProduct != null) {
+      setState(() => _selectedProduct = null);
+      return true;
+    }
+    if (_editingProductId != null) {
+      _resetForm();
+      return true;
+    }
+    if (_activeTab == 'directory') {
+      setState(() => _activeTab = 'register');
+      return true;
+    }
+    return false;
+  }
 
   // State
   String _activeTab = 'register'; // 'register' or 'directory'

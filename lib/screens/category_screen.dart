@@ -13,12 +13,33 @@ class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
 
   @override
-  State<CategoryScreen> createState() => _CategoryScreenState();
+  State<CategoryScreen> createState() => CategoryScreenState();
 }
 
-class _CategoryScreenState extends State<CategoryScreen> {
+class CategoryScreenState extends State<CategoryScreen> {
   final CategoryService _categoryService = CategoryService();
   final ApiConfig _apiConfig = ApiConfig();
+
+  // Handle device back press
+  bool handleBackPress() {
+    if (_selectedCategory != null) {
+      setState(() => _selectedCategory = null);
+      return true;
+    }
+    if (_showLivePreview) {
+      setState(() => _showLivePreview = false);
+      return true;
+    }
+    if (_editingCategoryId != null) {
+      _resetForm();
+      return true;
+    }
+    if (_activeTab == 'directory') {
+      setState(() => _activeTab = 'register');
+      return true;
+    }
+    return false;
+  }
 
   // State
   String _activeTab = 'register'; // 'register' or 'directory'

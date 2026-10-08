@@ -14,18 +14,42 @@ class BrandScreen extends StatefulWidget {
   const BrandScreen({super.key});
 
   @override
-  State<BrandScreen> createState() => _BrandScreenState();
+  State<BrandScreen> createState() => BrandScreenState();
 }
 
-class _BrandScreenState extends State<BrandScreen> {
+class BrandScreenState extends State<BrandScreen> {
   final BrandService _brandService = BrandService();
   final ApiConfig _apiConfig = ApiConfig();
+
+  // Handle device back press
+  bool handleBackPress() {
+    if (_selectedBrand != null) {
+      setState(() => _selectedBrand = null);
+      return true;
+    }
+    if (_showLivePreview) {
+      setState(() => _showLivePreview = false);
+      return true;
+    }
+    if (_editingBrandId != null) {
+      _resetForm();
+      return true;
+    }
+    if (_activeTab == 'directory') {
+      setState(() => _activeTab = 'register');
+      return true;
+    }
+    return false;
+  }
 
   // State
   String _activeTab = 'register'; // 'register' or 'directory'
   bool _isLoadingList = false;
   bool _isSubmitting = false;
   FeedbackData? _feedback;
+
+  // Selected Brand for Detail Modal View (Matching Angular selectedBrand)
+  BrandResponse? _selectedBrand;
 
   // Edit Mode
   int? _editingBrandId;
@@ -94,6 +118,7 @@ class _BrandScreenState extends State<BrandScreen> {
       _editingBrandId = brand.id;
       _activeTab = 'register';
       _feedback = null;
+      _selectedBrand = null; // Close detail view if open
       _nameController.text = brand.brandName;
       _isFeatured = brand.isFeatured;
 
@@ -209,6 +234,9 @@ class _BrandScreenState extends State<BrandScreen> {
                 title: 'Brand Deleted',
                 message: 'Brand "${brand.brandName}" has been removed.',
               );
+              if (_selectedBrand?.id == brand.id) {
+                _selectedBrand = null;
+              }
               if (_editingBrandId == brand.id) {
                 _resetForm();
               }
@@ -237,24 +265,33 @@ class _BrandScreenState extends State<BrandScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
+      backgroundColor: AppTheme.bgPage,
+      body: Stack(
         children: [
-          // Sub-Navigation Tabs Bar
-          _buildSubNavTabs(),
+          Column(
+            children: [
+              // Sub-Navigation Tabs Bar
+              _buildSubNavTabs(),
 
-          // Feedback Alert Toast
-          if (_feedback != null)
-            FeedbackToast(
-              feedback: _feedback!,
-              onClose: () => setState(() => _feedback = null),
-            ),
+              // Feedback Alert Toast
+              if (_feedback != null)
+                FeedbackToast(
+                  feedback: _feedback!,
+                  onClose: () => setState(() => _feedback = null),
+                ),
 
-          // Main View Content
-          Expanded(
-            child: _activeTab == 'register'
-                ? _buildRegisterView()
-                : _buildDirectoryView(),
+              // Main View Content
+              Expanded(
+                child: _activeTab == 'register'
+                    ? _buildRegisterView()
+                    : _buildDirectoryView(),
+              ),
+            ],
           ),
+
+          // Brand Detail Modal Overlay (Exact Angular feature match)
+          if (_selectedBrand != null)
+            _buildBrandDetailModal(_selectedBrand!),
         ],
       ),
     );
@@ -767,7 +804,7 @@ class _BrandScreenState extends State<BrandScreen> {
     );
   }
 
-  // Live Brand Preview Widget (matching Angular brand badge appearance)
+  // Live Brand Preview Widget (matching Angular live brand showcase appearance)
   Widget _buildLiveBrandPreviewCard() {
     final name = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Brand Name';
     final initials = name.isNotEmpty
@@ -898,7 +935,7 @@ class _BrandScreenState extends State<BrandScreen> {
                           ),
                         ),
                         Text(
-                          'Explore, filter, edit, and delete manufacturer brands.',
+                          'Explore, filter, inspect, edit, and delete manufacturer brands.',
                           style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
                         ),
                       ],
@@ -1067,106 +1104,202 @@ class _BrandScreenState extends State<BrandScreen> {
 
   Widget _buildBrandCardItem(BrandResponse brand) {
     return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+        side: BorderSide(
+          color: brand.isFeatured ? const Color(0xFFFDE68A) : AppTheme.borderLight,
+          width: brand.isFeatured ? 1.5 : 1,
+        ),
+      ),
       child: InkWell(
-        onTap: () => _showBrandDetailModal(brand),
+        onTap: () => setState(() => _selectedBrand = brand),
         borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Row(
+          padding: const EdgeInsets.all(14),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Logo
-              Container(
-                width: 52,
-                height: 52,
-                decoration: BoxDecoration(
-                  color: AppTheme.bgSubtle,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                clipBehavior: Clip.antiAlias,
-                child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
-                    ? Image.network(
-                        _brandService.getFileUrl(brand.brandLogo),
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, _, _) => Center(
-                          child: Text(
-                            brand.initials,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.primary,
-                            ),
-                          ),
-                        ),
-                      )
-                    : Center(
-                        child: Text(
-                          brand.initials,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
-                          ),
-                        ),
-                      ),
-              ),
-              const SizedBox(width: 14),
-
-              // Brand Info
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Flexible(
-                          child: Text(
-                            brand.brandName,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-                        if (brand.isFeatured) ...[
-                          const SizedBox(width: 6),
-                          const Icon(Icons.star_rounded, size: 16, color: AppTheme.warning),
-                        ],
-                      ],
+              // Top Header with ID and Featured Tag (Matching Angular card header)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppTheme.bgSubtle,
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    const SizedBox(height: 4),
+                    child: Text(
+                      '#${brand.id}',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppTheme.textMuted,
+                      ),
+                    ),
+                  ),
+                  if (brand.isFeatured)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                       decoration: BoxDecoration(
-                        color: AppTheme.bgSubtle,
+                        color: const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(6),
+                        border: Border.all(color: const Color(0xFFFDE68A)),
                       ),
-                      child: Text(
-                        'ID: #${brand.id}',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textMuted,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Featured',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFB45309),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
+                ],
               ),
+              const SizedBox(height: 10),
 
-              // Actions
+              // Main Row: Logo + Info
               Row(
                 children: [
-                  IconButton(
-                    icon: const Icon(Icons.edit_outlined, size: 18, color: Color(0xFF0369A1)),
-                    onPressed: () => _startEdit(brand),
-                    tooltip: 'Edit Brand',
+                  // Logo
+                  Container(
+                    width: 48,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: AppTheme.bgSubtle,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: AppTheme.borderLight),
+                    ),
+                    clipBehavior: Clip.antiAlias,
+                    child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                        ? Image.network(
+                            _brandService.getFileUrl(brand.brandLogo),
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, _, _) => Center(
+                              child: Text(
+                                brand.initials,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primary,
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Text(
+                              brand.initials,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primary,
+                              ),
+                            ),
+                          ),
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.delete_outline_rounded, size: 18, color: AppTheme.error),
+                  const SizedBox(width: 12),
+
+                  // Brand Info
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          brand.brandName,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Container(
+                              width: 7,
+                              height: 7,
+                              decoration: const BoxDecoration(
+                                color: AppTheme.success,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Text(
+                              'Catalog Verified',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w500,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Divider(height: 1),
+              const SizedBox(height: 8),
+
+              // Bottom Actions Bar (Matching Angular: View, Edit, Delete)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  // View Action
+                  TextButton.icon(
+                    onPressed: () => setState(() => _selectedBrand = brand),
+                    icon: const Icon(Icons.remove_red_eye_outlined, size: 15, color: AppTheme.primary),
+                    label: Text(
+                      'View',
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+
+                  // Edit Action
+                  TextButton.icon(
+                    onPressed: () => _startEdit(brand),
+                    icon: const Icon(Icons.edit_outlined, size: 15, color: Color(0xFF0369A1)),
+                    label: Text(
+                      'Edit',
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0369A1)),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+
+                  // Delete Action
+                  TextButton.icon(
                     onPressed: () => _promptDelete(brand),
-                    tooltip: 'Delete Brand',
+                    icon: const Icon(Icons.delete_outline_rounded, size: 15, color: AppTheme.error),
+                    label: Text(
+                      'Delete',
+                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.error),
+                    ),
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      visualDensity: VisualDensity.compact,
+                    ),
                   ),
                 ],
               ),
@@ -1177,115 +1310,398 @@ class _BrandScreenState extends State<BrandScreen> {
     );
   }
 
-  void _showBrandDetailModal(BrandResponse brand) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          padding: const EdgeInsets.all(24),
-          decoration: const BoxDecoration(
-            color: AppTheme.bgSurface,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+  // ==========================================
+  // MODAL: VIEW BRAND DETAILS (Matching Angular)
+  // ==========================================
+  Widget _buildBrandDetailModal(BrandResponse brand) {
+    return Stack(
+      children: [
+        // Backdrop
+        GestureDetector(
+          onTap: () => setState(() => _selectedBrand = null),
+          child: Container(
+            color: const Color(0x73000000),
+            width: double.infinity,
+            height: double.infinity,
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+        ),
+
+        // Modal Box
+        Center(
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 540),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            decoration: BoxDecoration(
+              color: AppTheme.bgSurface,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: AppTheme.shadowLg,
+            ),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  // Modal Header
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: const BoxDecoration(
+                      border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          'BRAND DETAIL • ID #${brand.id}',
-                          style: GoogleFonts.inter(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.primary,
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryLight,
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: const Icon(Icons.verified_rounded, color: AppTheme.primary, size: 22),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                brand.brandName,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 17,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.textPrimary,
+                                ),
+                              ),
+                              Text(
+                                'Brand Record #${brand.id}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                        Text(
-                          brand.brandName,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 18,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
+                        IconButton(
+                          onPressed: () => setState(() => _selectedBrand = null),
+                          icon: const Icon(Icons.close, size: 20),
+                          style: IconButton.styleFrom(
+                            backgroundColor: AppTheme.bgSubtle,
+                            padding: const EdgeInsets.all(8),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  if (brand.isFeatured)
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AppTheme.warningBg,
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: const Color(0xFFFDE68A)),
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          const Icon(Icons.star_rounded, size: 14, color: AppTheme.warning),
-                          const SizedBox(width: 4),
-                          Text('Featured Brand', style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFFB45309))),
-                        ],
-                      ),
+
+                  // Modal Body
+                  Padding(
+                    padding: const EdgeInsets.all(20),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Big Logo View Banner (Matching Angular)
+                        Container(
+                          height: 160,
+                          width: double.infinity,
+                          decoration: BoxDecoration(
+                            color: AppTheme.bgSubtle,
+                            borderRadius: BorderRadius.circular(14),
+                            border: Border.all(color: AppTheme.borderLight),
+                          ),
+                          clipBehavior: Clip.antiAlias,
+                          child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                              ? Image.network(
+                                  _brandService.getFileUrl(brand.brandLogo),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, _, _) => Center(
+                                    child: Text(
+                                      brand.initials,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 36,
+                                        fontWeight: FontWeight.w800,
+                                        color: AppTheme.primary,
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        width: 64,
+                                        height: 64,
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.primaryLight,
+                                          borderRadius: BorderRadius.circular(16),
+                                        ),
+                                        alignment: Alignment.center,
+                                        child: Text(
+                                          brand.initials,
+                                          style: GoogleFonts.plusJakartaSans(
+                                            fontSize: 26,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppTheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 8),
+                                      Text(
+                                        'No Brand Logo Uploaded',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          color: AppTheme.textMuted,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Detail Attributes Table (Matching Angular)
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppTheme.bgPage,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppTheme.borderLight),
+                          ),
+                          child: Column(
+                            children: [
+                              _buildAttrRow('Catalog ID:', '#${brand.id}'),
+                              const Divider(height: 1),
+                              _buildAttrRow('Brand Name:', brand.brandName, isBold: true),
+                              const Divider(height: 1),
+                              _buildAttrRowWidget(
+                                'Featured Status:',
+                                brand.isFeatured
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEF3C7),
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: const Color(0xFFFDE68A)),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              'Featured Brand',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFFB45309),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.bgSubtle,
+                                          borderRadius: BorderRadius.circular(6),
+                                          border: Border.all(color: AppTheme.borderMedium),
+                                        ),
+                                        child: Text(
+                                          'Standard Brand',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                            color: AppTheme.textSecondary,
+                                          ),
+                                        ),
+                                      ),
+                              ),
+                              const Divider(height: 1),
+                              _buildAttrRowWidget(
+                                'Logo Asset:',
+                                brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                                    ? Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppTheme.bgSubtle,
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.image_outlined, size: 12, color: AppTheme.textMuted),
+                                            const SizedBox(width: 4),
+                                            Flexible(
+                                              child: Text(
+                                                brand.brandLogo!,
+                                                style: GoogleFonts.robotoMono(
+                                                  fontSize: 11,
+                                                  color: AppTheme.textSecondary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      )
+                                    : Text(
+                                        'No Logo Uploaded',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: AppTheme.textMuted,
+                                          fontStyle: FontStyle.italic,
+                                        ),
+                                      ),
+                              ),
+                              const Divider(height: 1),
+                              _buildAttrRowWidget(
+                                'Verification:',
+                                Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.check_circle_rounded, size: 14, color: AppTheme.success),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'Enterprise Verified Partner',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.success,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
-                  IconButton(
-                    icon: const Icon(Icons.close),
-                    onPressed: () => Navigator.of(context).pop(),
+                  ),
+
+                  // Modal Footer Actions
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    decoration: const BoxDecoration(
+                      color: AppTheme.bgSubtle,
+                      border: Border(top: BorderSide(color: AppTheme.borderLight)),
+                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: () {
+                            final target = brand;
+                            setState(() => _selectedBrand = null);
+                            _promptDelete(target);
+                          },
+                          icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppTheme.error),
+                          label: Text(
+                            'Delete',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.error,
+                            ),
+                          ),
+                          style: OutlinedButton.styleFrom(
+                            side: const BorderSide(color: Color(0xFFFECACA)),
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            final target = brand;
+                            setState(() => _selectedBrand = null);
+                            _startEdit(target);
+                          },
+                          icon: const Icon(Icons.edit_rounded, size: 14),
+                          label: const Text('Edit Brand'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppTheme.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                            textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        TextButton(
+                          onPressed: () => setState(() => _selectedBrand = null),
+                          child: Text(
+                            'Close',
+                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              if (brand.brandLogo != null && brand.brandLogo!.isNotEmpty)
-                Center(
-                  child: Container(
-                    height: 140,
-                    width: 140,
-                    decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppTheme.borderLight),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: Image.network(
-                      _brandService.getFileUrl(brand.brandLogo),
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, _, _) => const Center(child: Icon(Icons.broken_image, size: 40)),
-                    ),
-                  ),
-                ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  OutlinedButton.icon(
-                    onPressed: () {
-                      Navigator.of(context).pop();
-                      _promptDelete(brand);
-                    },
-                    icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.error),
-                    label: const Text('Delete', style: TextStyle(color: AppTheme.error)),
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: ElevatedButton.icon(
-                      onPressed: () {
-                        Navigator.of(context).pop();
-                        _startEdit(brand);
-                      },
-                      icon: const Icon(Icons.edit, size: 16),
-                      label: const Text('Edit Brand'),
-                    ),
-                  ),
-                ],
-              ),
-            ],
+            ),
           ),
-        );
-      },
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAttrRow(String label, String value, {bool isBold = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: isBold ? FontWeight.w700 : FontWeight.w500,
+                color: AppTheme.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAttrRowWidget(String label, Widget widget) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textMuted,
+              ),
+            ),
+          ),
+          Expanded(child: widget),
+        ],
+      ),
     );
   }
 }

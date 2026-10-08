@@ -26,14 +26,35 @@ class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
 
   @override
-  State<CompanyScreen> createState() => _CompanyScreenState();
+  State<CompanyScreen> createState() => CompanyScreenState();
 }
 
-class _CompanyScreenState extends State<CompanyScreen> {
+class CompanyScreenState extends State<CompanyScreen> {
   final CompanyService _companyService = CompanyService();
   final BrandService _brandService = BrandService();
   final ProductService _productService = ProductService();
   final CategoryService _categoryService = CategoryService();
+
+  // Handle device back press
+  bool handleBackPress() {
+    if (_selectedCompany != null) {
+      setState(() => _selectedCompany = null);
+      return true;
+    }
+    if (_showLivePreview) {
+      setState(() => _showLivePreview = false);
+      return true;
+    }
+    if (_editingCompanyId != null) {
+      _resetForm();
+      return true;
+    }
+    if (_activeTab == 'directory') {
+      setState(() => _activeTab = 'register');
+      return true;
+    }
+    return false;
+  }
 
   // Navigation & Loading State
   String _activeTab = 'register'; // 'register' or 'directory'
@@ -573,13 +594,26 @@ class _CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isExportingExcel = true);
     try {
       final bytes = await _companyService.exportCompaniesToExcel();
+      final now = DateTime.now();
+      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final fileName = 'companies_directory_$dateStr.xlsx';
+      final xFile = XFile.fromData(
+        bytes,
+        name: fileName,
+        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      );
+      await Share.shareXFiles(
+        [xFile],
+        text: 'Companies Directory Spreadsheet ($dateStr)',
+        subject: 'Companies Directory Spreadsheet',
+      );
       if (mounted) {
         setState(() {
           _isExportingExcel = false;
           _feedback = FeedbackData(
             type: 'success',
             title: 'Excel Export Successful',
-            message: 'Generated companies directory spreadsheet (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
+            message: 'Companies directory spreadsheet exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
           );
         });
       }
@@ -590,7 +624,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message: 'Could not generate the Excel file. Please ensure the backend is reachable.',
+            message: 'Could not export Excel file: ${e.toString().replaceAll('Exception: ', '')}',
           );
         });
       }
@@ -602,13 +636,26 @@ class _CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isExportingPdf = true);
     try {
       final bytes = await _companyService.exportCompaniesToPdf();
+      final now = DateTime.now();
+      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final fileName = 'companies_directory_$dateStr.pdf';
+      final xFile = XFile.fromData(
+        bytes,
+        name: fileName,
+        mimeType: 'application/pdf',
+      );
+      await Share.shareXFiles(
+        [xFile],
+        text: 'Companies Directory Official PDF Document ($dateStr)',
+        subject: 'Companies Directory PDF',
+      );
       if (mounted) {
         setState(() {
           _isExportingPdf = false;
           _feedback = FeedbackData(
             type: 'success',
             title: 'PDF Export Successful',
-            message: 'Generated companies directory official PDF document (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
+            message: 'Companies directory official PDF document exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
           );
         });
       }
@@ -619,7 +666,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message: 'Could not generate the PDF file. Please ensure the backend is reachable.',
+            message: 'Could not export PDF document: ${e.toString().replaceAll('Exception: ', '')}',
           );
         });
       }
@@ -1396,42 +1443,60 @@ class _CompanyScreenState extends State<CompanyScreen> {
                           style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
                         ),
                       )
+                    else if (_filteredAvailableBrands.isEmpty)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(color: AppTheme.bgSubtle, borderRadius: BorderRadius.circular(12)),
+                        alignment: Alignment.center,
+                        child: Column(
+                          children: [
+                            const Icon(Icons.filter_alt_off, size: 28, color: AppTheme.textMuted),
+                            const SizedBox(height: 6),
+                            Text('No brands match current search.', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+                          ],
+                        ),
+                      )
                     else
-                      LayoutBuilder(builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 650 ? 3 : 2;
-                        final brands = _filteredAvailableBrands;
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredAvailableBrands.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 6),
+                        itemBuilder: (context, index) {
+                          final b = _filteredAvailableBrands[index];
+                          final isSelected = _selectedBrandIds.contains(b.id);
+                          final brandProdsCount = _availableProducts.where((p) => p.brandId == b.id).length;
 
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            mainAxisExtent: 64,
-                          ),
-                          itemCount: brands.length,
-                          itemBuilder: (context, index) {
-                            final b = brands[index];
-                            final isSelected = _selectedBrandIds.contains(b.id);
-
-                            return InkWell(
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
                               onTap: () => _toggleBrand(b.id),
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryLight : AppTheme.bgSurface,
+                                  color: isSelected ? AppTheme.primaryLight.withOpacity(0.55) : AppTheme.bgSurface,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isSelected ? AppTheme.primary : AppTheme.borderLight,
                                     width: isSelected ? 1.5 : 1,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppTheme.primary.withOpacity(0.06),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : AppTheme.shadowSm,
                                 ),
                                 child: Row(
                                   children: [
-                                    Container(
+                                    // Custom Checkbox
+                                    AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
                                       width: 18,
                                       height: 18,
                                       decoration: BoxDecoration(
@@ -1439,75 +1504,163 @@ class _CompanyScreenState extends State<CompanyScreen> {
                                         borderRadius: BorderRadius.circular(4),
                                         border: Border.all(
                                           color: isSelected ? AppTheme.primary : AppTheme.borderMedium,
+                                          width: 1.2,
                                         ),
                                       ),
                                       child: isSelected
-                                          ? const Icon(Icons.check, size: 14, color: Colors.white)
+                                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
                                           : null,
                                     ),
                                     const SizedBox(width: 8),
-                                    if (b.brandLogo != null && b.brandLogo!.isNotEmpty)
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(4),
-                                        child: Image.network(
-                                          _brandService.getFileUrl(b.brandLogo),
-                                          width: 24,
-                                          height: 24,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Container(
-                                            width: 24,
-                                            height: 24,
-                                            color: AppTheme.bgSubtle,
-                                            alignment: Alignment.center,
-                                            child: Text(b.initials, style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold)),
-                                          ),
+
+                                    // Brand Logo / Initial Avatar
+                                    Container(
+                                      width: 36,
+                                      height: 36,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.bgSubtle,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: isSelected ? AppTheme.primary.withOpacity(0.3) : AppTheme.borderLight,
                                         ),
-                                      )
-                                    else
-                                      Container(
-                                        width: 24,
-                                        height: 24,
-                                        decoration: BoxDecoration(
-                                          color: AppTheme.bgSubtle,
-                                          borderRadius: BorderRadius.circular(4),
-                                        ),
-                                        alignment: Alignment.center,
-                                        child: Text(b.initials, style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary)),
                                       ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                          ? Image.network(
+                                              _brandService.getFileUrl(b.brandLogo),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => Center(
+                                                child: Text(
+                                                  b.initials,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 12,
+                                                    fontWeight: FontWeight.w700,
+                                                    color: AppTheme.primary,
+                                                  ),
+                                                ),
+                                              ),
+                                            )
+                                          : Center(
+                                              child: Text(
+                                                b.initials,
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 12,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppTheme.primary,
+                                                ),
+                                              ),
+                                            ),
+                                    ),
                                     const SizedBox(width: 8),
+
+                                    // Brand Details
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          Text(
-                                            b.brandName,
-                                            style: GoogleFonts.plusJakartaSans(
-                                              fontSize: 12,
-                                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                                              color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-                                            ),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
-                                          ),
-                                          if (b.isFeatured)
-                                            Row(
-                                              children: [
-                                                const Icon(Icons.star, size: 10, color: Color(0xFFF59E0B)),
-                                                const SizedBox(width: 2),
-                                                Text('Featured', style: GoogleFonts.inter(fontSize: 9, color: const Color(0xFFD97706), fontWeight: FontWeight.w600)),
+                                          Row(
+                                            children: [
+                                              Flexible(
+                                                child: Text(
+                                                  b.brandName,
+                                                  style: GoogleFonts.plusJakartaSans(
+                                                    fontSize: 12.5,
+                                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                                                    color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                              if (b.isFeatured) ...[
+                                                const SizedBox(width: 4),
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFFEF3C7),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
+                                                      const SizedBox(width: 1.5),
+                                                      Text(
+                                                        'Featured',
+                                                        style: GoogleFonts.inter(
+                                                          fontSize: 8.5,
+                                                          color: const Color(0xFFB45309),
+                                                          fontWeight: FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
                                               ],
+                                            ],
+                                          ),
+                                          const SizedBox(height: 2),
+                                          Row(
+                                            children: [
+                                              const Icon(
+                                                Icons.inventory_2_outlined,
+                                                size: 11,
+                                                color: AppTheme.textMuted,
+                                              ),
+                                              const SizedBox(width: 3.5),
+                                              Expanded(
+                                                child: Text(
+                                                  '$brandProdsCount ${brandProdsCount == 1 ? 'product' : 'products'}',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 10,
+                                                    color: AppTheme.textSecondary,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+
+                                    // Selection status indicator badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (isSelected) ...[
+                                            const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                                            const SizedBox(width: 2.5),
+                                          ],
+                                          Text(
+                                            isSelected ? 'Selected' : 'Select',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected ? Colors.white : AppTheme.textSecondary,
                                             ),
+                                          ),
                                         ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        );
-                      }),
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -1761,93 +1914,149 @@ class _CompanyScreenState extends State<CompanyScreen> {
                         ),
                       )
                     else
-                      LayoutBuilder(builder: (context, constraints) {
-                        final crossAxisCount = constraints.maxWidth > 650 ? 3 : 2;
-                        final prods = _filteredAvailableProducts;
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: _filteredAvailableProducts.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 6),
+                        itemBuilder: (context, index) {
+                          final p = _filteredAvailableProducts[index];
+                          final isSelected = _selectedProductIds.contains(p.id);
 
-                        return GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: crossAxisCount,
-                            crossAxisSpacing: 10,
-                            mainAxisSpacing: 10,
-                            mainAxisExtent: 80,
-                          ),
-                          itemCount: prods.length,
-                          itemBuilder: (context, index) {
-                            final p = prods[index];
-                            final isSelected = _selectedProductIds.contains(p.id);
-
-                            return InkWell(
+                          return Material(
+                            color: Colors.transparent,
+                            child: InkWell(
                               onTap: () => _toggleProduct(p),
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.all(8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryLight : AppTheme.bgSurface,
+                                  color: isSelected ? AppTheme.primaryLight.withOpacity(0.55) : AppTheme.bgSurface,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
                                     color: isSelected ? AppTheme.primary : AppTheme.borderLight,
                                     width: isSelected ? 1.5 : 1,
                                   ),
+                                  boxShadow: isSelected
+                                      ? [
+                                          BoxShadow(
+                                            color: AppTheme.primary.withOpacity(0.06),
+                                            blurRadius: 6,
+                                            offset: const Offset(0, 2),
+                                          ),
+                                        ]
+                                      : AppTheme.shadowSm,
                                 ),
                                 child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
-                                    Container(
+                                    // Custom Checkbox
+                                    AnimatedContainer(
+                                      duration: const Duration(milliseconds: 150),
                                       width: 18,
                                       height: 18,
                                       decoration: BoxDecoration(
                                         color: isSelected ? AppTheme.primary : Colors.transparent,
                                         borderRadius: BorderRadius.circular(4),
-                                        border: Border.all(color: isSelected ? AppTheme.primary : AppTheme.borderMedium),
+                                        border: Border.all(
+                                          color: isSelected ? AppTheme.primary : AppTheme.borderMedium,
+                                          width: 1.2,
+                                        ),
                                       ),
-                                      child: isSelected ? const Icon(Icons.check, size: 14, color: Colors.white) : null,
+                                      child: isSelected
+                                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                                          : null,
                                     ),
                                     const SizedBox(width: 8),
-                                    if (p.image != null && p.image!.isNotEmpty)
-                                      ClipRRect(
-                                        borderRadius: BorderRadius.circular(6),
-                                        child: Image.network(
-                                          _productService.getFileUrl(p.image),
-                                          width: 36,
-                                          height: 36,
-                                          fit: BoxFit.cover,
-                                          errorBuilder: (context, error, stackTrace) => Container(
-                                            width: 36,
-                                            height: 36,
-                                            color: AppTheme.bgSubtle,
-                                            child: const Icon(Icons.inventory_2, size: 18, color: AppTheme.textMuted),
-                                          ),
+
+                                    // Product Image
+                                    Container(
+                                      width: 40,
+                                      height: 40,
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.bgSubtle,
+                                        borderRadius: BorderRadius.circular(8),
+                                        border: Border.all(
+                                          color: isSelected ? AppTheme.primary.withOpacity(0.3) : AppTheme.borderLight,
                                         ),
-                                      )
-                                    else
-                                      Container(
-                                        width: 36,
-                                        height: 36,
-                                        decoration: BoxDecoration(color: AppTheme.bgSubtle, borderRadius: BorderRadius.circular(6)),
-                                        child: const Icon(Icons.inventory_2, size: 18, color: AppTheme.textMuted),
                                       ),
+                                      clipBehavior: Clip.antiAlias,
+                                      child: (p.image != null && p.image!.isNotEmpty)
+                                          ? Image.network(
+                                              _productService.getFileUrl(p.image),
+                                              fit: BoxFit.cover,
+                                              errorBuilder: (context, error, stackTrace) => const Center(
+                                                child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                                              ),
+                                            )
+                                          : const Center(
+                                              child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                                            ),
+                                    ),
                                     const SizedBox(width: 8),
+
+                                    // Product Details
                                     Expanded(
                                       child: Column(
                                         crossAxisAlignment: CrossAxisAlignment.start,
-                                        mainAxisAlignment: MainAxisAlignment.center,
+                                        mainAxisSize: MainAxisSize.min,
                                         children: [
+                                          // Brand Tag & Featured Tag Row
                                           Row(
                                             children: [
-                                              if (p.brandName != null)
+                                              if (p.brandName != null && p.brandName!.isNotEmpty) ...[
                                                 Flexible(
-                                                  child: Text(
-                                                    p.brandName!,
-                                                    style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.primary),
-                                                    maxLines: 1,
-                                                    overflow: TextOverflow.ellipsis,
+                                                  child: Container(
+                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                    decoration: BoxDecoration(
+                                                      color: AppTheme.primary.withOpacity(0.1),
+                                                      borderRadius: BorderRadius.circular(4),
+                                                    ),
+                                                    child: Text(
+                                                      p.brandName!,
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 9,
+                                                        fontWeight: FontWeight.w700,
+                                                        color: AppTheme.primary,
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow: TextOverflow.ellipsis,
+                                                    ),
                                                   ),
                                                 ),
+                                                const SizedBox(width: 4),
+                                              ],
+                                              if (p.isFeatured) ...[
+                                                Container(
+                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                  decoration: BoxDecoration(
+                                                    color: const Color(0xFFFEF3C7),
+                                                    borderRadius: BorderRadius.circular(4),
+                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                  ),
+                                                  child: Row(
+                                                    mainAxisSize: MainAxisSize.min,
+                                                    children: [
+                                                      const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
+                                                      const SizedBox(width: 1.5),
+                                                      Text(
+                                                        'Featured',
+                                                        style: GoogleFonts.inter(
+                                                          fontSize: 8.5,
+                                                          color: const Color(0xFFB45309),
+                                                          fontWeight: FontWeight.w700,
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
                                             ],
                                           ),
+                                          const SizedBox(height: 2),
+
+                                          // Product Name
                                           Text(
                                             p.name,
                                             style: GoogleFonts.plusJakartaSans(
@@ -1858,11 +2067,53 @@ class _CompanyScreenState extends State<CompanyScreen> {
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
+                                          const SizedBox(height: 2),
+
+                                          // Category Path
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.category_outlined, size: 11, color: AppTheme.textMuted),
+                                              const SizedBox(width: 3.5),
+                                              Expanded(
+                                                child: Text(
+                                                  '${p.categoryName ?? 'General'}${p.subCategoryName != null && p.subCategoryName!.isNotEmpty ? ' › ${p.subCategoryName}' : ''}',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 10,
+                                                    color: AppTheme.textSecondary,
+                                                    fontWeight: FontWeight.w500,
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow: TextOverflow.ellipsis,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+
+                                    // Selection status indicator badge
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                      decoration: BoxDecoration(
+                                        color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
+                                        borderRadius: BorderRadius.circular(16),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (isSelected) ...[
+                                            const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                                            const SizedBox(width: 2.5),
+                                          ],
                                           Text(
-                                            '${p.categoryName ?? ''}${p.subCategoryName != null ? ' > ${p.subCategoryName}' : ''}',
-                                            style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted),
-                                            maxLines: 1,
-                                            overflow: TextOverflow.ellipsis,
+                                            isSelected ? 'Added' : 'Add',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                            ),
                                           ),
                                         ],
                                       ),
@@ -1870,10 +2121,10 @@ class _CompanyScreenState extends State<CompanyScreen> {
                                   ],
                                 ),
                               ),
-                            );
-                          },
-                        );
-                      }),
+                            ),
+                          );
+                        },
+                      ),
                   ],
                 ),
               ),
@@ -2764,31 +3015,60 @@ class _CompanyScreenState extends State<CompanyScreen> {
               padding: const EdgeInsets.fromLTRB(14, 14, 14, 8),
               child: Row(
                 children: [
-                  Container(
-                    width: 40,
-                    height: 40,
-                    decoration: BoxDecoration(
-                      color: AppTheme.primaryLight,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    clipBehavior: Clip.antiAlias,
-                    child: comp.businessCard != null && !comp.businessCard!.endsWith('.pdf')
-                        ? Image.network(
-                            _companyService.getFileUrl(comp.businessCard),
-                            fit: BoxFit.cover,
-                            errorBuilder: (context, error, stackTrace) => Center(
-                              child: Text(
-                                comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
+                  Stack(
+                    clipBehavior: Clip.none,
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryLight,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: comp.allCards.isNotEmpty && !comp.allCards.first.toLowerCase().endsWith('.pdf')
+                            ? Image.network(
+                                _companyService.getFileUrl(comp.allCards.first),
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) => Center(
+                                  child: Text(
+                                    comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
+                                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
+                                  ),
+                                ),
+                              )
+                            : Center(
+                                child: Text(
+                                  comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
+                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
+                                ),
                               ),
+                      ),
+                      if (comp.allCards.length > 1)
+                        Positioned(
+                          right: -3,
+                          bottom: -3,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            decoration: BoxDecoration(
+                              color: AppTheme.primary,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(color: Colors.white, width: 1.5),
                             ),
-                          )
-                        : Center(
-                            child: Text(
-                              comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
-                              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.collections_rounded, size: 8, color: Colors.white),
+                                const SizedBox(width: 2),
+                                Text(
+                                  '${comp.allCards.length}',
+                                  style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
+                                ),
+                              ],
                             ),
                           ),
+                        ),
+                    ],
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -2948,15 +3228,34 @@ class _CompanyScreenState extends State<CompanyScreen> {
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Container(
-                                          width: 6,
-                                          height: 6,
-                                          decoration: const BoxDecoration(
-                                            color: Color(0xFFEA580C),
-                                            shape: BoxShape.circle,
+                                        if (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                          Container(
+                                            width: 12,
+                                            height: 12,
+                                            margin: const EdgeInsets.only(right: 4),
+                                            child: Image.network(
+                                              _brandService.getFileUrl(b.brandLogo),
+                                              fit: BoxFit.contain,
+                                              errorBuilder: (context, error, stackTrace) => Container(
+                                                width: 6,
+                                                height: 6,
+                                                decoration: const BoxDecoration(
+                                                  color: Color(0xFFEA580C),
+                                                  shape: BoxShape.circle,
+                                                ),
+                                              ),
+                                            ),
+                                          )
+                                        else
+                                          Container(
+                                            width: 6,
+                                            height: 6,
+                                            margin: const EdgeInsets.only(right: 4),
+                                            decoration: const BoxDecoration(
+                                              color: Color(0xFFEA580C),
+                                              shape: BoxShape.circle,
+                                            ),
                                           ),
-                                        ),
-                                        const SizedBox(width: 4),
                                         Text(
                                           b.brandName,
                                           style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF334155)),
@@ -3215,7 +3514,7 @@ class _CompanyScreenState extends State<CompanyScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Meta Bar (2x2 structured grid)
+                      // Meta Bar (Structured grid)
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                         decoration: BoxDecoration(
@@ -3240,11 +3539,23 @@ class _CompanyScreenState extends State<CompanyScreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(child: _buildModalMetaItem('Contact Person', '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null ? ' (${comp.contactDesignation})' : ''}', icon: Icons.person_outline)),
+                                Expanded(child: _buildModalMetaItem('Contact Person', '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null && comp.contactDesignation!.isNotEmpty ? ' (${comp.contactDesignation})' : ''}', icon: Icons.person_outline)),
                                 const SizedBox(width: 8),
                                 Expanded(child: _buildModalMetaItem('Contact Mobile', comp.contactMobileNumber?.isNotEmpty == true ? comp.contactMobileNumber! : 'N/A', icon: Icons.smartphone_outlined)),
                               ],
                             ),
+                            if (comp.contactEmail != null && comp.contactEmail!.trim().isNotEmpty && comp.contactEmail != comp.email) ...[
+                              Padding(
+                                padding: const EdgeInsets.symmetric(vertical: 6),
+                                child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight.withValues(alpha: 0.6)),
+                              ),
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Expanded(child: _buildModalMetaItem('Contact Direct Email', comp.contactEmail!, icon: Icons.alternate_email_rounded)),
+                                ],
+                              ),
+                            ],
                           ],
                         ),
                       ),
@@ -3356,67 +3667,63 @@ class _CompanyScreenState extends State<CompanyScreen> {
                       ],
                       const SizedBox(height: 8),
 
-                      // Brands Dealt With
+                      // Brands Dealt With Section (Rich Cards matching Angular)
                       if (comp.brands.isNotEmpty) ...[
-                        Text(
-                          'Brands Dealt With (${comp.brands.length})',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        Row(
+                          children: [
+                            const Icon(Icons.military_tech_rounded, size: 14, color: AppTheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Brands Dealt With (${comp.brands.length})',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 5,
-                          runSpacing: 5,
-                          children: comp.brands.map((b) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight.withValues(alpha: 0.7),
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: AppTheme.primary.withValues(alpha: 0.2)),
-                              ),
-                              child: Text(
-                                b.brandName,
-                                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: AppTheme.primary),
-                              ),
-                            );
-                          }).toList(),
+                        const SizedBox(height: 6),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: comp.brands.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 5),
+                          itemBuilder: (context, index) => _buildModalBrandCard(comp.brands[index]),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                       ],
 
-                      // Products Portfolio
+                      // Products Portfolio Section (Rich Cards matching Angular)
                       if (comp.products.isNotEmpty) ...[
-                        Text(
-                          'Products Portfolio (${comp.products.length})',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        Row(
+                          children: [
+                            const Icon(Icons.inventory_2_rounded, size: 14, color: Color(0xFF6B21A8)),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Products Portfolio (${comp.products.length})',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 5,
-                          runSpacing: 5,
-                          children: comp.products.map((p) {
-                            return Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFF3E8FF),
-                                borderRadius: BorderRadius.circular(5),
-                                border: Border.all(color: const Color(0xFFDDD6FE)),
-                              ),
-                              child: Text(
-                                '${p.name}${p.brandName != null ? ' (${p.brandName})' : ''}',
-                                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w600, color: const Color(0xFF6B21A8)),
-                              ),
-                            );
-                          }).toList(),
+                        const SizedBox(height: 6),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: comp.products.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 5),
+                          itemBuilder: (context, index) => _buildModalProductCard(comp.products[index]),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                       ],
 
-                      // Description
+                      // Description Section
                       if (comp.description != null && comp.description!.trim().isNotEmpty) ...[
-                        Text(
-                          'Description',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                        Row(
+                          children: [
+                            const Icon(Icons.notes_rounded, size: 14, color: AppTheme.textSecondary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Description',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 4),
                         Container(
@@ -3432,63 +3739,122 @@ class _CompanyScreenState extends State<CompanyScreen> {
                             style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.35),
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 10),
                       ],
 
-                      // Attachment / Business Card
-                      if (comp.businessCard != null && comp.businessCard!.trim().isNotEmpty) ...[
-                        Text(
-                          'Business Card / Attachment',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                      // Visiting Cards & Brand Documents (Multi-Card Support matching Angular)
+                      if (comp.allCards.isNotEmpty) ...[
+                        Row(
+                          children: [
+                            const Icon(Icons.collections_rounded, size: 14, color: AppTheme.primary),
+                            const SizedBox(width: 4),
+                            Text(
+                              'Visiting Cards & Brand Documents (${comp.allCards.length})',
+                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 4),
-                        if (comp.businessCard!.toLowerCase().endsWith('.pdf'))
-                          InkWell(
-                            onTap: () {
-                              final url = _companyService.getFileUrl(comp.businessCard);
-                              final uri = Uri.tryParse(url);
-                              if (uri != null) launchUrl(uri);
-                            },
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: const Color(0xFFFEF2F2),
-                                borderRadius: BorderRadius.circular(7),
-                                border: Border.all(color: const Color(0xFFFECACA)),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(Icons.picture_as_pdf, color: AppTheme.error, size: 16),
-                                  const SizedBox(width: 6),
-                                  Expanded(
-                                    child: Text(
-                                      'View Business Card (PDF Document)',
-                                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.error),
-                                    ),
+                        const SizedBox(height: 6),
+                        ListView.separated(
+                          shrinkWrap: true,
+                          physics: const NeverScrollableScrollPhysics(),
+                          itemCount: comp.allCards.length,
+                          separatorBuilder: (context, index) => const SizedBox(height: 6),
+                          itemBuilder: (context, idx) {
+                            final card = comp.allCards[idx];
+                            final isPdf = card.toLowerCase().endsWith('.pdf');
+                            if (isPdf) {
+                              return InkWell(
+                                onTap: () {
+                                  final url = _companyService.getFileUrl(card);
+                                  final uri = Uri.tryParse(url);
+                                  if (uri != null) launchUrl(uri);
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFFEF2F2),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: const Color(0xFFFECACA)),
                                   ),
-                                  const Icon(Icons.open_in_new, size: 13, color: AppTheme.error),
-                                ],
-                              ),
-                            ),
-                          )
-                        else
-                          Container(
-                            height: 125,
-                            width: double.infinity,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: AppTheme.borderLight),
-                              color: AppTheme.bgSubtle,
-                            ),
-                            clipBehavior: Clip.antiAlias,
-                            child: Image.network(
-                              _companyService.getFileUrl(comp.businessCard),
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) => const Center(
-                                child: Icon(Icons.broken_image, size: 32, color: AppTheme.textMuted),
-                              ),
-                            ),
-                          ),
+                                  child: Row(
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(6),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFFEE2E2),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: const Icon(Icons.picture_as_pdf, color: AppTheme.error, size: 16),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              'Visiting Card (PDF)',
+                                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.error),
+                                            ),
+                                            Text(
+                                              'Open document ›',
+                                              style: GoogleFonts.inter(fontSize: 9.5, color: const Color(0xFF991B1B)),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                      const Icon(Icons.open_in_new, size: 13, color: AppTheme.error),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            } else {
+                              return InkWell(
+                                onTap: () {
+                                  final url = _companyService.getFileUrl(card);
+                                  final uri = Uri.tryParse(url);
+                                  if (uri != null) launchUrl(uri);
+                                },
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  height: 135,
+                                  width: double.infinity,
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(color: AppTheme.borderLight),
+                                    color: AppTheme.bgSubtle,
+                                  ),
+                                  clipBehavior: Clip.antiAlias,
+                                  child: Stack(
+                                    fit: StackFit.expand,
+                                    children: [
+                                      Image.network(
+                                        _companyService.getFileUrl(card),
+                                        fit: BoxFit.contain,
+                                        errorBuilder: (context, error, stackTrace) => const Center(
+                                          child: Icon(Icons.broken_image, size: 32, color: AppTheme.textMuted),
+                                        ),
+                                      ),
+                                      Positioned(
+                                        right: 6,
+                                        bottom: 6,
+                                        child: Container(
+                                          padding: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black.withValues(alpha: 0.6),
+                                            borderRadius: BorderRadius.circular(4),
+                                          ),
+                                          child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                        ),
                       ],
                     ],
                   ),
@@ -3645,6 +4011,195 @@ class _CompanyScreenState extends State<CompanyScreen> {
           overflow: TextOverflow.ellipsis,
         ),
       ],
+    );
+  }
+
+  Widget _buildModalBrandCard(BrandResponse brand) {
+    final bool isFeatured = brand.isFeatured;
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderLight),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 36,
+            height: 36,
+            decoration: BoxDecoration(
+              color: AppTheme.bgSubtle,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppTheme.borderLight),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                ? Image.network(
+                    _brandService.getFileUrl(brand.brandLogo),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => Center(
+                      child: Text(
+                        brand.brandName.length >= 2 ? brand.brandName.substring(0, 2).toUpperCase() : brand.brandName.toUpperCase(),
+                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                      ),
+                    ),
+                  )
+                : Center(
+                    child: Text(
+                      brand.brandName.length >= 2 ? brand.brandName.substring(0, 2).toUpperCase() : brand.brandName.toUpperCase(),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                    ),
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  brand.brandName,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if (isFeatured) ...[
+                  const SizedBox(height: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFFEF3C7),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: const Color(0xFFFDE68A)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
+                        const SizedBox(width: 2),
+                        Text(
+                          'Featured Brand',
+                          style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModalProductCard(ProductResponse prod) {
+    final bool isFeatured = prod.isFeatured;
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: AppTheme.bgSurface,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: AppTheme.borderLight),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: AppTheme.bgSubtle,
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(color: AppTheme.borderLight),
+            ),
+            clipBehavior: Clip.antiAlias,
+            child: prod.image != null && prod.image!.isNotEmpty
+                ? Image.network(
+                    _productService.getFileUrl(prod.image),
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) => const Center(
+                      child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                    ),
+                  )
+                : const Center(
+                    child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                  ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    if (prod.brandName != null && prod.brandName!.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: AppTheme.primaryLight.withValues(alpha: 0.6),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.military_tech_outlined, size: 10, color: AppTheme.primary),
+                            const SizedBox(width: 2),
+                            Text(
+                              prod.brandName!,
+                              style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppTheme.primary),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                    ],
+                    if (isFeatured)
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF3C7),
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(color: const Color(0xFFFDE68A)),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(Icons.star_rounded, size: 9, color: Color(0xFFD97706)),
+                            const SizedBox(width: 1),
+                            Text(
+                              'Featured',
+                              style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  prod.name,
+                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                if ((prod.categoryName != null && prod.categoryName!.isNotEmpty) || (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty)) ...[
+                  const SizedBox(height: 1),
+                  Text(
+                    [prod.categoryName, prod.subCategoryName].where((s) => s != null && s.isNotEmpty).join(' › '),
+                    style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }
