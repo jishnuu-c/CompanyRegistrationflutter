@@ -592,15 +592,16 @@ class CategoryScreenState extends State<CategoryScreen> {
                       color: AppTheme.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _showLivePreview ? 'Hide Live Preview' : 'Show Live Card Preview',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primary,
+                    Expanded(
+                      child: Text(
+                        _showLivePreview ? 'Hide Live Preview' : 'Show Live Card Preview',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
                       ),
                     ),
-                    const Spacer(),
                     Icon(
                       _showLivePreview ? Icons.expand_less : Icons.expand_more,
                       size: 18,

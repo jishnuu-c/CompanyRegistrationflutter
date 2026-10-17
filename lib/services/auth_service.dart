@@ -52,10 +52,8 @@ class AuthService extends ChangeNotifier {
 
         _token = authResponse.token;
         _currentUser = authResponse.toUserProfile();
+        _apiConfig.setOnline(true);
         notifyListeners();
-
-        // Also test connection state in ApiConfig
-        _apiConfig.checkConnection();
 
         return authResponse;
       } else if (response.statusCode == 401) {
@@ -96,6 +94,70 @@ class AuthService extends ChangeNotifier {
             msg.contains('timed out')) {
           throw Exception(
               'Authentication failed. Please verify that the server is online at ${_apiConfig.host}.');
+        }
+        throw Exception(msg);
+      }
+      rethrow;
+    }
+  }
+
+  /// Register a new account and initialize session against Spring Boot backend
+  Future<AuthResponse> register(RegisterRequest req) async {
+    final uri = Uri.parse('$authBaseUrl/register');
+    final reqBody = jsonEncode(req.toJson());
+
+    try {
+      final response = await http
+          .post(
+            uri,
+            headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+            },
+            body: reqBody,
+          )
+          .timeout(const Duration(seconds: 10));
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final Map<String, dynamic> data =
+            jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>;
+        final authResponse = AuthResponse.fromJson(data);
+
+        _token = authResponse.token;
+        _currentUser = authResponse.toUserProfile();
+        _apiConfig.setOnline(true);
+        notifyListeners();
+
+        return authResponse;
+      } else if (response.statusCode == 400) {
+        String msg = 'Invalid registration details. Please verify the input fields.';
+        try {
+          final errBody = jsonDecode(utf8.decode(response.bodyBytes));
+          if (errBody is Map && errBody['message'] != null) {
+            msg = errBody['message'].toString();
+          }
+        } catch (_) {}
+        throw Exception(msg);
+      } else {
+        String msg = 'Registration failed (Status: ${response.statusCode}).';
+        try {
+          final errBody = jsonDecode(utf8.decode(response.bodyBytes));
+          if (errBody is Map && errBody['message'] != null) {
+            msg = errBody['message'].toString();
+          }
+        } catch (_) {}
+        throw Exception(msg);
+      }
+    } catch (e) {
+      if (e is Exception && !e.toString().startsWith('Exception: Registration failed')) {
+        final msg = e.toString().replaceFirst('Exception: ', '');
+        if (msg.contains('SocketException') ||
+            msg.contains('Connection refused') ||
+            msg.contains('ClientException') ||
+            msg.contains('Failed host lookup') ||
+            msg.contains('timed out')) {
+          throw Exception(
+              'Registration failed. Please verify that the server is online at ${_apiConfig.host}.');
         }
         throw Exception(msg);
       }

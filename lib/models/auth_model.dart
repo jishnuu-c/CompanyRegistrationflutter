@@ -13,6 +13,27 @@ class LoginRequest {
       };
 }
 
+class RegisterRequest {
+  final String fullName;
+  final String username;
+  final String email;
+  final String password;
+
+  RegisterRequest({
+    required this.fullName,
+    required this.username,
+    required this.email,
+    required this.password,
+  });
+
+  Map<String, dynamic> toJson() => {
+        'fullName': fullName.trim(),
+        'username': username.trim(),
+        'email': email.trim(),
+        'password': password,
+      };
+}
+
 class AuthResponse {
   final String token;
   final String tokenType;

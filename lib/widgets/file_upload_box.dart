@@ -1,8 +1,9 @@
 import 'dart:typed_data';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../theme/app_theme.dart';
+import '../services/api_config.dart';
+import '../services/media_picker_helper.dart';
 
 class FileUploadBox extends StatelessWidget {
   final String title;
@@ -14,6 +15,7 @@ class FileUploadBox extends StatelessWidget {
   final String? existingFileUrl;
   final Function(Uint8List bytes, String name, int size, String? path) onFileSelected;
   final VoidCallback onFileRemoved;
+  final VoidCallback? onOcrScan;
 
   const FileUploadBox({
     super.key,
@@ -26,6 +28,7 @@ class FileUploadBox extends StatelessWidget {
     this.existingFileUrl,
     required this.onFileSelected,
     required this.onFileRemoved,
+    this.onOcrScan,
   });
 
   bool get hasSelectedFile => fileBytes != null;
@@ -39,27 +42,16 @@ class FileUploadBox extends StatelessWidget {
   }
 
   Future<void> _pickFile(BuildContext context) async {
-    try {
-      final files = await FilePicker.pickFiles(
-        type: FileType.custom,
-        allowedExtensions: allowedExtensions,
-      );
+    final picked = await MediaPickerHelper.showMediaPickerSheet(
+      context,
+      title: title,
+      subtitle: hint,
+      allowedExtensions: allowedExtensions,
+      allowDocuments: allowedExtensions.contains('pdf') || allowedExtensions.contains('*'),
+    );
 
-      if (files.isNotEmpty) {
-        final file = files.first;
-        final bytes = await file.xFile.readAsBytes();
-        final size = await file.xFile.length();
-        onFileSelected(bytes, file.name, size, file.path);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('File selection error: $e'),
-            backgroundColor: AppTheme.error,
-          ),
-        );
-      }
+    if (picked != null) {
+      onFileSelected(picked.bytes, picked.name, picked.size, picked.path);
     }
   }
 
@@ -72,6 +64,8 @@ class FileUploadBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isMobile = MediaQuery.of(context).size.width < 600;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -80,7 +74,7 @@ class FileUploadBox extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           child: Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(isMobile ? 12 : 16),
             decoration: BoxDecoration(
               color: hasFile ? AppTheme.bgSurface : AppTheme.bgPage,
               borderRadius: BorderRadius.circular(16),
@@ -90,35 +84,35 @@ class FileUploadBox extends StatelessWidget {
               ),
               boxShadow: hasFile ? AppTheme.shadowSm : null,
             ),
-            child: hasFile ? _buildFilePreview(context) : _buildEmptyState(context),
+            child: hasFile ? _buildFilePreview(context, isMobile) : _buildEmptyState(context, isMobile),
           ),
         ),
       ],
     );
   }
 
-  Widget _buildEmptyState(BuildContext context) {
+  Widget _buildEmptyState(BuildContext context, bool isMobile) {
     return Column(
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         Container(
-          width: 52,
-          height: 52,
+          width: isMobile ? 44 : 52,
+          height: isMobile ? 44 : 52,
           decoration: const BoxDecoration(
             color: AppTheme.primaryLight,
             shape: BoxShape.circle,
           ),
-          child: const Icon(
+          child: Icon(
             Icons.cloud_upload_rounded,
             color: AppTheme.primary,
-            size: 28,
+            size: isMobile ? 24 : 28,
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Text(
           title,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 14,
+            fontSize: isMobile ? 13 : 14,
             fontWeight: FontWeight.w600,
             color: AppTheme.textPrimary,
           ),
@@ -128,7 +122,7 @@ class FileUploadBox extends StatelessWidget {
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+            style: GoogleFonts.inter(fontSize: isMobile ? 11.5 : 12, color: AppTheme.textMuted),
             children: const [
               TextSpan(text: 'or '),
               TextSpan(
@@ -143,7 +137,7 @@ class FileUploadBox extends StatelessWidget {
             ],
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Wrap(
           spacing: 6,
           runSpacing: 4,
@@ -184,17 +178,41 @@ class FileUploadBox extends StatelessWidget {
             ),
           ],
         ),
+        if (onOcrScan != null) ...[
+          const SizedBox(height: 12),
+          OutlinedButton.icon(
+            onPressed: onOcrScan,
+            icon: const Icon(Icons.document_scanner_rounded, size: 15, color: Color(0xFF4F46E5)),
+            label: Text(
+              'Scan Card with OCR to Auto-Fill Form',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF4F46E5),
+              ),
+            ),
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              side: const BorderSide(color: Color(0xFF818CF8), width: 1.2),
+              backgroundColor: const Color(0xFFEEF2FF),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+          ),
+        ],
       ],
     );
   }
 
-  Widget _buildFilePreview(BuildContext context) {
+  Widget _buildFilePreview(BuildContext context, bool isMobile) {
+    final resolvedUrl = ApiConfig().getFileUrl(existingFileUrl);
+
     return Row(
       children: [
         // Thumbnail or PDF icon
         Container(
-          width: 60,
-          height: 60,
+          width: isMobile ? 50 : 58,
+          height: isMobile ? 50 : 58,
           decoration: BoxDecoration(
             color: AppTheme.bgSubtle,
             borderRadius: BorderRadius.circular(10),
@@ -205,7 +223,7 @@ class FileUploadBox extends StatelessWidget {
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(Icons.picture_as_pdf_rounded, color: AppTheme.error, size: 28),
+                    Icon(Icons.picture_as_pdf_rounded, color: AppTheme.error, size: isMobile ? 24 : 28),
                     Text(
                       'PDF',
                       style: GoogleFonts.inter(
@@ -218,55 +236,61 @@ class FileUploadBox extends StatelessWidget {
                 )
               : fileBytes != null
                   ? Image.memory(fileBytes!, fit: BoxFit.cover)
-                  : existingFileUrl != null && existingFileUrl!.isNotEmpty
+                  : resolvedUrl.isNotEmpty
                       ? Image.network(
-                          existingFileUrl!,
+                          resolvedUrl,
                           fit: BoxFit.cover,
                           errorBuilder: (_, _, _) => const Icon(Icons.image_outlined, color: AppTheme.textMuted),
                         )
                       : const Icon(Icons.image_outlined, color: AppTheme.textMuted),
         ),
-        const SizedBox(width: 12),
+        SizedBox(width: isMobile ? 10 : 12),
 
         // File Information
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                fileName ?? 'Attached File',
+                fileName ?? (existingFileUrl != null ? existingFileUrl!.split('/').last : 'Attached File'),
                 style: GoogleFonts.inter(
-                  fontSize: 13,
+                  fontSize: isMobile ? 12.5 : 13,
                   fontWeight: FontWeight.w600,
                   color: AppTheme.textPrimary,
                 ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
-              const SizedBox(height: 3),
+              const SizedBox(height: 2),
               if (fileSize != null)
                 Text(
                   _formatSize(fileSize),
                   style: GoogleFonts.inter(
-                    fontSize: 11,
+                    fontSize: isMobile ? 10.5 : 11,
                     color: AppTheme.textMuted,
                   ),
                 ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 3),
               Row(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    hasSelectedFile ? Icons.check_circle : Icons.cloud_done,
+                    hasSelectedFile ? Icons.check_circle_rounded : Icons.cloud_done_rounded,
                     size: 13,
                     color: AppTheme.success,
                   ),
                   const SizedBox(width: 4),
-                  Text(
-                    hasSelectedFile ? 'Ready to upload' : 'Currently saved on file',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w600,
-                      color: hasSelectedFile ? AppTheme.success : const Color(0xFF0369A1),
+                  Flexible(
+                    child: Text(
+                      hasSelectedFile ? 'Ready to upload' : 'Currently saved on file',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.inter(
+                        fontSize: isMobile ? 10.5 : 11,
+                        fontWeight: FontWeight.w600,
+                        color: hasSelectedFile ? AppTheme.success : const Color(0xFF0369A1),
+                      ),
                     ),
                   ),
                 ],
@@ -275,10 +299,22 @@ class FileUploadBox extends StatelessWidget {
           ),
         ),
 
+        // OCR Scan action on existing file (image or PDF)
+        if (onOcrScan != null)
+          IconButton(
+            onPressed: onOcrScan,
+            constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+            padding: const EdgeInsets.all(5),
+            icon: const Icon(Icons.document_scanner_rounded, color: Color(0xFF6366F1), size: 19),
+            tooltip: isPdf ? 'Auto-fill form by scanning this PDF document' : 'Auto-fill form using this visiting card',
+          ),
+
         // Remove button
         IconButton(
           onPressed: onFileRemoved,
-          icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.error),
+          constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
+          padding: const EdgeInsets.all(5),
+          icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.error, size: 20),
           tooltip: 'Remove file',
         ),
       ],

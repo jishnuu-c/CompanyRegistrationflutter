@@ -15,11 +15,10 @@ class ApiConfig extends ChangeNotifier {
   }
 
   void _initDefaultHost() {
-    // Default to the actual network backend server matching Angular environment.ts
-    // _host = 'http://192.168.1.201:8080';
-    // _host = 'http://103.199.210.172:8080';
+    // Default backend server matching Angular environment.ts
     _host = 'http://192.168.1.142:8080';
-
+    // _host = 'http://103.199.210.172:8080';
+    // _host = 'http://192.168.1.201:8080';
     checkConnection();
   }
 
@@ -29,6 +28,12 @@ class ApiConfig extends ChangeNotifier {
   bool get isOnline => _isOnline;
   bool get isChecking => _isChecking;
   String get lastError => _lastError;
+
+  void setOnline(bool online) {
+    _isOnline = online;
+    if (online) _lastError = '';
+    notifyListeners();
+  }
 
   void setHost(String newHost) {
     var trimmed = newHost.trim().replaceAll(RegExp(r'/+$'), '');
@@ -43,18 +48,23 @@ class ApiConfig extends ChangeNotifier {
   Future<bool> checkConnection() async {
     _isChecking = true;
     _lastError = '';
-    notifyListeners();
 
     try {
+      // Lightweight probe to verify server is reachable
       final endpoint = Uri.parse('$apiUrl/companies/get-all');
       final response = await http
           .get(endpoint)
-          .timeout(const Duration(seconds: 4));
-      if (response.statusCode >= 200 && response.statusCode < 400) {
+          .timeout(const Duration(seconds: 3));
+
+      // Any HTTP response (including 200, 401, 403) confirms the backend server is reachable
+      if (response.statusCode != 502 &&
+          response.statusCode != 503 &&
+          response.statusCode != 504) {
         _isOnline = true;
         _lastError = '';
       } else {
-        _isOnline = response.statusCode != 502 && response.statusCode != 503;
+        _isOnline = false;
+        _lastError = 'Gateway error (${response.statusCode})';
       }
     } catch (e) {
       _isOnline = false;
@@ -69,9 +79,29 @@ class ApiConfig extends ChangeNotifier {
   String getFileUrl(String? path) {
     if (path == null || path.trim().isEmpty) return '';
     if (path.startsWith('http://') || path.startsWith('https://')) {
+      // If path contains localhost or 127.0.0.1, rewrite to current host for mobile devices
+      if (_host.isNotEmpty &&
+          (path.contains('://localhost') || path.contains('://127.0.0.1'))) {
+        final uri = Uri.tryParse(path);
+        if (uri != null) {
+          final hostUri = Uri.tryParse(_host);
+          if (hostUri != null) {
+            return uri
+                .replace(
+                  scheme: hostUri.scheme,
+                  host: hostUri.host,
+                  port: hostUri.port,
+                )
+                .toString();
+          }
+        }
+      }
       return path;
     }
-    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    var cleanPath = path.replaceAll('\\', '/');
+    if (cleanPath.startsWith('/')) {
+      cleanPath = cleanPath.substring(1);
+    }
     return '$fileBaseUrl$cleanPath';
   }
 }

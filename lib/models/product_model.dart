@@ -121,3 +121,91 @@ class ProductResponse {
     };
   }
 }
+
+class ScrapedProduct {
+  final String name;
+  final String? description;
+  final String? imageUrl;
+  final String? price;
+  final String? productUrl;
+  final int? matchedCatalogProductId;
+
+  ScrapedProduct({
+    required this.name,
+    this.description,
+    this.imageUrl,
+    this.price,
+    this.productUrl,
+    this.matchedCatalogProductId,
+  });
+
+  factory ScrapedProduct.fromJson(Map<String, dynamic> json) {
+    return ScrapedProduct(
+      name: json['name']?.toString() ?? '',
+      description: json['description']?.toString(),
+      imageUrl: json['imageUrl']?.toString() ?? json['image']?.toString(),
+      price: json['price']?.toString(),
+      productUrl: json['productUrl']?.toString(),
+      matchedCatalogProductId: json['matchedCatalogProductId'] is int
+          ? json['matchedCatalogProductId'] as int
+          : int.tryParse(json['matchedCatalogProductId']?.toString() ?? ''),
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      if (description != null) 'description': description,
+      if (imageUrl != null) 'imageUrl': imageUrl,
+      if (price != null) 'price': price,
+      if (productUrl != null) 'productUrl': productUrl,
+      if (matchedCatalogProductId != null)
+        'matchedCatalogProductId': matchedCatalogProductId,
+    };
+  }
+}
+
+class ScrapeProductsResponse {
+  final String websiteUrl;
+  final String scannedUrl;
+  final int totalDiscovered;
+  final List<ScrapedProduct> products;
+  final String strategyUsed;
+  final String message;
+
+  ScrapeProductsResponse({
+    required this.websiteUrl,
+    required this.scannedUrl,
+    required this.totalDiscovered,
+    required this.products,
+    required this.strategyUsed,
+    required this.message,
+  });
+
+  factory ScrapeProductsResponse.fromJson(Map<String, dynamic> json) {
+    final list = json['products'] as List? ?? [];
+    return ScrapeProductsResponse(
+      websiteUrl: json['websiteUrl']?.toString() ?? '',
+      scannedUrl: json['scannedUrl']?.toString() ?? '',
+      totalDiscovered: json['totalDiscovered'] is int
+          ? json['totalDiscovered'] as int
+          : int.tryParse(json['totalDiscovered']?.toString() ?? '0') ?? 0,
+      products: list
+          .map((e) => ScrapedProduct.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      strategyUsed: json['strategyUsed']?.toString() ?? '',
+      message: json['message']?.toString() ?? '',
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'websiteUrl': websiteUrl,
+      'scannedUrl': scannedUrl,
+      'totalDiscovered': totalDiscovered,
+      'products': products.map((e) => e.toJson()).toList(),
+      'strategyUsed': strategyUsed,
+      'message': message,
+    };
+  }
+}

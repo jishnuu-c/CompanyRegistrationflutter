@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../models/company_model.dart';
+import '../models/product_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
 
@@ -211,6 +212,32 @@ class CompanyService {
       throw Exception(
         'Failed to export company PDF profile (status: ${response.statusCode})',
       );
+    }
+  }
+
+  /// Scrape and discover products sold by a company from its official website
+  Future<ScrapeProductsResponse> scrapeProductsFromWebsite(String url) async {
+    final encoded = Uri.encodeQueryComponent(url);
+    final endpoint = Uri.parse('$_apiUrl/scrape-products?url=$encoded');
+    final response = await http
+        .post(
+          endpoint,
+          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+        )
+        .timeout(const Duration(seconds: 40));
+
+    if (response.statusCode >= 200 && response.statusCode < 300) {
+      final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      return ScrapeProductsResponse.fromJson(decoded as Map<String, dynamic>);
+    } else {
+      String errMsg = 'Failed to scrape products from website (status: ${response.statusCode})';
+      try {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decoded is Map && decoded['message'] != null) {
+          errMsg = decoded['message'].toString();
+        }
+      } catch (_) {}
+      throw Exception(errMsg);
     }
   }
 

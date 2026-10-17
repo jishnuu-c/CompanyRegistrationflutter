@@ -18,8 +18,12 @@ import '../widgets/feedback_toast.dart';
 import '../widgets/file_upload_box.dart';
 import '../widgets/status_badge_chip.dart';
 import 'package:share_plus/share_plus.dart';
+import '../services/media_picker_helper.dart';
 import '../widgets/company_share_dialog.dart';
 import '../widgets/company_search_bar.dart';
+import '../widgets/business_card_ocr_banner.dart';
+import 'package:http/http.dart' as http;
+import '../widgets/business_card_ocr_dialog.dart';
 
 
 class CompanyScreen extends StatefulWidget {
@@ -34,6 +38,126 @@ class CompanyScreenState extends State<CompanyScreen> {
   final BrandService _brandService = BrandService();
   final ProductService _productService = ProductService();
   final CategoryService _categoryService = CategoryService();
+
+  bool _isOcrPicking = false;
+
+  Future<void> _handleOcrCardUpload([Uint8List? existingBytes, String? existingName, int? existingSize, String? existingPath]) async {
+    try {
+      Uint8List? bytes = existingBytes;
+      String? fileName = existingName;
+      int? fileSize = existingSize;
+      String? filePath = existingPath;
+
+      if (bytes == null) {
+        setState(() => _isOcrPicking = true);
+        final picked = await MediaPickerHelper.showMediaPickerSheet(
+          context,
+          title: 'Upload Visiting Card (Image or PDF)',
+          subtitle: 'Capture with camera, choose from gallery, or select PDF to auto-fill details',
+          allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+          allowDocuments: true,
+        );
+
+        if (picked != null) {
+          bytes = picked.bytes;
+          fileSize = picked.size;
+          fileName = picked.name;
+          filePath = picked.path;
+        }
+      }
+
+      if (bytes == null || fileName == null || !mounted) return;
+
+      final dialogResult = await BusinessCardOcrDialog.show(
+        context,
+        imageBytes: bytes,
+        fileName: fileName,
+        fileSize: fileSize ?? bytes.length,
+        filePath: filePath,
+        onUnrecognized: (title, message) {
+          if (mounted) {
+            setState(() {
+              _feedback = FeedbackData(
+                type: 'error',
+                title: title,
+                message: message,
+              );
+            });
+          }
+        },
+      );
+
+      if (dialogResult != null && mounted) {
+        _applyOcrResult(dialogResult);
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _feedback = FeedbackData(
+            type: 'error',
+            title: 'OCR Scanning Failed',
+            message: e.toString().replaceAll('Exception:', '').trim(),
+          );
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isOcrPicking = false);
+      }
+    }
+  }
+
+  void _applyOcrResult(BusinessCardOcrDialogResult dialogResult) {
+    final res = dialogResult.result;
+    setState(() {
+      if (res.companyName != null && res.companyName!.trim().isNotEmpty) {
+        _nameController.text = res.companyName!.trim();
+      }
+      if (res.contactName != null && res.contactName!.trim().isNotEmpty) {
+        _contactNameController.text = res.contactName!.trim();
+      }
+      if (res.contactDesignation != null && res.contactDesignation!.trim().isNotEmpty) {
+        _contactDesignationController.text = res.contactDesignation!.trim();
+      }
+      if (res.email != null && res.email!.trim().isNotEmpty) {
+        _emailController.text = res.email!.trim();
+      }
+      if (res.contactEmail != null && res.contactEmail!.trim().isNotEmpty) {
+        _contactEmailController.text = res.contactEmail!.trim();
+      }
+      if (res.contactMobileNumber != null && res.contactMobileNumber!.trim().isNotEmpty) {
+        _contactMobileController.text = res.contactMobileNumber!.trim();
+      }
+      if (res.landline != null && res.landline!.trim().isNotEmpty) {
+        _landlineController.text = res.landline!.trim();
+      }
+      if (res.website != null && res.website!.trim().isNotEmpty) {
+        _websiteController.text = res.website!.trim();
+      }
+      if (res.address != null && res.address!.trim().isNotEmpty) {
+        _addressController.text = res.address!.trim();
+      }
+      if (res.city != null && res.city!.trim().isNotEmpty) {
+        _cityController.text = res.city!.trim();
+      }
+      if (res.country != null && res.country!.trim().isNotEmpty) {
+        _countryController.text = res.country!.trim();
+      }
+
+      if (dialogResult.attachCardToForm) {
+        _selectedFileBytes = dialogResult.imageBytes;
+        _selectedFileName = dialogResult.fileName;
+        _selectedFileSize = dialogResult.fileSize;
+        _selectedFilePath = dialogResult.filePath;
+      }
+
+      _feedback = FeedbackData(
+        type: 'success',
+        title: 'Business Card Details Applied! 🎉',
+        message: 'Extracted company "${res.companyName ?? 'Detected'}", contact "${res.contactName ?? 'Detected'}" and related details have auto-filled into the form.',
+      );
+    });
+  }
 
   // Handle device back press
   bool handleBackPress() {
@@ -100,6 +224,15 @@ class CompanyScreenState extends State<CompanyScreen> {
   String _activeProductBrandFilter = 'all';
   String _activeProductCategoryFilter = 'all';
   String _activeProductSubCategoryFilter = 'all';
+
+  // Section 03 & 06: Website Product Scraping State (Matching Angular)
+  bool _isScrapingWebsite = false;
+  bool _isScrapedDrawerOpen = false;
+  List<ScrapedProduct> _scrapedProducts = [];
+  String _scrapedWebsiteUrl = '';
+  String _scrapedStrategyUsed = '';
+  final Set<int> _selectedScrapedIndices = {};
+  final GlobalKey _scrapedDrawerKey = GlobalKey();
 
   // Section 07: File Upload State
   Uint8List? _selectedFileBytes;
@@ -407,6 +540,241 @@ class CompanyScreenState extends State<CompanyScreen> {
     });
   }
 
+  // --- Website Product Scraping Methods (Matching Angular) ---
+  String _cleanDisplayUrl(String raw) {
+    if (raw.trim().isEmpty) return 'website';
+    try {
+      String trimmed = raw.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        trimmed = 'https://$trimmed';
+      }
+      final uri = Uri.parse(trimmed);
+      String host = uri.host;
+      if (host.startsWith('www.')) {
+        host = host.substring(4);
+      }
+      if (host.isNotEmpty) {
+        return host;
+      }
+      return raw.trim();
+    } catch (_) {
+      return raw.trim();
+    }
+  }
+
+  String _stripTrackingQuery(String raw) {
+    if (raw.trim().isEmpty) return raw;
+    try {
+      String trimmed = raw.trim();
+      if (!trimmed.startsWith('http://') && !trimmed.startsWith('https://')) {
+        trimmed = 'https://$trimmed';
+      }
+      final uri = Uri.parse(trimmed);
+      final cleanParams = Map<String, String>.from(uri.queryParameters);
+      cleanParams.removeWhere((key, _) =>
+          key.toLowerCase().startsWith('utm_') ||
+          key.toLowerCase() == 'srsltid' ||
+          key.toLowerCase() == 'gclid' ||
+          key.toLowerCase() == 'fbclid' ||
+          key.toLowerCase() == 'ref');
+
+      final cleanUri = uri.replace(
+        queryParameters: cleanParams.isEmpty ? null : cleanParams,
+      );
+      return cleanUri.toString();
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  String _cleanPrimaryStrategy(String raw) {
+    if (raw.trim().isEmpty) return 'Storefront Engine';
+    final first = raw.split(',').first.trim();
+    final cleaned = first.replaceAll(RegExp(r'\s*\([^)]*\)'), '').trim();
+    return cleaned.isNotEmpty ? cleaned : 'Storefront Engine';
+  }
+
+  Future<void> _triggerWebsiteProductScrape() async {
+    final website = _websiteController.text.trim();
+    if (website.isEmpty) {
+      setState(() {
+        _feedback = FeedbackData(
+          type: 'error',
+          title: 'Website Required',
+          message: 'Please provide a valid official website URL in Section 03 before discovering products.',
+        );
+      });
+      return;
+    }
+
+    setState(() {
+      _isScrapingWebsite = true;
+      _isScrapedDrawerOpen = true;
+      _feedback = null;
+    });
+
+    try {
+      final res = await _companyService.scrapeProductsFromWebsite(website);
+      if (!mounted) return;
+
+      // Automatically pre-select any products that matched existing catalog products
+      final preselectedIndices = <int>{};
+      for (int idx = 0; idx < res.products.length; idx++) {
+        final p = res.products[idx];
+        if (p.matchedCatalogProductId != null) {
+          preselectedIndices.add(idx);
+          if (!_selectedProductIds.contains(p.matchedCatalogProductId)) {
+            final matchedCatalogProd = _availableProducts
+                .cast<ProductResponse?>()
+                .firstWhere((ap) => ap?.id == p.matchedCatalogProductId, orElse: () => null);
+            if (matchedCatalogProd != null) {
+              _toggleProduct(matchedCatalogProd);
+            }
+          }
+        }
+      }
+
+      setState(() {
+        _isScrapingWebsite = false;
+        _scrapedProducts = res.products;
+        final cleanUrl = _stripTrackingQuery(res.scannedUrl.isNotEmpty ? res.scannedUrl : website);
+        _scrapedWebsiteUrl = cleanUrl;
+        _scrapedStrategyUsed = res.strategyUsed.isNotEmpty ? res.strategyUsed : 'Website Crawler';
+        _selectedScrapedIndices.clear();
+        _selectedScrapedIndices.addAll(preselectedIndices);
+
+        final domain = _cleanDisplayUrl(website);
+        final primaryStrategy = _cleanPrimaryStrategy(_scrapedStrategyUsed);
+
+        if (res.products.isNotEmpty) {
+          final count = res.products.length;
+          final productWord = count == 1 ? 'product' : 'products';
+          _feedback = FeedbackData(
+            type: 'success',
+            title: 'Products Discovered!',
+            message: 'Found $count $productWord from $domain',
+            badges: [
+              FeedbackBadge(icon: Icons.language, label: domain),
+              FeedbackBadge(icon: Icons.bolt, label: primaryStrategy),
+              FeedbackBadge(icon: Icons.inventory_2_outlined, label: '$count Items'),
+            ],
+            actionPrompt: 'Select the items you want to link to this company below.',
+          );
+        } else {
+          _feedback = FeedbackData(
+            type: 'error',
+            title: 'No Products Detected',
+            message: res.message.isNotEmpty
+                ? res.message
+                : 'We could not detect standard eCommerce products on $domain.',
+            actionPrompt: 'You can manually choose products from the catalog below.',
+          );
+        }
+      });
+
+      if (res.products.isNotEmpty) {
+        _scrollToScrapedDrawer();
+      }
+    } catch (err) {
+      if (!mounted) return;
+      setState(() {
+        _isScrapingWebsite = false;
+        final errMsg = err.toString().replaceAll('Exception:', '').trim();
+        final domain = _cleanDisplayUrl(website);
+        _feedback = FeedbackData(
+          type: 'error',
+          title: 'Website Scan Failed',
+          message: errMsg.isNotEmpty
+              ? errMsg
+              : 'Could not fetch or scan $domain. Please ensure the domain is publicly accessible.',
+        );
+      });
+    }
+  }
+
+  void _scrollToScrapedDrawer() {
+    // Unfocus soft keyboard so the user has full screen visibility
+    FocusManager.instance.primaryFocus?.unfocus();
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_scrapedDrawerKey.currentContext != null) {
+        Scrollable.ensureVisible(
+          _scrapedDrawerKey.currentContext!,
+          duration: const Duration(milliseconds: 500),
+          curve: Curves.easeInOut,
+          alignment: 0.05,
+        );
+      }
+    });
+  }
+
+  void _openScrapedDrawerWithScroll() {
+    setState(() {
+      _isScrapedDrawerOpen = true;
+    });
+    _scrollToScrapedDrawer();
+  }
+
+  void _closeScrapedDrawer() {
+    setState(() {
+      _isScrapedDrawerOpen = false;
+    });
+  }
+
+  void _toggleScrapedProduct(int index) {
+    if (index < 0 || index >= _scrapedProducts.length) return;
+    final product = _scrapedProducts[index];
+
+    setState(() {
+      if (_selectedScrapedIndices.contains(index)) {
+        _selectedScrapedIndices.remove(index);
+        if (product.matchedCatalogProductId != null) {
+          _removeProductAndCheckBrand(product.matchedCatalogProductId!, null);
+        }
+      } else {
+        _selectedScrapedIndices.add(index);
+        if (product.matchedCatalogProductId != null) {
+          final catalogProd = _availableProducts
+              .cast<ProductResponse?>()
+              .firstWhere((p) => p?.id == product.matchedCatalogProductId, orElse: () => null);
+          if (catalogProd != null && !_selectedProductIds.contains(product.matchedCatalogProductId)) {
+            _toggleProduct(catalogProd);
+          }
+        }
+      }
+    });
+  }
+
+  void _selectAllScrapedProducts() {
+    setState(() {
+      for (int idx = 0; idx < _scrapedProducts.length; idx++) {
+        _selectedScrapedIndices.add(idx);
+        final p = _scrapedProducts[idx];
+        if (p.matchedCatalogProductId != null) {
+          final catalogProd = _availableProducts
+              .cast<ProductResponse?>()
+              .firstWhere((cp) => cp?.id == p.matchedCatalogProductId, orElse: () => null);
+          if (catalogProd != null && !_selectedProductIds.contains(p.matchedCatalogProductId)) {
+            _toggleProduct(catalogProd);
+          }
+        }
+      }
+    });
+  }
+
+  void _deselectAllScrapedProducts() {
+    setState(() {
+      for (final idx in _selectedScrapedIndices) {
+        if (idx < _scrapedProducts.length) {
+          final p = _scrapedProducts[idx];
+          if (p.matchedCatalogProductId != null) {
+            _removeProductAndCheckBrand(p.matchedCatalogProductId!, null);
+          }
+        }
+      }
+      _selectedScrapedIndices.clear();
+    });
+  }
 
   // --- Edit & Form Reset Handlers ---
   void _startEdit(CompanyResponse company) {
@@ -449,6 +817,13 @@ class CompanyScreenState extends State<CompanyScreen> {
           ? _companyService.getFileUrl(company.businessCard)
           : null;
 
+      _scrapedProducts.clear();
+      _selectedScrapedIndices.clear();
+      _scrapedWebsiteUrl = '';
+      _scrapedStrategyUsed = '';
+      _isScrapedDrawerOpen = false;
+      _isScrapingWebsite = false;
+
       if (_selectedCompany != null) _selectedCompany = null;
     });
   }
@@ -483,6 +858,13 @@ class CompanyScreenState extends State<CompanyScreen> {
     _selectedFileSize = null;
     _selectedFilePath = null;
     _existingFileUrl = null;
+
+    _scrapedProducts.clear();
+    _selectedScrapedIndices.clear();
+    _scrapedWebsiteUrl = '';
+    _scrapedStrategyUsed = '';
+    _isScrapedDrawerOpen = false;
+    _isScrapingWebsite = false;
   }
 
   void _resetForm() {
@@ -1012,15 +1394,16 @@ class CompanyScreenState extends State<CompanyScreen> {
                       color: AppTheme.primary,
                     ),
                     const SizedBox(width: 8),
-                    Text(
-                      _showLivePreview ? 'Hide Live Card Preview' : 'Show Live Card Preview',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.primary,
+                    Expanded(
+                      child: Text(
+                        _showLivePreview ? 'Hide Live Card Preview' : 'Show Live Card Preview',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: AppTheme.primary,
+                        ),
                       ),
                     ),
-                    const Spacer(),
                     Icon(
                       _showLivePreview ? Icons.expand_less : Icons.expand_more,
                       size: 18,
@@ -1055,6 +1438,13 @@ class CompanyScreenState extends State<CompanyScreen> {
           _buildEditingNoticeBanner(),
           const SizedBox(height: 16),
         ],
+
+        // Smart Visiting Card Auto-Fill Banner (Matching Angular)
+        BusinessCardOcrBanner(
+          onUploadPressed: _handleOcrCardUpload,
+          isLoading: _isOcrPicking,
+        ),
+        const SizedBox(height: 16),
 
         Form(
           key: _formKey,
@@ -1282,8 +1672,74 @@ class CompanyScreenState extends State<CompanyScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('Official Website', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                          const SizedBox(height: 6),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  'Official Website',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                              ),
+                              if (_websiteController.text.trim().isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                InkWell(
+                                  onTap: _isScrapingWebsite ? null : _triggerWebsiteProductScrape,
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                    decoration: BoxDecoration(
+                                      gradient: const LinearGradient(
+                                        colors: [Color(0xFFE0E7FF), Color(0xFFEDE9FE)],
+                                      ),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(color: const Color(0xFFC7D2FE)),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        if (_isScrapingWebsite) ...[
+                                          const SizedBox(
+                                            width: 12,
+                                            height: 12,
+                                            child: CircularProgressIndicator(
+                                              strokeWidth: 2,
+                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4338CA)),
+                                            ),
+                                          ),
+                                          const SizedBox(width: 6),
+                                          Text(
+                                            'Scanning...',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF4338CA),
+                                            ),
+                                          ),
+                                        ] else ...[
+                                          const Icon(Icons.auto_awesome, size: 13, color: Color(0xFF4338CA)),
+                                          const SizedBox(width: 5),
+                                          Text(
+                                            'Discover Products',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w700,
+                                              color: const Color(0xFF4338CA),
+                                            ),
+                                          ),
+                                        ],
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ],
+                        ),
+                        const SizedBox(height: 6),
                           TextFormField(
                             controller: _websiteController,
                             keyboardType: TextInputType.url,
@@ -1294,6 +1750,45 @@ class CompanyScreenState extends State<CompanyScreen> {
                             ),
                             onChanged: (_) => setState(() {}),
                           ),
+                          if (_scrapedProducts.isNotEmpty)
+                            InkWell(
+                              onTap: _openScrapedDrawerWithScroll,
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFD1FAE5),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Icon(Icons.check_circle, size: 14, color: Color(0xFF065F46)),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${_scrapedProducts.length} products discovered',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11.5,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF065F46),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'View List',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF047857),
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
                         ],
                       ),
                     ],
@@ -1671,9 +2166,64 @@ class CompanyScreenState extends State<CompanyScreen> {
                 stepNum: '06',
                 title: 'Authorized Products Catalog',
                 subtitle: 'Choose products from brands through categories that this enterprise offers or distributes',
+                action: _websiteController.text.trim().isNotEmpty
+                    ? InkWell(
+                        onTap: _isScrapingWebsite ? null : _triggerWebsiteProductScrape,
+                        borderRadius: BorderRadius.circular(20),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFEEF2FF), Color(0xFFFAF5FF)],
+                            ),
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(color: const Color(0xFFC7D2FE), width: 1.5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (_isScrapingWebsite) ...[
+                                const SizedBox(
+                                  width: 12,
+                                  height: 12,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4F46E5)),
+                                  ),
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  'Scraping Website...',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF4F46E5),
+                                  ),
+                                ),
+                              ] else ...[
+                                const Icon(Icons.auto_awesome, size: 13, color: Color(0xFF4F46E5)),
+                                const SizedBox(width: 5),
+                                Text(
+                                  'Scan Website for Products',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF4F46E5),
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      )
+                    : null,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    if (_isScrapedDrawerOpen) ...[
+                      _buildScrapedProductsDrawer(),
+                      const SizedBox(height: 16),
+                    ],
                     // Drilldown Filter Grid
                     Wrap(
                       spacing: 8,
@@ -2160,6 +2710,26 @@ class CompanyScreenState extends State<CompanyScreen> {
                       _existingFileUrl = null;
                     });
                   },
+                  onOcrScan: () async {
+                    if (_selectedFileBytes != null && _selectedFileName != null) {
+                      _handleOcrCardUpload(_selectedFileBytes, _selectedFileName, _selectedFileSize, _selectedFilePath);
+                    } else if (_existingFileUrl != null && _existingFileUrl!.isNotEmpty) {
+                      try {
+                        final fullUrl = ApiConfig().getFileUrl(_existingFileUrl);
+                        final res = await http.get(Uri.parse(fullUrl));
+                        if (res.statusCode == 200) {
+                          final name = _existingFileUrl!.split('/').last;
+                          _handleOcrCardUpload(res.bodyBytes, name, res.bodyBytes.length, null);
+                          return;
+                        }
+                      } catch (e) {
+                        debugPrint('Could not download existing file for OCR: $e');
+                      }
+                      _handleOcrCardUpload();
+                    } else {
+                      _handleOcrCardUpload();
+                    }
+                  },
                 ),
               ),
               const SizedBox(height: 20),
@@ -2449,6 +3019,7 @@ class CompanyScreenState extends State<CompanyScreen> {
     required String stepNum,
     required String title,
     required String subtitle,
+    Widget? action,
     required Widget child,
   }) {
     return Container(
@@ -2462,39 +3033,557 @@ class CompanyScreenState extends State<CompanyScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: AppTheme.primaryLight,
-                  borderRadius: BorderRadius.circular(6),
-                ),
-                alignment: Alignment.center,
-                child: Text(
-                  stepNum,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: AppTheme.primary,
+          LayoutBuilder(
+            builder: (context, cardConstraints) {
+              final isSmallCard = cardConstraints.maxWidth < 500;
+              final headerInfo = Row(
+                children: [
+                  Container(
+                    width: 24,
+                    height: 24,
+                    decoration: BoxDecoration(
+                      color: AppTheme.primaryLight,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    alignment: Alignment.center,
+                    child: Text(
+                      stepNum,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primary,
+                      ),
+                    ),
                   ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Column(
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        Text(
+                          subtitle,
+                          style: GoogleFonts.inter(
+                            fontSize: 10.5,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  if (!isSmallCard && action != null) ...[
+                    const SizedBox(width: 8),
+                    action,
+                  ],
+                ],
+              );
+
+              if (isSmallCard && action != null) {
+                return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 13.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-                    Text(subtitle, style: GoogleFonts.inter(fontSize: 10.5, color: AppTheme.textMuted)),
+                    headerInfo,
+                    const SizedBox(height: 8),
+                    action,
                   ],
-                ),
-              ),
-            ],
+                );
+              }
+              return headerInfo;
+            },
           ),
           const Divider(height: 20),
           child,
+        ],
+      ),
+    );
+  }
+
+  // --- Website Products Scraped Results Drawer ---
+  Widget _buildScrapedProductsDrawer() {
+    return Container(
+      key: _scrapedDrawerKey,
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFFF8FAFC), Colors.white],
+        ),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: const Color(0xFFE0E7FF), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x146366F1),
+            blurRadius: 18,
+            offset: Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Drawer Header
+          LayoutBuilder(
+            builder: (context, constraints) {
+              final isNarrow = constraints.maxWidth < 620;
+              final titleGroup = Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Container(
+                    width: 38,
+                    height: 38,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFF4F46E5), Color(0xFF6366F1)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x334F46E5),
+                          blurRadius: 10,
+                          offset: Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: const Icon(Icons.language, color: Colors.white, size: 20),
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Discovered Products from Website',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Row(
+                          children: [
+                            Text(
+                              'Scanned: ',
+                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                            ),
+                            Expanded(
+                              child: InkWell(
+                                onTap: () async {
+                                  final uri = Uri.tryParse(_scrapedWebsiteUrl);
+                                  if (uri != null && await canLaunchUrl(uri)) {
+                                    await launchUrl(uri);
+                                  }
+                                },
+                                child: Text(
+                                  _scrapedWebsiteUrl,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF4F46E5),
+                                    decoration: TextDecoration.underline,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (_scrapedStrategyUsed.isNotEmpty) ...[
+                          const SizedBox(height: 4),
+                          Tooltip(
+                            message: 'Detection Pipeline: $_scrapedStrategyUsed',
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                              decoration: BoxDecoration(
+                                color: const Color(0xFFEDE9FE),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(Icons.bolt, size: 10.5, color: Color(0xFF6D28D9)),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      _cleanPrimaryStrategy(_scrapedStrategyUsed),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9.5,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF6D28D9),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              );
+
+              final actions = Row(
+                children: [
+                  Expanded(
+                    child: Wrap(
+                      spacing: 6,
+                      runSpacing: 6,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        OutlinedButton.icon(
+                          onPressed: _scrapedProducts.isEmpty ? null : _selectAllScrapedProducts,
+                          icon: const Icon(Icons.done_all, size: 13),
+                          label: Text('Select All (${_scrapedProducts.length})'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                            textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+                            foregroundColor: const Color(0xFF475569),
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                        OutlinedButton.icon(
+                          onPressed: _selectedScrapedIndices.isEmpty ? null : _deselectAllScrapedProducts,
+                          icon: const Icon(Icons.remove_circle_outline, size: 13),
+                          label: Text('Clear (${_selectedScrapedIndices.length})'),
+                          style: OutlinedButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
+                            textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+                            foregroundColor: const Color(0xFF475569),
+                            backgroundColor: const Color(0xFFF1F5F9),
+                            side: const BorderSide(color: Color(0xFFCBD5E1)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  InkWell(
+                    onTap: _closeScrapedDrawer,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: const Icon(Icons.close, size: 18, color: Color(0xFF94A3B8)),
+                    ),
+                  ),
+                ],
+              );
+
+              if (isNarrow) {
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    titleGroup,
+                    const SizedBox(height: 10),
+                    actions,
+                  ],
+                );
+              }
+              return Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Expanded(child: titleGroup),
+                  const SizedBox(width: 12),
+                  actions,
+                ],
+              );
+            },
+          ),
+          const Divider(height: 24),
+
+          // Drawer Body
+          if (_isScrapingWebsite) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 28),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF6366F1), width: 3),
+                      boxShadow: const [
+                        BoxShadow(
+                          color: Color(0x556366F1),
+                          blurRadius: 16,
+                          spreadRadius: 2,
+                        ),
+                      ],
+                    ),
+                    alignment: Alignment.center,
+                    child: Container(
+                      width: 12,
+                      height: 12,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF4F46E5),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 14),
+                  Text(
+                    'Crawling website & discovering product structured data...',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Analyzing Schema.org JSON-LD, OpenGraph, and product collections',
+                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ] else if (_scrapedProducts.isEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(vertical: 24),
+              alignment: Alignment.center,
+              child: Column(
+                children: [
+                  const Icon(Icons.search_off_rounded, size: 36, color: Color(0xFFCBD5E1)),
+                  const SizedBox(height: 8),
+                  Text(
+                    'No products could be automatically extracted from this domain.',
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: const Color(0xFF475569),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Please pick products from the master catalog below or register new ones.',
+                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                  ),
+                ],
+              ),
+            ),
+          ] else ...[
+            // Products Grid
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final crossAxisCount = (constraints.maxWidth / 220).floor().clamp(1, 4);
+                return ConstrainedBox(
+                  constraints: const BoxConstraints(maxHeight: 380),
+                  child: GridView.builder(
+                    shrinkWrap: true,
+                    physics: const ClampingScrollPhysics(),
+                    itemCount: _scrapedProducts.length,
+                    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: crossAxisCount,
+                      crossAxisSpacing: 10,
+                      mainAxisSpacing: 10,
+                      mainAxisExtent: 74,
+                    ),
+                    itemBuilder: (context, idx) {
+                      final item = _scrapedProducts[idx];
+                      final isSelected = _selectedScrapedIndices.contains(idx);
+                      return InkWell(
+                        onTap: () => _toggleScrapedProduct(idx),
+                        borderRadius: BorderRadius.circular(10),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 180),
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                          decoration: BoxDecoration(
+                            color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
+                              width: isSelected ? 1.5 : 1.0,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(isSelected ? 0.06 : 0.02),
+                                blurRadius: isSelected ? 8 : 4,
+                                offset: const Offset(0, 1),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: Checkbox(
+                                  value: isSelected,
+                                  activeColor: const Color(0xFF4F46E5),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  onChanged: (_) => _toggleScrapedProduct(idx),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF1F5F9),
+                                  borderRadius: BorderRadius.circular(6),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: (item.imageUrl != null && item.imageUrl!.trim().isNotEmpty)
+                                    ? Image.network(
+                                        item.imageUrl!,
+                                        fit: BoxFit.cover,
+                                        errorBuilder: (context, error, stackTrace) => const Center(
+                                          child: Icon(Icons.inventory_2_outlined, size: 20, color: Color(0xFF94A3B8)),
+                                        ),
+                                      )
+                                    : const Center(
+                                        child: Icon(Icons.inventory_2_outlined, size: 20, color: Color(0xFF94A3B8)),
+                                      ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Text(
+                                      item.name,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                    ),
+                                    if (item.price != null && item.price!.trim().isNotEmpty) ...[
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        item.price!,
+                                        maxLines: 1,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: const Color(0xFF059669),
+                                        ),
+                                      ),
+                                    ],
+                                    if (item.matchedCatalogProductId != null) ...[
+                                      const SizedBox(height: 2),
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFDBEAFE),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(Icons.link, size: 10, color: Color(0xFF2563EB)),
+                                            const SizedBox(width: 3),
+                                            Text(
+                                              'In Catalog',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 9.5,
+                                                fontWeight: FontWeight.w800,
+                                                color: const Color(0xFF2563EB),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 12),
+            // Drawer Footer
+            Container(
+              padding: const EdgeInsets.only(top: 10),
+              decoration: const BoxDecoration(
+                border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
+              ),
+              child: LayoutBuilder(
+                builder: (context, footerConstraints) {
+                  final isNarrowFooter = footerConstraints.maxWidth < 520;
+                  final countWidget = Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${_selectedScrapedIndices.length} ',
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF4338CA),
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'of ${_scrapedProducts.length} website products selected',
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF4338CA),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  final hintWidget = Text(
+                    'Selected items will be linked with this company upon registration.',
+                    style: GoogleFonts.inter(fontSize: 10.5, color: AppTheme.textMuted),
+                  );
+
+                  if (isNarrowFooter) {
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        countWidget,
+                        const SizedBox(height: 4),
+                        hintWidget,
+                      ],
+                    );
+                  }
+
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      countWidget,
+                      const SizedBox(width: 8),
+                      Flexible(child: hintWidget),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ],
         ],
       ),
     );

@@ -20,6 +20,7 @@ class MainShellScreen extends StatefulWidget {
 class _MainShellScreenState extends State<MainShellScreen> {
   late int _currentIndex;
   final List<int> _tabHistory = [0];
+  final Set<int> _loadedTabs = {0};
   DateTime? _lastBackPressTime;
 
   final GlobalKey<CompanyScreenState> _companyScreenKey = GlobalKey<CompanyScreenState>();
@@ -33,6 +34,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
     _currentIndex = widget.initialTabIndex;
     _tabHistory.clear();
     _tabHistory.add(_currentIndex);
+    _loadedTabs.add(_currentIndex);
   }
 
   void _switchTab(int index) {
@@ -41,6 +43,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
         _tabHistory.remove(index);
         _tabHistory.add(index);
         _currentIndex = index;
+        _loadedTabs.add(index);
       });
     }
   }
@@ -146,10 +149,18 @@ class _MainShellScreenState extends State<MainShellScreen> {
   @override
   Widget build(BuildContext context) {
     final screens = [
-      CompanyScreen(key: _companyScreenKey),
-      CategoryScreen(key: _categoryScreenKey),
-      BrandScreen(key: _brandScreenKey),
-      ProductScreen(key: _productScreenKey, onSwitchTab: _switchTab),
+      _loadedTabs.contains(0)
+          ? CompanyScreen(key: _companyScreenKey)
+          : const SizedBox.shrink(),
+      _loadedTabs.contains(1)
+          ? CategoryScreen(key: _categoryScreenKey)
+          : const SizedBox.shrink(),
+      _loadedTabs.contains(2)
+          ? BrandScreen(key: _brandScreenKey)
+          : const SizedBox.shrink(),
+      _loadedTabs.contains(3)
+          ? ProductScreen(key: _productScreenKey, onSwitchTab: _switchTab)
+          : const SizedBox.shrink(),
     ];
 
     return PopScope(
@@ -163,9 +174,55 @@ class _MainShellScreenState extends State<MainShellScreen> {
           title: _currentModuleTitle,
           icon: _currentModuleIcon,
         ),
-        body: IndexedStack(
-          index: _currentIndex,
-          children: screens,
+        body: Column(
+          children: [
+            // Top Module Switcher Bar (Matching Angular layout)
+            Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF8FAFC),
+                border: Border(
+                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
+                ),
+              ),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    _buildTopModuleChip(
+                      index: 0,
+                      label: 'Companies',
+                      icon: Icons.apartment_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTopModuleChip(
+                      index: 1,
+                      label: 'Categories',
+                      icon: Icons.label_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTopModuleChip(
+                      index: 2,
+                      label: 'Brands',
+                      icon: Icons.verified_rounded,
+                    ),
+                    const SizedBox(width: 8),
+                    _buildTopModuleChip(
+                      index: 3,
+                      label: 'Products',
+                      icon: Icons.inventory_2_rounded,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            Expanded(
+              child: IndexedStack(
+                index: _currentIndex,
+                children: screens,
+              ),
+            ),
+          ],
         ),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
@@ -254,4 +311,61 @@ class _MainShellScreenState extends State<MainShellScreen> {
       ),
     );
   }
+
+  Widget _buildTopModuleChip({
+    required int index,
+    required String label,
+    required IconData icon,
+  }) {
+    final isSelected = _currentIndex == index;
+
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () => _switchTab(index),
+        borderRadius: BorderRadius.circular(20),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+          decoration: BoxDecoration(
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
+              width: isSelected ? 1.5 : 1,
+            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF6366F1).withValues(alpha: 0.12),
+                      blurRadius: 6,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : null,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                icon,
+                size: 15,
+                color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 12.5,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                  color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF475569),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
+
