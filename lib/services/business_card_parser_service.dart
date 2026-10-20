@@ -474,14 +474,29 @@ class BusinessCardParserService {
 
     // 8. Strict Confidence Score (0 to 100)
     int score = 0;
-    if (result.email != null) score += 25;
-    if (result.contactMobileNumber != null) score += 20;
-    if (result.landline != null) score += 10;
-    if (result.contactName != null) score += 15;
-    if (result.contactDesignation != null) score += 10;
-    if (result.website != null) score += 10;
-    if (result.address != null || result.city != null || result.country != null)
+    if (result.email != null) {
+      score += 25;
+    }
+    if (result.contactMobileNumber != null) {
+      score += 20;
+    }
+    if (result.landline != null) {
       score += 10;
+    }
+    if (result.contactName != null) {
+      score += 15;
+    }
+    if (result.contactDesignation != null) {
+      score += 10;
+    }
+    if (result.website != null) {
+      score += 10;
+    }
+    if (result.address != null ||
+        result.city != null ||
+        result.country != null) {
+      score += 10;
+    }
 
     if (hasCompanyWithSuffix) {
       score += 20;
@@ -504,13 +519,20 @@ class BusinessCardParserService {
   }
 
   bool _isValidPersonName(String? str) {
-    if (str == null || str.trim().isEmpty) return false;
-    final clean = str.trim().replaceAll(RegExp(r'[®©™]'), '');
-    if (clean.length < 3 || clean.length > 40) return false;
-    // Reject digits, timestamps, and special characters
-    if (RegExp(r'\d').hasMatch(clean)) return false;
-    if (RegExp(r'[@#$%^&*()_+={}\[\]:;"\x27<>?/\\|]').hasMatch(clean))
+    if (str == null || str.trim().isEmpty) {
       return false;
+    }
+    final clean = str.trim().replaceAll(RegExp(r'[®©™]'), '');
+    if (clean.length < 3 || clean.length > 40) {
+      return false;
+    }
+    // Reject digits, timestamps, and special characters
+    if (RegExp(r'\d').hasMatch(clean)) {
+      return false;
+    }
+    if (RegExp(r'[@#$%^&*()_+={}\[\]:;"\x27<>?/\\|]').hasMatch(clean)) {
+      return false;
+    }
 
     final lower = clean.toLowerCase();
     // Reject if it contains common company suffixes

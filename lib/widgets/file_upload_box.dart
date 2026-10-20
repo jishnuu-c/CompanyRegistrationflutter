@@ -38,11 +38,13 @@ class FileUploadBox extends StatelessWidget {
   bool get hasFile => hasSelectedFile || hasExistingFile;
 
   bool get isPdf {
-    if (fileName != null && fileName!.toLowerCase().endsWith('.pdf'))
+    if (fileName != null && fileName!.toLowerCase().endsWith('.pdf')) {
       return true;
+    }
     if (existingFileUrl != null &&
-        existingFileUrl!.toLowerCase().endsWith('.pdf'))
+        existingFileUrl!.toLowerCase().endsWith('.pdf')) {
       return true;
+    }
     return false;
   }
 

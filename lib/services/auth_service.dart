@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../models/auth_model.dart';
 import 'api_config.dart';
 import 'auth/api_auth_provider.dart';
@@ -21,6 +23,10 @@ class AuthService extends ChangeNotifier {
   late final DemoAuthProvider _demoProvider;
   late final ApiAuthProvider _apiProvider;
 
+  static const String _storageKeyToken = 'cr_auth_token';
+  static const String _storageKeyUser = 'cr_auth_user';
+  final FlutterSecureStorage _secureStorage = const FlutterSecureStorage();
+
   String? _token;
   UserProfile? _currentUser;
   bool _isDemoSession = false;
@@ -30,6 +36,48 @@ class AuthService extends ChangeNotifier {
     _apiProvider = ApiAuthProvider();
 
     _authConfig.addListener(_onAuthConfigChanged);
+    _restoreStoredSession();
+  }
+
+  Future<void> _restoreStoredSession() async {
+    try {
+      final savedToken = await _secureStorage.read(key: _storageKeyToken);
+      if (savedToken != null &&
+          savedToken.isNotEmpty &&
+          !isTokenExpired(savedToken)) {
+        _token = savedToken;
+        _isDemoSession =
+            savedToken.startsWith('DEMO_SESSION_') || _authConfig.isDemoMode;
+        final savedUserJson = await _secureStorage.read(key: _storageKeyUser);
+        if (savedUserJson != null && savedUserJson.isNotEmpty) {
+          try {
+            _currentUser = UserProfile.fromJson(jsonDecode(savedUserJson));
+          } catch (_) {}
+        }
+        notifyListeners();
+      }
+    } catch (_) {}
+  }
+
+  void _persistSession(AuthResponse response) {
+    _token = response.token;
+    _currentUser = response.toUserProfile();
+    _isDemoSession = response.isDemoSession;
+    notifyListeners();
+
+    if (response.token.isNotEmpty) {
+      _secureStorage
+          .write(key: _storageKeyToken, value: response.token)
+          .catchError((_) {});
+    }
+    if (_currentUser != null) {
+      _secureStorage
+          .write(
+            key: _storageKeyUser,
+            value: jsonEncode(_currentUser!.toJson()),
+          )
+          .catchError((_) {});
+    }
   }
 
   void _onAuthConfigChanged() {
@@ -69,11 +117,7 @@ class AuthService extends ChangeNotifier {
       password: password,
     );
 
-    _token = response.token;
-    _currentUser = response.toUserProfile();
-    _isDemoSession = response.isDemoSession;
-
-    notifyListeners();
+    _persistSession(response);
     return response;
   }
 
@@ -81,11 +125,7 @@ class AuthService extends ChangeNotifier {
   Future<AuthResponse> register(RegisterRequest req) async {
     final response = await currentProvider.register(req);
 
-    _token = response.token;
-    _currentUser = response.toUserProfile();
-    _isDemoSession = response.isDemoSession;
-
-    notifyListeners();
+    _persistSession(response);
     return response;
   }
 
@@ -101,11 +141,7 @@ class AuthService extends ChangeNotifier {
       otp: otp,
     );
 
-    _token = response.token;
-    _currentUser = response.toUserProfile();
-    _isDemoSession = response.isDemoSession;
-
-    notifyListeners();
+    _persistSession(response);
     return response;
   }
 
@@ -117,11 +153,21 @@ class AuthService extends ChangeNotifier {
   /// Perform native OS biometric prompt and authenticate session for bound user.
   /// Strictly requires real operating-system authentication success.
   Future<AuthResponse> authenticateWithBiometrics() async {
+    final isEnabled = await _biometricService.isBiometricLoginEnabled();
     final boundUser = await _biometricService.getBoundUsername();
-    if (boundUser == null || boundUser.isEmpty) {
+    if (!isEnabled || boundUser == null || boundUser.isEmpty) {
       throw Exception(
         'Biometric authentication is not enabled for any user on this device. Please log in first and enable biometrics.',
       );
+    }
+
+    if (isDemoMode) {
+      final isValidDemoUser = _demoProvider.hasDemoUser(boundUser);
+      if (!isValidDemoUser) {
+        throw Exception(
+          'Bound demo user "$boundUser" is not recognized in demo mode. Please log in with your demo account first.',
+        );
+      }
     }
 
     final result = await _biometricService.authenticate(
@@ -130,7 +176,7 @@ class AuthService extends ChangeNotifier {
 
     if (!result.success) {
       if (result.isCancelled) {
-        throw Exception('Biometric authentication was cancelled.');
+        throw Exception('Biometric verification cancelled.');
       }
       throw Exception(
         result.errorMessage ?? 'Biometric authentication failed.',
@@ -142,24 +188,45 @@ class AuthService extends ChangeNotifier {
       username: boundUser,
     );
 
-    _token = response.token;
-    _currentUser = response.toUserProfile();
-    _isDemoSession = response.isDemoSession;
-
-    notifyListeners();
+    _persistSession(response);
     return response;
   }
 
   /// Enable biometric login for a specific user after explicit consent
   Future<void> enableBiometricsForUser(String username) async {
-    await _biometricService.enableBiometricLogin(username);
+    final cleanUsername = username.trim();
+    if (cleanUsername.isEmpty) {
+      throw ArgumentError(
+        'Username cannot be empty when enabling biometric login.',
+      );
+    }
+
+    // In demo or API mode, register credential with active provider first
     if (_token != null) {
       await currentProvider.registerBiometricCredential(
-        username: username,
+        username: cleanUsername,
         sessionToken: _token!,
       );
     }
+
+    // Securely persist to local secure storage atomically
+    try {
+      await _biometricService.enableBiometricLogin(cleanUsername);
+    } catch (e) {
+      // Rollback provider credential if local storage failed to prevent partial state
+      try {
+        await currentProvider.revokeBiometricCredential();
+      } catch (_) {}
+      rethrow;
+    }
+
     notifyListeners();
+  }
+
+  /// Check whether the specified demo username exists in the demo registry
+  bool isBoundDemoUserValid(String? username) {
+    if (username == null || username.trim().isEmpty) return false;
+    return _demoProvider.hasDemoUser(username);
   }
 
   /// Disable biometric login on this device
@@ -200,6 +267,8 @@ class AuthService extends ChangeNotifier {
     _currentUser = null;
     _isDemoSession = false;
     currentProvider.logout();
+    _secureStorage.delete(key: _storageKeyToken).catchError((_) {});
+    _secureStorage.delete(key: _storageKeyUser).catchError((_) {});
     notifyListeners();
   }
 
@@ -217,12 +286,10 @@ class AuthService extends ChangeNotifier {
     };
 
     if (_token != null && _token!.isNotEmpty && !isTokenExpired(_token)) {
+      headers['Authorization'] = 'Bearer $_token';
       if (_isDemoSession) {
-        // Safe demo headers - never confuse with real backend production JWT
         headers['X-Demo-Session'] = _token!;
         headers['X-App-Mode'] = 'DEMO';
-      } else {
-        headers['Authorization'] = 'Bearer $_token';
       }
     }
     return headers;

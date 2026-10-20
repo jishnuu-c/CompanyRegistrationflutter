@@ -24,6 +24,7 @@ import '../widgets/company_search_bar.dart';
 import '../widgets/business_card_ocr_banner.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/business_card_ocr_dialog.dart';
+import '../widgets/fast_autofill_banner.dart';
 
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
@@ -148,7 +149,7 @@ class CompanyScreenState extends State<CompanyScreen> {
         _cityController.text = res.city!.trim();
       }
       if (res.country != null && res.country!.trim().isNotEmpty) {
-        _countryController.text = res.country!.trim();
+        _countryController.text = _normalizeCountry(res.country);
       }
 
       if (dialogResult.attachCardToForm) {
@@ -205,11 +206,94 @@ class CompanyScreenState extends State<CompanyScreen> {
   // Form Field Controllers
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
+  final FocusNode _companyNameFocusNode = FocusNode();
+  bool _isCompanyNameFocused = false;
   final _emailController = TextEditingController();
   final _landlineController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
-  final _countryController = TextEditingController(text: 'United States');
+  final _countryController = TextEditingController(text: 'USA - United States');
+
+  static const List<String> _countryList = [
+    'USA - United States',
+    'CAN - Canada',
+    'GBR - United Kingdom',
+    'AUS - Australia',
+    'IND - India',
+    'DEU - Germany',
+    'FRA - France',
+    'ARE - United Arab Emirates',
+    'SAU - Saudi Arabia',
+    'QAT - Qatar',
+    'KWT - Kuwait',
+    'BHR - Bahrain',
+    'OMN - Oman',
+    'SGP - Singapore',
+    'MYS - Malaysia',
+    'JPN - Japan',
+    'CHN - China',
+    'KOR - South Korea',
+    'NLD - Netherlands',
+    'CHE - Switzerland',
+    'ITA - Italy',
+    'ESP - Spain',
+    'SWE - Sweden',
+    'NOR - Norway',
+    'DNK - Denmark',
+    'FIN - Finland',
+    'IRL - Ireland',
+    'BEL - Belgium',
+    'AUT - Austria',
+    'POL - Poland',
+    'TUR - Turkey',
+    'BRA - Brazil',
+    'MEX - Mexico',
+    'ZAF - South Africa',
+    'NZL - New Zealand',
+    'EGY - Egypt',
+    'JOR - Jordan',
+    'LBN - Lebanon',
+    'IDN - Indonesia',
+    'THA - Thailand',
+    'VNM - Vietnam',
+    'PHL - Philippines',
+    'PAK - Pakistan',
+    'BGD - Bangladesh',
+    'NGA - Nigeria',
+    'KEN - Kenya',
+    'ARG - Argentina',
+    'CHL - Chile',
+    'COL - Colombia',
+  ];
+
+  String _normalizeCountry(String? raw) {
+    if (raw == null || raw.trim().isEmpty) return 'USA - United States';
+    final trimmed = raw.trim();
+    for (final opt in _countryList) {
+      if (opt.toLowerCase() == trimmed.toLowerCase()) return opt;
+      final parts = opt.split(' - ');
+      if (parts.length == 2) {
+        if (parts[0].toLowerCase() == trimmed.toLowerCase() ||
+            parts[1].toLowerCase() == trimmed.toLowerCase()) {
+          return opt;
+        }
+      }
+    }
+    final lower = trimmed.toLowerCase();
+    if (lower == 'us' ||
+        lower == 'usa' ||
+        lower == 'united states of america') {
+      return 'USA - United States';
+    }
+    if (lower == 'uk' || lower == 'great britain' || lower == 'britain') {
+      return 'GBR - United Kingdom';
+    }
+    if (lower == 'uae') {
+      return 'ARE - United Arab Emirates';
+    }
+    return trimmed;
+  }
+
   final _websiteController = TextEditingController();
   final _descriptionController = TextEditingController();
   final _contactNameController = TextEditingController();
@@ -266,6 +350,13 @@ class CompanyScreenState extends State<CompanyScreen> {
   void initState() {
     super.initState();
     _apiConfig.addListener(_onConfigChanged);
+    _companyNameFocusNode.addListener(() {
+      if (mounted) {
+        setState(() {
+          _isCompanyNameFocused = _companyNameFocusNode.hasFocus;
+        });
+      }
+    });
     _fetchAllData();
   }
 
@@ -285,6 +376,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   @override
   void dispose() {
     _apiConfig.removeListener(_onConfigChanged);
+    _companyNameFocusNode.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _landlineController.dispose();
@@ -375,10 +467,15 @@ class CompanyScreenState extends State<CompanyScreen> {
     final sFilter = _activeProductSubCategoryFilter;
 
     return _availableProducts.where((p) {
-      if (bFilter != 'all' && p.brandId.toString() != bFilter) return false;
-      if (cFilter != 'all' && p.categoryId.toString() != cFilter) return false;
-      if (sFilter != 'all' && p.subCategoryId?.toString() != sFilter)
+      if (bFilter != 'all' && p.brandId.toString() != bFilter) {
         return false;
+      }
+      if (cFilter != 'all' && p.categoryId.toString() != cFilter) {
+        return false;
+      }
+      if (sFilter != 'all' && p.subCategoryId?.toString() != sFilter) {
+        return false;
+      }
 
       if (query.isNotEmpty) {
         final matches =
@@ -387,7 +484,9 @@ class CompanyScreenState extends State<CompanyScreen> {
             (p.categoryName ?? '').toLowerCase().contains(query) ||
             (p.subCategoryName ?? '').toLowerCase().contains(query) ||
             p.id.toString().contains(query);
-        if (!matches) return false;
+        if (!matches) {
+          return false;
+        }
       }
       return true;
     }).toList();
@@ -434,13 +533,16 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingList = true);
     try {
       final data = await _companyService.getAllCompanies();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _companies = data;
           _isLoadingList = false;
         });
+      }
     } catch (_) {
-      if (mounted) setState(() => _isLoadingList = false);
+      if (mounted) {
+        setState(() => _isLoadingList = false);
+      }
     }
   }
 
@@ -448,13 +550,16 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingBrands = true);
     try {
       final data = await _brandService.getAllBrands();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _availableBrands = data;
           _isLoadingBrands = false;
         });
+      }
     } catch (_) {
-      if (mounted) setState(() => _isLoadingBrands = false);
+      if (mounted) {
+        setState(() => _isLoadingBrands = false);
+      }
     }
   }
 
@@ -462,13 +567,16 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingProducts = true);
     try {
       final data = await _productService.getAllProducts();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _availableProducts = data;
           _isLoadingProducts = false;
         });
+      }
     } catch (_) {
-      if (mounted) setState(() => _isLoadingProducts = false);
+      if (mounted) {
+        setState(() => _isLoadingProducts = false);
+      }
     }
   }
 
@@ -476,13 +584,16 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingCategories = true);
     try {
       final data = await _categoryService.getAllCategories();
-      if (mounted)
+      if (mounted) {
         setState(() {
           _availableCategories = data;
           _isLoadingCategories = false;
         });
+      }
     } catch (_) {
-      if (mounted) setState(() => _isLoadingCategories = false);
+      if (mounted) {
+        setState(() => _isLoadingCategories = false);
+      }
     }
   }
 
@@ -558,9 +669,12 @@ class CompanyScreenState extends State<CompanyScreen> {
   void _selectAllFilteredProducts() {
     setState(() {
       for (final p in _filteredAvailableProducts) {
-        if (!_selectedProductIds.contains(p.id)) _selectedProductIds.add(p.id);
-        if (!_selectedBrandIds.contains(p.brandId))
+        if (!_selectedProductIds.contains(p.id)) {
+          _selectedProductIds.add(p.id);
+        }
+        if (!_selectedBrandIds.contains(p.brandId)) {
           _selectedBrandIds.add(p.brandId);
+        }
       }
     });
   }
@@ -851,6 +965,94 @@ class CompanyScreenState extends State<CompanyScreen> {
     });
   }
 
+  // --- Section 01: Fast Autofill & Company Suggestions Logic ---
+  List<CompanyResponse> get _companyNameSuggestions {
+    final q = _nameController.text.trim().toLowerCase();
+    if (q.length < 2) return const [];
+    return _companies
+        .where((c) {
+          final name = c.companyName.trim().toLowerCase();
+          return name.contains(q) && name != q;
+        })
+        .take(6)
+        .toList();
+  }
+
+  CompanyResponse? get _exactMatchedCompany {
+    final q = _nameController.text.trim().toLowerCase();
+    if (q.isEmpty) return null;
+    try {
+      return _companies.firstWhere(
+        (c) => c.companyName.trim().toLowerCase() == q,
+      );
+    } catch (_) {
+      return null;
+    }
+  }
+
+  void _selectCompanyNameSuggestion(CompanyResponse company) {
+    setState(() {
+      _nameController.text = company.companyName;
+      _isCompanyNameFocused = false;
+      _companyNameFocusNode.unfocus();
+    });
+  }
+
+  void _autofillFormWithCompany(CompanyResponse company) {
+    setState(() {
+      _nameController.text = company.companyName.isNotEmpty
+          ? '${company.companyName} (Copy)'
+          : '';
+      _emailController.text = company.email;
+      _landlineController.text = company.landline ?? '';
+      _addressController.text = company.address ?? '';
+      _cityController.text = company.city ?? '';
+      _countryController.text = _normalizeCountry(company.country);
+      _websiteController.text = company.website ?? '';
+      _descriptionController.text = company.description ?? '';
+      _status = company.status.isNotEmpty ? company.status : 'ACTIVE';
+      _contactNameController.text = company.contactName ?? '';
+      _contactDesignationController.text = company.contactDesignation ?? '';
+      _contactEmailController.text = company.contactEmail ?? '';
+      _contactMobileController.text = company.contactMobileNumber ?? '';
+
+      final bIds = company.brandIds.isNotEmpty
+          ? List<int>.from(company.brandIds)
+          : company.brands.map((b) => b.id).toList();
+      _selectedBrandIds = bIds;
+      _manuallySelectedBrandIds.clear();
+      _manuallySelectedBrandIds.addAll(bIds);
+
+      final pIds = company.productIds.isNotEmpty
+          ? List<int>.from(company.productIds)
+          : company.products.map((p) => p.id).toList();
+      _selectedProductIds = pIds;
+
+      _selectedFileBytes = null;
+      _selectedFileName = null;
+      _selectedFileSize = null;
+      _selectedFilePath = null;
+      _existingFileUrl = null;
+
+      _scrapedProducts.clear();
+      _selectedScrapedIndices.clear();
+      _scrapedWebsiteUrl = '';
+      _scrapedStrategyUsed = '';
+      _isScrapedDrawerOpen = false;
+      _isScrapingWebsite = false;
+
+      _isCompanyNameFocused = false;
+      _companyNameFocusNode.unfocus();
+
+      _feedback = FeedbackData(
+        type: 'success',
+        title: 'Company Autofilled',
+        message:
+            'Form populated with template details from "${company.companyName}". Review and submit when ready.',
+      );
+    });
+  }
+
   // --- Edit & Form Reset Handlers ---
   void _startEdit(CompanyResponse company) {
     setState(() {
@@ -863,7 +1065,7 @@ class CompanyScreenState extends State<CompanyScreen> {
       _landlineController.text = company.landline ?? '';
       _addressController.text = company.address ?? '';
       _cityController.text = company.city ?? '';
-      _countryController.text = company.country ?? 'United States';
+      _countryController.text = _normalizeCountry(company.country);
       _websiteController.text = company.website ?? '';
       _descriptionController.text = company.description ?? '';
       _status = company.status;
@@ -911,7 +1113,7 @@ class CompanyScreenState extends State<CompanyScreen> {
     _landlineController.clear();
     _addressController.clear();
     _cityController.clear();
-    _countryController.text = 'United States';
+    _countryController.text = 'USA - United States';
     _websiteController.clear();
     _descriptionController.clear();
     _status = 'ACTIVE';
@@ -1642,6 +1844,15 @@ class CompanyScreenState extends State<CompanyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Quick Template Autofill Option for New Registrations
+                    if (_editingCompanyId == null) ...[
+                      FastAutofillBanner(
+                        companies: _companies,
+                        onAutofill: _autofillFormWithCompany,
+                      ),
+                      const SizedBox(height: 14),
+                    ],
+
                     Text(
                       'Company Name *',
                       style: GoogleFonts.inter(
@@ -1653,6 +1864,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _nameController,
+                      focusNode: _companyNameFocusNode,
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'e.g. Apex Global Technologies Inc.',
@@ -1670,6 +1882,20 @@ class CompanyScreenState extends State<CompanyScreen> {
                         return null;
                       },
                     ),
+
+                    // Live Search Suggestions Dropdown
+                    if (_isCompanyNameFocused &&
+                        _companyNameSuggestions.isNotEmpty) ...[
+                      const SizedBox(height: 6),
+                      _buildCompanyNameSuggestionsDropdown(),
+                    ],
+
+                    // Exact Match / Duplicate Notice
+                    if (_exactMatchedCompany != null) ...[
+                      const SizedBox(height: 8),
+                      _buildDuplicateCompanyNotice(_exactMatchedCompany!),
+                    ],
+
                     const SizedBox(height: 16),
 
                     Text(
@@ -2130,74 +2356,56 @@ class CompanyScreenState extends State<CompanyScreen> {
                           style: GoogleFonts.inter(fontSize: 13),
                           decoration: InputDecoration(
                             hintText: 'Suite 500, 100 Innovation Way',
+                            isDense: true,
+                            filled: true,
+                            fillColor: Colors.white,
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 12,
+                            ),
                             prefixIcon: const Icon(
                               Icons.location_on_outlined,
                               size: 18,
                               color: AppTheme.textMuted,
                             ),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: AppTheme.borderMedium,
+                                width: 1,
+                              ),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: AppTheme.borderLight,
+                                width: 1,
+                              ),
+                            ),
+                            focusedBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                              borderSide: const BorderSide(
+                                color: AppTheme.primary,
+                                width: 1.5,
+                              ),
+                            ),
                           ),
                           onChanged: (_) => setState(() {}),
                         ),
                         const SizedBox(height: 12),
-                        Flex(
-                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                          children: [
-                            Expanded(
-                              flex: isNarrow ? 0 : 1,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'City',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  TextFormField(
-                                    controller: _cityController,
-                                    style: GoogleFonts.inter(fontSize: 13),
-                                    decoration: const InputDecoration(
-                                      hintText: 'San Francisco',
-                                    ),
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            SizedBox(
-                              width: isNarrow ? 0 : 12,
-                              height: isNarrow ? 12 : 0,
-                            ),
-                            Expanded(
-                              flex: isNarrow ? 0 : 1,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Country',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w600,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 6),
-                                  TextFormField(
-                                    controller: _countryController,
-                                    style: GoogleFonts.inter(fontSize: 13),
-                                    decoration: const InputDecoration(
-                                      hintText: 'United States',
-                                    ),
-                                    onChanged: (_) => setState(() {}),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
+                        if (isNarrow) ...[
+                          _buildCityField(),
+                          const SizedBox(height: 12),
+                          _buildCountryDropdownField(),
+                        ] else ...[
+                          Row(
+                            children: [
+                              Expanded(child: _buildCityField()),
+                              const SizedBox(width: 12),
+                              Expanded(child: _buildCountryDropdownField()),
+                            ],
+                          ),
+                        ],
                       ],
                     );
                   },
@@ -2860,10 +3068,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 }),
                               ],
                               onChanged: (val) {
-                                if (val != null)
+                                if (val != null) {
                                   setState(
                                     () => _activeProductSubCategoryFilter = val,
                                   );
+                                }
                               },
                             ),
                           ),
@@ -3560,27 +3769,30 @@ class CompanyScreenState extends State<CompanyScreen> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _editingCompanyId != null
-                              ? Icons.cancel_outlined
-                              : Icons.restart_alt,
-                          size: 16,
-                          color: AppTheme.textSecondary,
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          _editingCompanyId != null
-                              ? 'Cancel Edit'
-                              : 'Reset Form',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontWeight: FontWeight.w600,
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            _editingCompanyId != null
+                                ? Icons.cancel_outlined
+                                : Icons.restart_alt,
+                            size: 16,
                             color: AppTheme.textSecondary,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            _editingCompanyId != null
+                                ? 'Cancel Edit'
+                                : 'Reset Form',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                   ElevatedButton(
@@ -3589,7 +3801,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                       backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 20,
+                        horizontal: 18,
                         vertical: 12,
                       ),
                       shape: RoundedRectangleBorder(
@@ -3606,26 +3818,29 @@ class CompanyScreenState extends State<CompanyScreen> {
                               strokeWidth: 2,
                             ),
                           )
-                        : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              Icon(
-                                _editingCompanyId != null
-                                    ? Icons.check_circle_outline
-                                    : Icons.add_circle,
-                                size: 16,
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                _editingCompanyId != null
-                                    ? 'Update Company Details'
-                                    : 'Complete Company Registration',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontWeight: FontWeight.w700,
-                                  fontSize: 14,
+                        : FittedBox(
+                            fit: BoxFit.scaleDown,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(
+                                  _editingCompanyId != null
+                                      ? Icons.check_circle_outline
+                                      : Icons.add_circle,
+                                  size: 16,
                                 ),
-                              ),
-                            ],
+                                const SizedBox(width: 8),
+                                Text(
+                                  _editingCompanyId != null
+                                      ? 'Update Company Details'
+                                      : 'Complete Company Registration',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                   ),
                 ],
@@ -3869,6 +4084,143 @@ class CompanyScreenState extends State<CompanyScreen> {
     );
   }
 
+  Widget _buildCityField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'City',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        TextFormField(
+          controller: _cityController,
+          style: GoogleFonts.inter(fontSize: 13),
+          decoration: InputDecoration(
+            hintText: 'San Francisco',
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppTheme.borderMedium,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppTheme.borderLight,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+            ),
+          ),
+          onChanged: (_) => setState(() {}),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCountryDropdownField() {
+    final normalized = _normalizeCountry(_countryController.text);
+    final items = [
+      ..._countryList,
+      if (!_countryList.contains(normalized)) normalized,
+    ];
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Country',
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        DropdownButtonFormField<String>(
+          value: normalized,
+          isExpanded: true,
+          icon: const Icon(
+            Icons.keyboard_arrow_down_rounded,
+            size: 20,
+            color: AppTheme.textMuted,
+          ),
+          dropdownColor: Colors.white,
+          borderRadius: BorderRadius.circular(12),
+          elevation: 4,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            color: AppTheme.textPrimary,
+            fontWeight: FontWeight.w500,
+          ),
+          decoration: InputDecoration(
+            isDense: true,
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 14,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppTheme.borderMedium,
+                width: 1,
+              ),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(
+                color: AppTheme.borderLight,
+                width: 1,
+              ),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(10),
+              borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
+            ),
+          ),
+          items: items.map((c) {
+            return DropdownMenuItem<String>(
+              value: c,
+              child: Text(
+                c,
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  color: AppTheme.textPrimary,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            );
+          }).toList(),
+          onChanged: (val) {
+            if (val != null) {
+              setState(() {
+                _countryController.text = val;
+              });
+            }
+          },
+        ),
+      ],
+    );
+  }
+
   Widget _buildFormCard({
     required String stepNum,
     required String title,
@@ -3951,6 +4303,350 @@ class CompanyScreenState extends State<CompanyScreen> {
           const Divider(height: 20),
           child,
         ],
+      ),
+    );
+  }
+
+  // --- Section 01: Company Name Suggestions Dropdown ---
+  Widget _buildCompanyNameSuggestionsDropdown() {
+    final suggestions = _companyNameSuggestions;
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1.5),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x1A0F172A),
+            blurRadius: 18,
+            offset: Offset(0, 8),
+          ),
+        ],
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Header
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            color: const Color(0xFFF8FAFC),
+            child: Row(
+              children: [
+                const Icon(Icons.domain, size: 14, color: AppTheme.primary),
+                const SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'EXISTING COMPANIES IN DIRECTORY (${suggestions.length} MATCHES)',
+                    style: GoogleFonts.inter(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 0.5,
+                      color: const Color(0xFF64748B),
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1, color: Color(0xFFF1F5F9)),
+
+          // Items
+          ...suggestions.map((comp) {
+            final meta = [
+              comp.city?.isNotEmpty == true
+                  ? comp.city
+                  : (comp.country?.isNotEmpty == true
+                        ? comp.country
+                        : 'Global'),
+              if (comp.contactName?.isNotEmpty == true) comp.contactName,
+              if (comp.email.isNotEmpty) comp.email,
+            ].whereType<String>().join(' • ');
+
+            final status = comp.status.toUpperCase();
+            Color statusBg;
+            Color statusFg;
+            Color statusBorder;
+            if (status == 'ACTIVE') {
+              statusBg = const Color(0xFFECFDF5);
+              statusFg = const Color(0xFF059669);
+              statusBorder = const Color(0xFFA7F3D0);
+            } else if (status == 'PENDING') {
+              statusBg = const Color(0xFFFFFBEB);
+              statusFg = const Color(0xFFD97706);
+              statusBorder = const Color(0xFFFDE68A);
+            } else {
+              statusBg = const Color(0xFFF1F5F9);
+              statusFg = const Color(0xFF64748B);
+              statusBorder = const Color(0xFFCBD5E1);
+            }
+
+            return InkWell(
+              onTap: () => _selectCompanyNameSuggestion(comp),
+              hoverColor: const Color(0xFFF0FDF4),
+              child: Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
+                decoration: const BoxDecoration(
+                  border: Border(
+                    bottom: BorderSide(color: Color(0xFFF8FAFC), width: 1),
+                  ),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      width: 32,
+                      height: 32,
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      alignment: Alignment.center,
+                      child: const Icon(
+                        Icons.apartment,
+                        size: 16,
+                        color: Color(0xFF4F46E5),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  comp.companyName,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFF1E293B),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 1.5,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusBg,
+                                  border: Border.all(color: statusBorder),
+                                  borderRadius: BorderRadius.circular(9999),
+                                ),
+                                child: Text(
+                                  status,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 9.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: statusFg,
+                                    letterSpacing: 0.3,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            meta,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: const Color(0xFF64748B),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.north_west,
+                            size: 11,
+                            color: Color(0xFF059669),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'Select',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFF059669),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+
+  // --- Section 01: Duplicate Company Notice Banner ---
+  Widget _buildDuplicateCompanyNotice(CompanyResponse existing) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBEB),
+        border: Border.all(color: const Color(0xFFFDE68A), width: 1.5),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isNarrow = constraints.maxWidth < 460;
+          final leftContent = Row(
+            children: [
+              const Icon(
+                Icons.warning_amber_rounded,
+                size: 18,
+                color: Color(0xFFD97706),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text.rich(
+                  TextSpan(
+                    text: 'Company ',
+                    children: [
+                      TextSpan(
+                        text: '"${existing.companyName}"',
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                      const TextSpan(
+                        text: ' is already registered in directory.',
+                      ),
+                    ],
+                  ),
+                  style: GoogleFonts.inter(
+                    fontSize: 12.5,
+                    color: const Color(0xFF92400E),
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          final actions = Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Copy Details
+              InkWell(
+                onTap: () => _autofillFormWithCompany(existing),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: const Color(0xFFF59E0B)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.content_copy,
+                        size: 12,
+                        color: Color(0xFFB45309),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'Copy Details',
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFFB45309),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+
+              // View
+              InkWell(
+                onTap: () => setState(() => _selectedCompany = existing),
+                borderRadius: BorderRadius.circular(6),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4.5,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.transparent,
+                    border: Border.all(color: const Color(0xFFD97706)),
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.visibility_outlined,
+                        size: 12,
+                        color: Color(0xFF92400E),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        'View',
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF92400E),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          );
+
+          if (isNarrow) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [leftContent, const SizedBox(height: 8), actions],
+            );
+          }
+
+          return Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(child: leftContent),
+              const SizedBox(width: 10),
+              actions,
+            ],
+          );
+        },
       ),
     );
   }

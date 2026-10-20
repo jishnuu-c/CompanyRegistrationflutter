@@ -2006,8 +2006,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                             }),
                           ],
                           onChanged: (val) {
-                            if (val != null)
+                            if (val != null) {
                               setState(() => _selectedParentFilter = val);
+                            }
                           },
                         ),
                       ),

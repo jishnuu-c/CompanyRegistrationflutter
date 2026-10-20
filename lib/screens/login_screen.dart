@@ -369,8 +369,16 @@ class _LoginScreenState extends State<LoginScreen>
       return;
     }
 
-    if (!_biometricCaps.isEnabledByUser) {
-      // Informs user how to enable
+    final boundUser = _biometricCaps.boundUsername;
+    final isLinked = _biometricCaps.isEnabledByUser &&
+        boundUser != null &&
+        boundUser.trim().isNotEmpty;
+
+    final isDemoValid = !_authService.isDemoMode ||
+        (boundUser != null && _authService.isBoundDemoUserValid(boundUser));
+
+    if (!isLinked || !isDemoValid) {
+      // Informs user how to enable: shows "Biometrics Not Linked" dialog
       _showBiometricNotEnabledDialog();
       return;
     }
@@ -608,8 +616,106 @@ class _LoginScreenState extends State<LoginScreen>
           );
           if (bioPrompt.success) {
             await _authService.enableBiometricsForUser(username);
+            _biometricCaps = await _authService.checkBiometrics();
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Row(
+                    children: [
+                      const Icon(
+                        Icons.check_circle_outline_rounded,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          '${caps.displayName} successfully linked for "$username".',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  backgroundColor: const Color(0xFF10B981),
+                  behavior: SnackBarBehavior.floating,
+                  duration: const Duration(seconds: 3),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              );
+            }
+          } else if (!bioPrompt.isCancelled && mounted) {
+            final errorMsg = bioPrompt.errorMessage ??
+                'Biometric verification failed. Enrollment skipped.';
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(
+                      Icons.error_outline_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        errorMsg,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: const Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
           }
-        } catch (_) {}
+        } catch (e) {
+          debugPrint('[LoginScreen] Biometric enrollment error: $e');
+          if (mounted) {
+            final errorText = e.toString().replaceFirst('Exception: ', '');
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Row(
+                  children: [
+                    const Icon(
+                      Icons.warning_amber_rounded,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        'Could not enable biometrics: $errorText',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                backgroundColor: const Color(0xFFEF4444),
+                behavior: SnackBarBehavior.floating,
+                duration: const Duration(seconds: 3),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            );
+          }
+        }
       }
     }
 

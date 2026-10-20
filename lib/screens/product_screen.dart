@@ -918,8 +918,9 @@ class ProductScreenState extends State<ProductScreen> {
                                                         s.id ==
                                                         _selectedSubCategoryId,
                                                   );
-                                              if (!isValid)
+                                              if (!isValid) {
                                                 _selectedSubCategoryId = null;
+                                              }
                                             }
                                           });
                                         },

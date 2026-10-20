@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../models/auth_model.dart';
 import 'auth_config.dart';
 import 'auth_provider_interface.dart';
@@ -53,6 +54,69 @@ class DemoAuthProvider implements AuthProvider {
   // Securely bound biometric user for testing
   String? _boundBiometricUser;
 
+  static const String _storageKeyCustomUsers = 'demo_custom_users';
+  final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  bool _customUsersLoaded = false;
+
+  DemoAuthProvider() {
+    _ensureCustomUsersLoaded();
+  }
+
+  Future<void> _ensureCustomUsersLoaded() async {
+    if (_customUsersLoaded) return;
+    try {
+      final raw = await _storage.read(key: _storageKeyCustomUsers);
+      if (raw != null && raw.isNotEmpty) {
+        final List<dynamic> list = jsonDecode(raw);
+        for (final item in list) {
+          if (item is Map<String, dynamic>) {
+            final itemUser = item['username'].toString().toLowerCase();
+            final exists = _demoUsers.any(
+              (u) => u['username'].toString().toLowerCase() == itemUser,
+            );
+            if (!exists) {
+              _demoUsers.add(item);
+            }
+          }
+        }
+      }
+    } catch (_) {}
+    _customUsersLoaded = true;
+  }
+
+  Future<void> _saveCustomUser(Map<String, dynamic> user) async {
+    try {
+      final raw = await _storage.read(key: _storageKeyCustomUsers);
+      List<dynamic> list = [];
+      if (raw != null && raw.isNotEmpty) {
+        try {
+          list = jsonDecode(raw) as List<dynamic>;
+        } catch (_) {}
+      }
+      final itemUser = user['username'].toString().toLowerCase();
+      list.removeWhere(
+        (item) =>
+            item is Map &&
+            item['username'].toString().toLowerCase() == itemUser,
+      );
+      list.add(user);
+      await _storage.write(
+        key: _storageKeyCustomUsers,
+        value: jsonEncode(list),
+      );
+    } catch (_) {}
+  }
+
+  /// Check whether a username or email is recognized in the demo user database
+  bool hasDemoUser(String usernameOrEmail) {
+    final normalized = usernameOrEmail.trim().toLowerCase();
+    return _demoUsers.any(
+      (u) =>
+          u['username'].toString().toLowerCase() == normalized ||
+          u['email'].toString().toLowerCase() == normalized,
+    );
+  }
+
   static const int _otpTtlSeconds = 120; // 2 minutes
   static const int _resendCooldownSeconds = 30; // 30 seconds
   static const int _maxAttempts = 3;
@@ -62,6 +126,7 @@ class DemoAuthProvider implements AuthProvider {
     required String usernameOrEmail,
     required String password,
   }) async {
+    await _ensureCustomUsersLoaded();
     // Simulate realistic asynchronous network latency
     await Future.delayed(const Duration(milliseconds: 600));
 
@@ -95,6 +160,7 @@ class DemoAuthProvider implements AuthProvider {
 
   @override
   Future<AuthResponse> register(RegisterRequest request) async {
+    await _ensureCustomUsersLoaded();
     await Future.delayed(const Duration(milliseconds: 650));
 
     final username = request.username.trim();
@@ -120,6 +186,7 @@ class DemoAuthProvider implements AuthProvider {
       'phone': '9990001111',
     };
     _demoUsers.add(newUser);
+    await _saveCustomUser(newUser);
 
     final token = _generateDemoToken(username);
     return AuthResponse(
@@ -248,6 +315,7 @@ class DemoAuthProvider implements AuthProvider {
         'phone': isEmail ? '9876543210' : key,
       };
       _demoUsers.add(matchedUser);
+      await _saveCustomUser(matchedUser);
     }
 
     final username = matchedUser['username'] as String;
@@ -344,21 +412,45 @@ class DemoAuthProvider implements AuthProvider {
   Future<AuthResponse> authenticateWithBiometrics({
     required String username,
   }) async {
+    await _ensureCustomUsersLoaded();
     await Future.delayed(const Duration(milliseconds: 300));
-    final targetUser = _boundBiometricUser ?? username;
-    final user = _demoUsers.firstWhere(
-      (u) => u['username'].toString().toLowerCase() == targetUser.toLowerCase(),
-      orElse: () => _demoUsers.first,
+
+    final targetUser = (username.trim().isNotEmpty
+            ? username
+            : (_boundBiometricUser ?? ''))
+        .trim();
+
+    if (targetUser.isEmpty) {
+      throw Exception(
+        'No demo user specified for biometric authentication.',
+      );
+    }
+
+    final normalized = targetUser.toLowerCase();
+    final matched = _demoUsers.firstWhere(
+      (u) =>
+          u['username'].toString().toLowerCase() == normalized ||
+          u['email'].toString().toLowerCase() == normalized,
+      orElse: () => {},
     );
 
-    final token = _generateDemoToken(user['username'] as String);
+    if (matched.isEmpty) {
+      throw Exception(
+        'Demo user "$targetUser" not found in demo registry. Please sign in with your credentials first.',
+      );
+    }
+
+    final realUsername = matched['username'] as String;
+    _boundBiometricUser = realUsername;
+    final token = _generateDemoToken(realUsername);
+
     return AuthResponse(
       token: token,
       tokenType: 'DemoBearer',
-      username: user['username'] as String,
-      email: user['email'] as String,
-      fullName: user['fullName'] as String,
-      role: user['role'] as String,
+      username: realUsername,
+      email: matched['email'] as String,
+      fullName: matched['fullName'] as String,
+      role: matched['role'] as String,
       expiresIn: 86400,
       isDemoSession: true,
     );
@@ -369,7 +461,25 @@ class DemoAuthProvider implements AuthProvider {
     required String username,
     required String sessionToken,
   }) async {
-    _boundBiometricUser = username;
+    await _ensureCustomUsersLoaded();
+    final cleanUsername = username.trim();
+    if (cleanUsername.isEmpty) {
+      throw Exception(
+        'Username cannot be empty when registering biometrics in demo mode.',
+      );
+    }
+    final normalized = cleanUsername.toLowerCase();
+    final exists = _demoUsers.any(
+      (u) =>
+          u['username'].toString().toLowerCase() == normalized ||
+          u['email'].toString().toLowerCase() == normalized,
+    );
+    if (!exists) {
+      throw Exception(
+        'Demo user "$cleanUsername" does not exist in demo registry.',
+      );
+    }
+    _boundBiometricUser = cleanUsername;
   }
 
   @override

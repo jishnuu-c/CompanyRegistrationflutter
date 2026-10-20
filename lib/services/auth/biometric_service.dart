@@ -66,7 +66,7 @@ class BiometricService {
 
       final isEnrolled = available.isNotEmpty;
       final isEnabled = await isBiometricLoginEnabled();
-      final boundUser = await getBoundUsername();
+      final boundUser = isEnabled ? await getBoundUsername() : null;
 
       return BiometricCapabilities(
         isSupported: isSupported,
@@ -75,7 +75,7 @@ class BiometricService {
         hasFace: hasFace,
         hasIris: hasIris,
         isEnrolled: isEnrolled,
-        isEnabledByUser: isEnabled,
+        isEnabledByUser: isEnabled && boundUser != null && boundUser.isNotEmpty,
         boundUsername: boundUser,
       );
     } catch (e) {
@@ -172,36 +172,75 @@ class BiometricService {
     }
   }
 
-  /// Check if user has opted in to biometric login
+  /// Check if user has opted in to biometric login and has a valid bound username.
+  /// Automatically repairs inconsistent states if found.
   Future<bool> isBiometricLoginEnabled() async {
     try {
-      final value = await _storage.read(key: _keyBiometricEnabled);
-      return value == 'true';
-    } catch (_) {
+      final enabledValue = await _storage.read(key: _keyBiometricEnabled);
+      if (enabledValue != 'true') {
+        return false;
+      }
+      final boundUser = await _storage.read(key: _keyBiometricUsername);
+      if (boundUser == null || boundUser.trim().isEmpty) {
+        // Inconsistent partial state: flag is true but username is missing.
+        // Clean up partial enrollment to maintain consistency.
+        await disableBiometricLogin();
+        return false;
+      }
+      return true;
+    } catch (e) {
+      debugPrint('[BiometricService] Error checking biometric status: $e');
       return false;
     }
   }
 
-  /// Get the username bound to biometric authentication
+  /// Get the username bound to biometric authentication.
+  /// Returns null if biometric login is not enabled or bound username is empty.
   Future<String?> getBoundUsername() async {
     try {
-      return await _storage.read(key: _keyBiometricUsername);
-    } catch (_) {
+      final enabledValue = await _storage.read(key: _keyBiometricEnabled);
+      if (enabledValue != 'true') {
+        return null;
+      }
+      final username = await _storage.read(key: _keyBiometricUsername);
+      if (username == null || username.trim().isEmpty) {
+        return null;
+      }
+      return username.trim();
+    } catch (e) {
+      debugPrint('[BiometricService] Error retrieving bound username: $e');
       return null;
     }
   }
 
-  /// Enable biometric login for a specific authenticated user after explicit consent
+  /// Enable biometric login for a specific authenticated user after explicit consent.
+  /// Atomic: writes username first, then the enabled flag. If any write fails,
+  /// rolls back both keys and throws a descriptive exception.
   Future<void> enableBiometricLogin(String username) async {
+    final cleanUsername = username.trim();
+    if (cleanUsername.isEmpty) {
+      throw ArgumentError(
+        'Username cannot be empty when enabling biometric login.',
+      );
+    }
+
     try {
+      // 1. Write the bound username first
+      await _storage.write(key: _keyBiometricUsername, value: cleanUsername);
+      // 2. Write the enabled flag
       await _storage.write(key: _keyBiometricEnabled, value: 'true');
-      await _storage.write(key: _keyBiometricUsername, value: username.trim());
     } catch (e) {
-      debugPrint('[BiometricService] Error enabling biometric login: $e');
+      // Rollback both keys on failure to prevent partial enrollment state
+      try {
+        await _storage.delete(key: _keyBiometricEnabled);
+        await _storage.delete(key: _keyBiometricUsername);
+      } catch (_) {}
+      debugPrint('[BiometricService] Failed to enable biometric login: $e');
+      throw Exception('Failed to securely save biometric enrollment: $e');
     }
   }
 
-  /// Disable biometric login
+  /// Disable biometric login and remove all bound credentials
   Future<void> disableBiometricLogin() async {
     try {
       await _storage.delete(key: _keyBiometricEnabled);
