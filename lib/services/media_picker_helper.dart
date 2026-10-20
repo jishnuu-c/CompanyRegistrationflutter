@@ -19,12 +19,7 @@ class PickedMediaResult {
   });
 }
 
-enum MediaPickSource {
-  camera,
-  gallery,
-  file,
-  drive,
-}
+enum MediaPickSource { camera, gallery, file, drive }
 
 class MediaPickerHelper {
   static final ImagePicker _imagePicker = ImagePicker();
@@ -34,7 +29,13 @@ class MediaPickerHelper {
     BuildContext context, {
     String title = 'Upload Visiting Card',
     String subtitle = 'Choose how you want to upload or capture your image',
-    List<String> allowedExtensions = const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    List<String> allowedExtensions = const [
+      'jpg',
+      'jpeg',
+      'png',
+      'webp',
+      'pdf',
+    ],
     bool allowDocuments = true,
   }) async {
     final MediaPickSource? source = await showModalBottomSheet<MediaPickSource>(
@@ -61,7 +62,13 @@ class MediaPickerHelper {
   static Future<PickedMediaResult?> pickMedia(
     BuildContext? context, {
     required MediaPickSource source,
-    List<String> allowedExtensions = const ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
+    List<String> allowedExtensions = const [
+      'jpg',
+      'jpeg',
+      'png',
+      'webp',
+      'pdf',
+    ],
   }) async {
     try {
       switch (source) {
@@ -137,7 +144,9 @@ class MediaPickerHelper {
             ),
             backgroundColor: AppTheme.error,
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
           ),
         );
       }
@@ -238,9 +247,16 @@ class _MediaSourceBottomSheet extends StatelessWidget {
                 ),
                 IconButton(
                   onPressed: () => Navigator.of(context).pop(),
-                  icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B), size: 20),
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    color: Color(0xFF64748B),
+                    size: 20,
+                  ),
                   padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                 ),
               ],
             ),
@@ -254,7 +270,8 @@ class _MediaSourceBottomSheet extends StatelessWidget {
               iconColor: const Color(0xFF4F46E5),
               iconBgColor: const Color(0xFFEEF2FF),
               title: 'Take photo',
-              subtitle: 'Capture a visiting card directly using your device camera',
+              subtitle:
+                  'Capture a visiting card directly using your device camera',
             ),
             const SizedBox(height: 10),
 

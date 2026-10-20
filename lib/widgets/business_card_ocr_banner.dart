@@ -67,7 +67,10 @@ class BusinessCardOcrBanner extends StatelessWidget {
 
               // Content Padding
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 16,
+                ),
                 child: isNarrow
                     ? Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -113,10 +116,7 @@ class BusinessCardOcrBanner extends StatelessWidget {
         gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF6366F1),
-            Color(0xFF8B5CF6),
-          ],
+          colors: [Color(0xFF6366F1), Color(0xFF8B5CF6)],
         ),
         boxShadow: [
           BoxShadow(

@@ -164,7 +164,9 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
         name: fileName,
         mimeType: 'text/vcard',
       );
-      await Share.shareXFiles([xFile], text: 'Contact Card for ${widget.company.companyName}');
+      await Share.shareXFiles([
+        xFile,
+      ], text: 'Contact Card for ${widget.company.companyName}');
     } catch (_) {
       // Fallback to clipboard
       _copyContactDetails();
@@ -179,8 +181,10 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
       final bytes = await _companyService.exportCompanyProfilePdf(
         widget.company.id,
       );
-      final safeName = widget.company.companyName
-          .replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final safeName = widget.company.companyName.replaceAll(
+        RegExp(r'[^a-zA-Z0-9_-]'),
+        '_',
+      );
       final fileName = '${safeName}_Profile_with_Cards.pdf';
 
       final xFile = XFile.fromData(
@@ -188,7 +192,9 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
         name: fileName,
         mimeType: 'application/pdf',
       );
-      await Share.shareXFiles([xFile], text: '${widget.company.companyName} Profile');
+      await Share.shareXFiles([
+        xFile,
+      ], text: '${widget.company.companyName} Profile');
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -331,8 +337,8 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
                                   child: Text(
                                     comp.companyName.isNotEmpty
                                         ? comp.companyName
-                                            .substring(0, 1)
-                                            .toUpperCase()
+                                              .substring(0, 1)
+                                              .toUpperCase()
                                         : 'C',
                                     style: GoogleFonts.plusJakartaSans(
                                       fontSize: 18,
@@ -366,10 +372,7 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
-                                            [
-                                              comp.city,
-                                              comp.country,
-                                            ]
+                                            [comp.city, comp.country]
                                                 .where(
                                                   (p) =>
                                                       p != null && p.isNotEmpty,
@@ -387,7 +390,10 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
                                   ],
                                 ),
                               ),
-                              StatusBadgeChip(status: comp.status, isMini: true),
+                              StatusBadgeChip(
+                                status: comp.status,
+                                isMini: true,
+                              ),
                             ],
                           ),
                           const Divider(
@@ -417,7 +423,8 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
                               ),
                             ),
 
-                          if (comp.landline != null && comp.landline!.isNotEmpty)
+                          if (comp.landline != null &&
+                              comp.landline!.isNotEmpty)
                             _buildDetailRow(
                               Icons.phone_outlined,
                               'Landline',
@@ -630,7 +637,9 @@ class _CompanyShareDialogState extends State<CompanyShareDialog> {
                 style: GoogleFonts.inter(
                   fontSize: 11.5,
                   fontWeight: FontWeight.w600,
-                  color: isLink ? const Color(0xFF2563EB) : AppTheme.textPrimary,
+                  color: isLink
+                      ? const Color(0xFF2563EB)
+                      : AppTheme.textPrimary,
                   decoration: isLink
                       ? TextDecoration.underline
                       : TextDecoration.none,

@@ -5,10 +5,7 @@ class FeedbackBadge {
   final IconData icon;
   final String label;
 
-  const FeedbackBadge({
-    required this.icon,
-    required this.label,
-  });
+  const FeedbackBadge({required this.icon, required this.label});
 }
 
 class FeedbackData {
@@ -44,12 +41,24 @@ class FeedbackToast extends StatelessWidget {
     final isSuccess = feedback.isSuccess;
     final isMobile = MediaQuery.of(context).size.width < 600;
 
-    final bgColor = isSuccess ? const Color(0xFFF0FDF4) : const Color(0xFFFEF2F2);
-    final borderColor = isSuccess ? const Color(0xFF86EFAC) : const Color(0xFFFCA5A5);
-    final iconColor = isSuccess ? const Color(0xFF16A34A) : const Color(0xFFDC2626);
-    final iconBgColor = isSuccess ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2);
-    final titleColor = isSuccess ? const Color(0xFF065F46) : const Color(0xFF991B1B);
-    final messageColor = isSuccess ? const Color(0xFF047857) : const Color(0xFFB91C1C);
+    final bgColor = isSuccess
+        ? const Color(0xFFF0FDF4)
+        : const Color(0xFFFEF2F2);
+    final borderColor = isSuccess
+        ? const Color(0xFF86EFAC)
+        : const Color(0xFFFCA5A5);
+    final iconColor = isSuccess
+        ? const Color(0xFF16A34A)
+        : const Color(0xFFDC2626);
+    final iconBgColor = isSuccess
+        ? const Color(0xFFDCFCE7)
+        : const Color(0xFFFEE2E2);
+    final titleColor = isSuccess
+        ? const Color(0xFF065F46)
+        : const Color(0xFF991B1B);
+    final messageColor = isSuccess
+        ? const Color(0xFF047857)
+        : const Color(0xFFB91C1C);
 
     return Container(
       margin: EdgeInsets.fromLTRB(
@@ -68,7 +77,9 @@ class FeedbackToast extends StatelessWidget {
         border: Border.all(color: borderColor, width: 1.2),
         boxShadow: [
           BoxShadow(
-            color: (isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444)).withValues(alpha: 0.08),
+            color:
+                (isSuccess ? const Color(0xFF10B981) : const Color(0xFFEF4444))
+                    .withValues(alpha: 0.08),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -132,12 +143,19 @@ class FeedbackToast extends StatelessWidget {
                     runSpacing: 4,
                     children: feedback.badges!.map((badge) {
                       return Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 7,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
-                          color: isSuccess ? const Color(0xFFDCFCE7) : const Color(0xFFFEE2E2),
+                          color: isSuccess
+                              ? const Color(0xFFDCFCE7)
+                              : const Color(0xFFFEE2E2),
                           borderRadius: BorderRadius.circular(6),
                           border: Border.all(
-                            color: isSuccess ? const Color(0xFFA7F3D0) : const Color(0xFFFECACA),
+                            color: isSuccess
+                                ? const Color(0xFFA7F3D0)
+                                : const Color(0xFFFECACA),
                             width: 0.8,
                           ),
                         ),
@@ -147,7 +165,9 @@ class FeedbackToast extends StatelessWidget {
                             Icon(
                               badge.icon,
                               size: 11,
-                              color: isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                              color: isSuccess
+                                  ? const Color(0xFF059669)
+                                  : const Color(0xFFDC2626),
                             ),
                             const SizedBox(width: 4),
                             Text(
@@ -155,7 +175,9 @@ class FeedbackToast extends StatelessWidget {
                               style: GoogleFonts.inter(
                                 fontSize: 10.5,
                                 fontWeight: FontWeight.w600,
-                                color: isSuccess ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                                color: isSuccess
+                                    ? const Color(0xFF065F46)
+                                    : const Color(0xFF991B1B),
                               ),
                             ),
                           ],
@@ -166,7 +188,8 @@ class FeedbackToast extends StatelessWidget {
                 ],
 
                 // Action Prompt (if provided)
-                if (feedback.actionPrompt != null && feedback.actionPrompt!.isNotEmpty) ...[
+                if (feedback.actionPrompt != null &&
+                    feedback.actionPrompt!.isNotEmpty) ...[
                   const SizedBox(height: 6),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -174,7 +197,9 @@ class FeedbackToast extends StatelessWidget {
                       Icon(
                         Icons.arrow_downward_rounded,
                         size: 12,
-                        color: isSuccess ? const Color(0xFF059669) : const Color(0xFFDC2626),
+                        color: isSuccess
+                            ? const Color(0xFF059669)
+                            : const Color(0xFFDC2626),
                       ),
                       const SizedBox(width: 4),
                       Expanded(
@@ -209,11 +234,7 @@ class FeedbackToast extends StatelessWidget {
                   shape: BoxShape.circle,
                   color: messageColor.withValues(alpha: 0.08),
                 ),
-                child: Icon(
-                  Icons.close,
-                  size: 14,
-                  color: messageColor,
-                ),
+                child: Icon(Icons.close, size: 14, color: messageColor),
               ),
             ),
           ),

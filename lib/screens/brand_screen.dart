@@ -181,7 +181,8 @@ class BrandScreenState extends State<BrandScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Brand Updated Successfully!',
-            message: 'Brand "${response.brandName}" (ID #${response.id}) has been updated.',
+            message:
+                'Brand "${response.brandName}" (ID #${response.id}) has been updated.',
           );
           _resetForm();
           _activeTab = 'directory';
@@ -199,7 +200,8 @@ class BrandScreenState extends State<BrandScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Brand Registered Successfully!',
-            message: 'Brand "${response.brandName}" has been created with ID #${response.id}.',
+            message:
+                'Brand "${response.brandName}" has been created with ID #${response.id}.',
           );
           _resetForm();
           _activeTab = 'directory';
@@ -211,7 +213,9 @@ class BrandScreenState extends State<BrandScreen> {
         _isSubmitting = false;
         _feedback = FeedbackData(
           type: 'error',
-          title: _editingBrandId != null ? 'Update Failed' : 'Registration Failed',
+          title: _editingBrandId != null
+              ? 'Update Failed'
+              : 'Registration Failed',
           message: e.toString().replaceAll('Exception: ', ''),
         );
       });
@@ -251,7 +255,8 @@ class BrandScreenState extends State<BrandScreen> {
   List<BrandResponse> get _filteredBrands {
     final query = _searchQuery.toLowerCase().trim();
     return _brands.where((b) {
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           b.brandName.toLowerCase().contains(query) ||
           b.id.toString().contains(query);
       if (!matchesQuery) return false;
@@ -290,8 +295,7 @@ class BrandScreenState extends State<BrandScreen> {
           ),
 
           // Brand Detail Modal Overlay (Exact Angular feature match)
-          if (_selectedBrand != null)
-            _buildBrandDetailModal(_selectedBrand!),
+          if (_selectedBrand != null) _buildBrandDetailModal(_selectedBrand!),
         ],
       ),
     );
@@ -342,7 +346,8 @@ class BrandScreenState extends State<BrandScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w700,
-                        color: _activeTab == 'register' && _editingBrandId == null
+                        color:
+                            _activeTab == 'register' && _editingBrandId == null
                             ? AppTheme.primary
                             : AppTheme.textSecondary,
                       ),
@@ -365,7 +370,11 @@ class BrandScreenState extends State<BrandScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.edit_rounded, size: 14, color: Color(0xFFB45309)),
+                  const Icon(
+                    Icons.edit_rounded,
+                    size: 14,
+                    color: Color(0xFFB45309),
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'Edit #$_editingBrandId',
@@ -378,7 +387,11 @@ class BrandScreenState extends State<BrandScreen> {
                   const SizedBox(width: 4),
                   InkWell(
                     onTap: _resetForm,
-                    child: const Icon(Icons.close, size: 14, color: Color(0xFFB45309)),
+                    child: const Icon(
+                      Icons.close,
+                      size: 14,
+                      color: Color(0xFFB45309),
+                    ),
                   ),
                 ],
               ),
@@ -427,7 +440,10 @@ class BrandScreenState extends State<BrandScreen> {
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _activeTab == 'directory'
                             ? AppTheme.primary
@@ -475,7 +491,9 @@ class BrandScreenState extends State<BrandScreen> {
               ),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _editingBrandId != null ? const Color(0xFFFDE68A) : const Color(0xFFC7D2FE),
+                color: _editingBrandId != null
+                    ? const Color(0xFFFDE68A)
+                    : const Color(0xFFC7D2FE),
               ),
             ),
             child: Row(
@@ -484,11 +502,15 @@ class BrandScreenState extends State<BrandScreen> {
                   width: 44,
                   height: 44,
                   decoration: BoxDecoration(
-                    color: _editingBrandId != null ? const Color(0xFFF59E0B) : AppTheme.primary,
+                    color: _editingBrandId != null
+                        ? const Color(0xFFF59E0B)
+                        : AppTheme.primary,
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
-                    _editingBrandId != null ? Icons.edit_note_rounded : Icons.verified_rounded,
+                    _editingBrandId != null
+                        ? Icons.edit_note_rounded
+                        : Icons.verified_rounded,
                     color: Colors.white,
                     size: 24,
                   ),
@@ -499,7 +521,9 @@ class BrandScreenState extends State<BrandScreen> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        _editingBrandId != null ? 'Update Brand Record' : 'Brand Registration',
+                        _editingBrandId != null
+                            ? 'Update Brand Record'
+                            : 'Brand Registration',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 16,
                           fontWeight: FontWeight.w700,
@@ -537,10 +561,16 @@ class BrandScreenState extends State<BrandScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.remove_red_eye_rounded, color: AppTheme.primary, size: 18),
+                  const Icon(
+                    Icons.remove_red_eye_rounded,
+                    color: AppTheme.primary,
+                    size: 18,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    _showLivePreview ? 'Hide Brand Badge Preview' : 'Show Brand Badge Preview',
+                    _showLivePreview
+                        ? 'Hide Brand Badge Preview'
+                        : 'Show Brand Badge Preview',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -549,7 +579,9 @@ class BrandScreenState extends State<BrandScreen> {
                   ),
                   const Spacer(),
                   Icon(
-                    _showLivePreview ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    _showLivePreview
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     color: AppTheme.textMuted,
                   ),
                 ],
@@ -573,14 +605,18 @@ class BrandScreenState extends State<BrandScreen> {
                 _buildFormCard(
                   stepNum: '01',
                   title: 'Brand Identity',
-                  subtitle: 'Official registered enterprise brand naming and promotion tier',
+                  subtitle:
+                      'Official registered enterprise brand naming and promotion tier',
                   children: [
                     TextFormField(
                       controller: _nameController,
                       decoration: const InputDecoration(
                         labelText: 'Brand Name *',
                         hintText: 'e.g. Sony, Apple, Samsung, Logitech',
-                        prefixIcon: Icon(Icons.branding_watermark_rounded, size: 20),
+                        prefixIcon: Icon(
+                          Icons.branding_watermark_rounded,
+                          size: 20,
+                        ),
                       ),
                       validator: (v) {
                         if (v == null || v.trim().length < 2) {
@@ -594,19 +630,30 @@ class BrandScreenState extends State<BrandScreen> {
 
                     // Featured Brand Switch
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 10,
+                      ),
                       decoration: BoxDecoration(
-                        color: _isFeatured ? AppTheme.primaryLight : AppTheme.bgPage,
+                        color: _isFeatured
+                            ? AppTheme.primaryLight
+                            : AppTheme.bgPage,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _isFeatured ? AppTheme.primary : AppTheme.borderLight,
+                          color: _isFeatured
+                              ? AppTheme.primary
+                              : AppTheme.borderLight,
                         ),
                       ),
                       child: Row(
                         children: [
                           Icon(
-                            _isFeatured ? Icons.star_rounded : Icons.star_outline_rounded,
-                            color: _isFeatured ? AppTheme.warning : AppTheme.textMuted,
+                            _isFeatured
+                                ? Icons.star_rounded
+                                : Icons.star_outline_rounded,
+                            color: _isFeatured
+                                ? AppTheme.warning
+                                : AppTheme.textMuted,
                             size: 24,
                           ),
                           const SizedBox(width: 12),
@@ -624,7 +671,10 @@ class BrandScreenState extends State<BrandScreen> {
                                 ),
                                 Text(
                                   'Highlight this brand prominently in catalogs and directory',
-                                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
                                 ),
                               ],
                             ),
@@ -632,7 +682,8 @@ class BrandScreenState extends State<BrandScreen> {
                           Switch(
                             value: _isFeatured,
                             activeThumbColor: AppTheme.primary,
-                            onChanged: (val) => setState(() => _isFeatured = val),
+                            onChanged: (val) =>
+                                setState(() => _isFeatured = val),
                           ),
                         ],
                       ),
@@ -645,11 +696,19 @@ class BrandScreenState extends State<BrandScreen> {
                 _buildFormCard(
                   stepNum: '02',
                   title: 'Brand Logo & Asset',
-                  subtitle: 'Upload brand mark icon or vector logo (JPEG, PNG, WEBP, SVG)',
+                  subtitle:
+                      'Upload brand mark icon or vector logo (JPEG, PNG, WEBP, SVG)',
                   children: [
                     FileUploadBox(
                       title: 'Drop brand logo image here',
-                      allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'],
+                      allowedExtensions: const [
+                        'jpg',
+                        'jpeg',
+                        'png',
+                        'webp',
+                        'gif',
+                        'svg',
+                      ],
                       fileBytes: _selectedFileBytes,
                       fileName: _selectedFileName,
                       fileSize: _selectedFileSize,
@@ -684,16 +743,28 @@ class BrandScreenState extends State<BrandScreen> {
                       child: OutlinedButton(
                         onPressed: _isSubmitting ? null : _resetForm,
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 14,
+                          ),
                         ),
                         child: FittedBox(
                           fit: BoxFit.scaleDown,
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_editingBrandId != null ? Icons.close : Icons.refresh_rounded, size: 16),
+                              Icon(
+                                _editingBrandId != null
+                                    ? Icons.close
+                                    : Icons.refresh_rounded,
+                                size: 16,
+                              ),
                               const SizedBox(width: 6),
-                              Text(_editingBrandId != null ? 'Cancel Edit' : 'Reset Form'),
+                              Text(
+                                _editingBrandId != null
+                                    ? 'Cancel Edit'
+                                    : 'Reset Form',
+                              ),
                             ],
                           ),
                         ),
@@ -705,22 +776,37 @@ class BrandScreenState extends State<BrandScreen> {
                       child: ElevatedButton(
                         onPressed: _isSubmitting ? null : _handleSubmit,
                         style: ElevatedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 14,
+                          ),
                         ),
                         child: _isSubmitting
                             ? const SizedBox(
                                 width: 20,
                                 height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  color: Colors.white,
+                                ),
                               )
                             : FittedBox(
                                 fit: BoxFit.scaleDown,
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(_editingBrandId != null ? Icons.check_circle_outline : Icons.verified_rounded, size: 18),
+                                    Icon(
+                                      _editingBrandId != null
+                                          ? Icons.check_circle_outline
+                                          : Icons.verified_rounded,
+                                      size: 18,
+                                    ),
                                     const SizedBox(width: 6),
-                                    Text(_editingBrandId != null ? 'Update Brand' : 'Register Brand'),
+                                    Text(
+                                      _editingBrandId != null
+                                          ? 'Update Brand'
+                                          : 'Register Brand',
+                                    ),
                                   ],
                                 ),
                               ),
@@ -788,7 +874,10 @@ class BrandScreenState extends State<BrandScreen> {
                     const SizedBox(height: 2),
                     Text(
                       subtitle,
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -806,9 +895,13 @@ class BrandScreenState extends State<BrandScreen> {
 
   // Live Brand Preview Widget (matching Angular live brand showcase appearance)
   Widget _buildLiveBrandPreviewCard() {
-    final name = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Brand Name';
+    final name = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : 'Brand Name';
     final initials = name.isNotEmpty
-        ? (name.length > 2 ? name.substring(0, 2).toUpperCase() : name.toUpperCase())
+        ? (name.length > 2
+              ? name.substring(0, 2).toUpperCase()
+              : name.toUpperCase())
         : 'BR';
 
     return Container(
@@ -835,8 +928,30 @@ class BrandScreenState extends State<BrandScreen> {
                 child: _selectedFileBytes != null
                     ? Image.memory(_selectedFileBytes!, fit: BoxFit.cover)
                     : _existingFileUrl != null && _existingFileUrl!.isNotEmpty
-                        ? Image.network(_existingFileUrl!, fit: BoxFit.cover, errorBuilder: (_, _, _) => Center(child: Text(initials, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: AppTheme.primary))))
-                        : Center(child: Text(initials, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w800, color: AppTheme.primary))),
+                    ? Image.network(
+                        _existingFileUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => Center(
+                          child: Text(
+                            initials,
+                            style: const TextStyle(
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18,
+                              color: AppTheme.primary,
+                            ),
+                          ),
+                        ),
+                      )
+                    : Center(
+                        child: Text(
+                          initials,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w800,
+                            color: AppTheme.primary,
+                          ),
+                        ),
+                      ),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -858,20 +973,33 @@ class BrandScreenState extends State<BrandScreen> {
                         if (_isFeatured) ...[
                           const SizedBox(width: 6),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.warningBg,
                               borderRadius: BorderRadius.circular(6),
-                              border: Border.all(color: const Color(0xFFFDE68A)),
+                              border: Border.all(
+                                color: const Color(0xFFFDE68A),
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.star_rounded, size: 12, color: AppTheme.warning),
+                                const Icon(
+                                  Icons.star_rounded,
+                                  size: 12,
+                                  color: AppTheme.warning,
+                                ),
                                 const SizedBox(width: 2),
                                 Text(
                                   'Featured',
-                                  style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w700,
+                                    color: const Color(0xFFB45309),
+                                  ),
                                 ),
                               ],
                             ),
@@ -882,7 +1010,10 @@ class BrandScreenState extends State<BrandScreen> {
                     const SizedBox(height: 4),
                     Text(
                       'Official Manufacturer Brand',
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -897,9 +1028,16 @@ class BrandScreenState extends State<BrandScreen> {
             children: [
               Text(
                 'SPRING BOOT ENTITY: Brand',
-                style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textMuted,
+                ),
               ),
-              StatusBadgeChip(status: _isFeatured ? 'FEATURED' : 'ACTIVE', isMini: true),
+              StatusBadgeChip(
+                status: _isFeatured ? 'FEATURED' : 'ACTIVE',
+                isMini: true,
+              ),
             ],
           ),
         ],
@@ -936,7 +1074,10 @@ class BrandScreenState extends State<BrandScreen> {
                         ),
                         Text(
                           'Explore, filter, inspect, edit, and delete manufacturer brands.',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
                         ),
                       ],
                     ),
@@ -944,8 +1085,15 @@ class BrandScreenState extends State<BrandScreen> {
                   IconButton(
                     onPressed: _fetchBrands,
                     icon: _isLoadingList
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
-                        : const Icon(Icons.refresh_rounded, color: AppTheme.primary),
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(
+                            Icons.refresh_rounded,
+                            color: AppTheme.primary,
+                          ),
                     tooltip: 'Refresh Brands',
                   ),
                 ],
@@ -965,7 +1113,10 @@ class BrandScreenState extends State<BrandScreen> {
                           },
                         )
                       : null,
-                  contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                 ),
                 onChanged: (v) => setState(() => _searchQuery = v),
               ),
@@ -976,9 +1127,17 @@ class BrandScreenState extends State<BrandScreen> {
                 children: [
                   _buildFilterChip('All Brands', 'all', _brands.length),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Featured', 'featured', _brands.where((b) => b.isFeatured).length),
+                  _buildFilterChip(
+                    'Featured',
+                    'featured',
+                    _brands.where((b) => b.isFeatured).length,
+                  ),
                   const SizedBox(width: 8),
-                  _buildFilterChip('Standard', 'standard', _brands.where((b) => !b.isFeatured).length),
+                  _buildFilterChip(
+                    'Standard',
+                    'standard',
+                    _brands.where((b) => !b.isFeatured).length,
+                  ),
                 ],
               ),
             ],
@@ -990,61 +1149,68 @@ class BrandScreenState extends State<BrandScreen> {
           child: _isLoadingList
               ? const Center(child: CircularProgressIndicator())
               : _filteredBrands.isEmpty
-                  ? Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(32),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              width: 64,
-                              height: 64,
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.verified_outlined, color: AppTheme.primary, size: 32),
-                            ),
-                            const SizedBox(height: 16),
-                            Text(
-                              'No Brands Found',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w700,
-                                color: AppTheme.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: 6),
-                            Text(
-                              'No records match your filters or none have been added yet.',
-                              textAlign: TextAlign.center,
-                              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted),
-                            ),
-                            const SizedBox(height: 16),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                _resetForm();
-                                setState(() => _activeTab = 'register');
-                              },
-                              icon: const Icon(Icons.add, size: 18),
-                              label: const Text('Register New Brand'),
-                            ),
-                          ],
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 64,
+                          height: 64,
+                          decoration: BoxDecoration(
+                            color: AppTheme.primaryLight,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.verified_outlined,
+                            color: AppTheme.primary,
+                            size: 32,
+                          ),
                         ),
-                      ),
-                    )
-                  : RefreshIndicator(
-                      onRefresh: _fetchBrands,
-                      child: ListView.separated(
-                        padding: const EdgeInsets.all(16),
-                        itemCount: _filteredBrands.length,
-                        separatorBuilder: (_, _) => const SizedBox(height: 12),
-                        itemBuilder: (context, index) {
-                          final brand = _filteredBrands[index];
-                          return _buildBrandCardItem(brand);
-                        },
-                      ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No Brands Found',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 16,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Text(
+                          'No records match your filters or none have been added yet.',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        ElevatedButton.icon(
+                          onPressed: () {
+                            _resetForm();
+                            setState(() => _activeTab = 'register');
+                          },
+                          icon: const Icon(Icons.add, size: 18),
+                          label: const Text('Register New Brand'),
+                        ),
+                      ],
                     ),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _fetchBrands,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: _filteredBrands.length,
+                    separatorBuilder: (_, _) => const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final brand = _filteredBrands[index];
+                      return _buildBrandCardItem(brand);
+                    },
+                  ),
+                ),
         ),
       ],
     );
@@ -1075,12 +1241,17 @@ class BrandScreenState extends State<BrandScreen> {
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                    color: isSelected ? AppTheme.primary : AppTheme.textSecondary,
+                    color: isSelected
+                        ? AppTheme.primary
+                        : AppTheme.textSecondary,
                   ),
                 ),
                 const SizedBox(width: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 5,
+                    vertical: 1,
+                  ),
                   decoration: BoxDecoration(
                     color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
                     borderRadius: BorderRadius.circular(6),
@@ -1108,7 +1279,9 @@ class BrandScreenState extends State<BrandScreen> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: brand.isFeatured ? const Color(0xFFFDE68A) : AppTheme.borderLight,
+          color: brand.isFeatured
+              ? const Color(0xFFFDE68A)
+              : AppTheme.borderLight,
           width: brand.isFeatured ? 1.5 : 1,
         ),
       ),
@@ -1125,7 +1298,10 @@ class BrandScreenState extends State<BrandScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 7,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.bgSubtle,
                       borderRadius: BorderRadius.circular(6),
@@ -1141,7 +1317,10 @@ class BrandScreenState extends State<BrandScreen> {
                   ),
                   if (brand.isFeatured)
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF3C7),
                         borderRadius: BorderRadius.circular(6),
@@ -1150,7 +1329,11 @@ class BrandScreenState extends State<BrandScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                          const Icon(
+                            Icons.star_rounded,
+                            size: 12,
+                            color: Color(0xFFD97706),
+                          ),
                           const SizedBox(width: 3),
                           Text(
                             'Featured',
@@ -1180,7 +1363,8 @@ class BrandScreenState extends State<BrandScreen> {
                       border: Border.all(color: AppTheme.borderLight),
                     ),
                     clipBehavior: Clip.antiAlias,
-                    child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                    child:
+                        brand.brandLogo != null && brand.brandLogo!.isNotEmpty
                         ? Image.network(
                             _brandService.getFileUrl(brand.brandLogo),
                             fit: BoxFit.cover,
@@ -1261,13 +1445,24 @@ class BrandScreenState extends State<BrandScreen> {
                   // View Action
                   TextButton.icon(
                     onPressed: () => setState(() => _selectedBrand = brand),
-                    icon: const Icon(Icons.remove_red_eye_outlined, size: 15, color: AppTheme.primary),
+                    icon: const Icon(
+                      Icons.remove_red_eye_outlined,
+                      size: 15,
+                      color: AppTheme.primary,
+                    ),
                     label: Text(
                       'View',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.primary),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.primary,
+                      ),
                     ),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                   ),
@@ -1276,13 +1471,24 @@ class BrandScreenState extends State<BrandScreen> {
                   // Edit Action
                   TextButton.icon(
                     onPressed: () => _startEdit(brand),
-                    icon: const Icon(Icons.edit_outlined, size: 15, color: Color(0xFF0369A1)),
+                    icon: const Icon(
+                      Icons.edit_outlined,
+                      size: 15,
+                      color: Color(0xFF0369A1),
+                    ),
                     label: Text(
                       'Edit',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF0369A1)),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF0369A1),
+                      ),
                     ),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                   ),
@@ -1291,13 +1497,24 @@ class BrandScreenState extends State<BrandScreen> {
                   // Delete Action
                   TextButton.icon(
                     onPressed: () => _promptDelete(brand),
-                    icon: const Icon(Icons.delete_outline_rounded, size: 15, color: AppTheme.error),
+                    icon: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 15,
+                      color: AppTheme.error,
+                    ),
                     label: Text(
                       'Delete',
-                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.error),
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.error,
+                      ),
                     ),
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       visualDensity: VisualDensity.compact,
                     ),
                   ),
@@ -1343,9 +1560,14 @@ class BrandScreenState extends State<BrandScreen> {
                 children: [
                   // Modal Header
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 16,
+                    ),
                     decoration: const BoxDecoration(
-                      border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+                      border: Border(
+                        bottom: BorderSide(color: AppTheme.borderLight),
+                      ),
                     ),
                     child: Row(
                       children: [
@@ -1356,7 +1578,11 @@ class BrandScreenState extends State<BrandScreen> {
                             color: AppTheme.primaryLight,
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: const Icon(Icons.verified_rounded, color: AppTheme.primary, size: 22),
+                          child: const Icon(
+                            Icons.verified_rounded,
+                            color: AppTheme.primary,
+                            size: 22,
+                          ),
                         ),
                         const SizedBox(width: 12),
                         Expanded(
@@ -1383,7 +1609,8 @@ class BrandScreenState extends State<BrandScreen> {
                           ),
                         ),
                         IconButton(
-                          onPressed: () => setState(() => _selectedBrand = null),
+                          onPressed: () =>
+                              setState(() => _selectedBrand = null),
                           icon: const Icon(Icons.close, size: 20),
                           style: IconButton.styleFrom(
                             backgroundColor: AppTheme.bgSubtle,
@@ -1410,7 +1637,9 @@ class BrandScreenState extends State<BrandScreen> {
                             border: Border.all(color: AppTheme.borderLight),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                          child:
+                              brand.brandLogo != null &&
+                                  brand.brandLogo!.isNotEmpty
                               ? Image.network(
                                   _brandService.getFileUrl(brand.brandLogo),
                                   fit: BoxFit.contain,
@@ -1434,7 +1663,9 @@ class BrandScreenState extends State<BrandScreen> {
                                         height: 64,
                                         decoration: BoxDecoration(
                                           color: AppTheme.primaryLight,
-                                          borderRadius: BorderRadius.circular(16),
+                                          borderRadius: BorderRadius.circular(
+                                            16,
+                                          ),
                                         ),
                                         alignment: Alignment.center,
                                         child: Text(
@@ -1472,22 +1703,37 @@ class BrandScreenState extends State<BrandScreen> {
                             children: [
                               _buildAttrRow('Catalog ID:', '#${brand.id}'),
                               const Divider(height: 1),
-                              _buildAttrRow('Brand Name:', brand.brandName, isBold: true),
+                              _buildAttrRow(
+                                'Brand Name:',
+                                brand.brandName,
+                                isBold: true,
+                              ),
                               const Divider(height: 1),
                               _buildAttrRowWidget(
                                 'Featured Status:',
                                 brand.isFeatured
                                     ? Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFFEF3C7),
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: const Color(0xFFFDE68A)),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFFDE68A),
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              size: 12,
+                                              color: Color(0xFFD97706),
+                                            ),
                                             const SizedBox(width: 3),
                                             Text(
                                               'Featured Brand',
@@ -1501,11 +1747,18 @@ class BrandScreenState extends State<BrandScreen> {
                                         ),
                                       )
                                     : Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: AppTheme.bgSubtle,
-                                          borderRadius: BorderRadius.circular(6),
-                                          border: Border.all(color: AppTheme.borderMedium),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
+                                          border: Border.all(
+                                            color: AppTheme.borderMedium,
+                                          ),
                                         ),
                                         child: Text(
                                           'Standard Brand',
@@ -1520,17 +1773,27 @@ class BrandScreenState extends State<BrandScreen> {
                               const Divider(height: 1),
                               _buildAttrRowWidget(
                                 'Logo Asset:',
-                                brand.brandLogo != null && brand.brandLogo!.isNotEmpty
+                                brand.brandLogo != null &&
+                                        brand.brandLogo!.isNotEmpty
                                     ? Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 4,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: AppTheme.bgSubtle,
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.image_outlined, size: 12, color: AppTheme.textMuted),
+                                            const Icon(
+                                              Icons.image_outlined,
+                                              size: 12,
+                                              color: AppTheme.textMuted,
+                                            ),
                                             const SizedBox(width: 4),
                                             Flexible(
                                               child: Text(
@@ -1560,7 +1823,11 @@ class BrandScreenState extends State<BrandScreen> {
                                 Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.check_circle_rounded, size: 14, color: AppTheme.success),
+                                    const Icon(
+                                      Icons.check_circle_rounded,
+                                      size: 14,
+                                      color: AppTheme.success,
+                                    ),
                                     const SizedBox(width: 4),
                                     Text(
                                       'Enterprise Verified Partner',
@@ -1582,11 +1849,18 @@ class BrandScreenState extends State<BrandScreen> {
 
                   // Modal Footer Actions
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 20,
+                      vertical: 14,
+                    ),
                     decoration: const BoxDecoration(
                       color: AppTheme.bgSubtle,
-                      border: Border(top: BorderSide(color: AppTheme.borderLight)),
-                      borderRadius: BorderRadius.vertical(bottom: Radius.circular(20)),
+                      border: Border(
+                        top: BorderSide(color: AppTheme.borderLight),
+                      ),
+                      borderRadius: BorderRadius.vertical(
+                        bottom: Radius.circular(20),
+                      ),
                     ),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,
@@ -1597,7 +1871,11 @@ class BrandScreenState extends State<BrandScreen> {
                             setState(() => _selectedBrand = null);
                             _promptDelete(target);
                           },
-                          icon: const Icon(Icons.delete_outline_rounded, size: 16, color: AppTheme.error),
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 16,
+                            color: AppTheme.error,
+                          ),
                           label: Text(
                             'Delete',
                             style: GoogleFonts.inter(
@@ -1608,8 +1886,13 @@ class BrandScreenState extends State<BrandScreen> {
                           ),
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFFFECACA)),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -1625,17 +1908,30 @@ class BrandScreenState extends State<BrandScreen> {
                             backgroundColor: AppTheme.primary,
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            textStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         TextButton(
-                          onPressed: () => setState(() => _selectedBrand = null),
+                          onPressed: () =>
+                              setState(() => _selectedBrand = null),
                           child: Text(
                             'Close',
-                            style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary,
+                            ),
                           ),
                         ),
                       ],

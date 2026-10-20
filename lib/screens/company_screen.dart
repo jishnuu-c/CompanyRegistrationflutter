@@ -25,7 +25,6 @@ import '../widgets/business_card_ocr_banner.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/business_card_ocr_dialog.dart';
 
-
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
 
@@ -41,7 +40,12 @@ class CompanyScreenState extends State<CompanyScreen> {
 
   bool _isOcrPicking = false;
 
-  Future<void> _handleOcrCardUpload([Uint8List? existingBytes, String? existingName, int? existingSize, String? existingPath]) async {
+  Future<void> _handleOcrCardUpload([
+    Uint8List? existingBytes,
+    String? existingName,
+    int? existingSize,
+    String? existingPath,
+  ]) async {
     try {
       Uint8List? bytes = existingBytes;
       String? fileName = existingName;
@@ -53,7 +57,8 @@ class CompanyScreenState extends State<CompanyScreen> {
         final picked = await MediaPickerHelper.showMediaPickerSheet(
           context,
           title: 'Upload Visiting Card (Image or PDF)',
-          subtitle: 'Capture with camera, choose from gallery, or select PDF to auto-fill details',
+          subtitle:
+              'Capture with camera, choose from gallery, or select PDF to auto-fill details',
           allowedExtensions: ['jpg', 'jpeg', 'png', 'webp', 'pdf'],
           allowDocuments: true,
         );
@@ -116,7 +121,8 @@ class CompanyScreenState extends State<CompanyScreen> {
       if (res.contactName != null && res.contactName!.trim().isNotEmpty) {
         _contactNameController.text = res.contactName!.trim();
       }
-      if (res.contactDesignation != null && res.contactDesignation!.trim().isNotEmpty) {
+      if (res.contactDesignation != null &&
+          res.contactDesignation!.trim().isNotEmpty) {
         _contactDesignationController.text = res.contactDesignation!.trim();
       }
       if (res.email != null && res.email!.trim().isNotEmpty) {
@@ -125,7 +131,8 @@ class CompanyScreenState extends State<CompanyScreen> {
       if (res.contactEmail != null && res.contactEmail!.trim().isNotEmpty) {
         _contactEmailController.text = res.contactEmail!.trim();
       }
-      if (res.contactMobileNumber != null && res.contactMobileNumber!.trim().isNotEmpty) {
+      if (res.contactMobileNumber != null &&
+          res.contactMobileNumber!.trim().isNotEmpty) {
         _contactMobileController.text = res.contactMobileNumber!.trim();
       }
       if (res.landline != null && res.landline!.trim().isNotEmpty) {
@@ -154,7 +161,8 @@ class CompanyScreenState extends State<CompanyScreen> {
       _feedback = FeedbackData(
         type: 'success',
         title: 'Business Card Details Applied! 🎉',
-        message: 'Extracted company "${res.companyName ?? 'Detected'}", contact "${res.contactName ?? 'Detected'}" and related details have auto-filled into the form.',
+        message:
+            'Extracted company "${res.companyName ?? 'Detected'}", contact "${res.contactName ?? 'Detected'}" and related details have auto-filled into the form.',
       );
     });
   }
@@ -302,9 +310,9 @@ class CompanyScreenState extends State<CompanyScreen> {
     final parents = _parentCategories;
     return _availableCategories.where((c) => c.parentId != null).map((sub) {
       final parent = parents.cast<CategoryResponse?>().firstWhere(
-            (p) => p?.id == sub.parentId,
-            orElse: () => null,
-          );
+        (p) => p?.id == sub.parentId,
+        orElse: () => null,
+      );
       return sub.copyWith(parentName: parent?.name ?? 'None');
     }).toList();
   }
@@ -312,7 +320,9 @@ class CompanyScreenState extends State<CompanyScreen> {
   List<BrandResponse> get _filteredAvailableBrands {
     final query = _brandSearchQuery.toLowerCase().trim();
     if (query.isEmpty) return _availableBrands;
-    return _availableBrands.where((b) => b.brandName.toLowerCase().contains(query)).toList();
+    return _availableBrands
+        .where((b) => b.brandName.toLowerCase().contains(query))
+        .toList();
   }
 
   List<BrandResponse> get _selectedBrandsList {
@@ -324,10 +334,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   List<Map<String, dynamic>> get _brandsWithProducts {
     return _availableBrands.map((b) {
       final count = _availableProducts.where((p) => p.brandId == b.id).length;
-      return {
-        'brand': b,
-        'count': count,
-      };
+      return {'brand': b, 'count': count};
     }).toList();
   }
 
@@ -370,10 +377,12 @@ class CompanyScreenState extends State<CompanyScreen> {
     return _availableProducts.where((p) {
       if (bFilter != 'all' && p.brandId.toString() != bFilter) return false;
       if (cFilter != 'all' && p.categoryId.toString() != cFilter) return false;
-      if (sFilter != 'all' && p.subCategoryId?.toString() != sFilter) return false;
+      if (sFilter != 'all' && p.subCategoryId?.toString() != sFilter)
+        return false;
 
       if (query.isNotEmpty) {
-        final matches = p.name.toLowerCase().contains(query) ||
+        final matches =
+            p.name.toLowerCase().contains(query) ||
             (p.brandName ?? '').toLowerCase().contains(query) ||
             (p.categoryName ?? '').toLowerCase().contains(query) ||
             (p.subCategoryName ?? '').toLowerCase().contains(query) ||
@@ -394,15 +403,29 @@ class CompanyScreenState extends State<CompanyScreen> {
     if (query.isEmpty) return _companies;
     return _companies.where((c) {
       final matchesName = c.companyName.toLowerCase().contains(query);
-      final matchesContact = (c.contactName ?? '').toLowerCase().contains(query);
-      final matchesContactEmail = (c.contactEmail ?? '').toLowerCase().contains(query);
+      final matchesContact = (c.contactName ?? '').toLowerCase().contains(
+        query,
+      );
+      final matchesContactEmail = (c.contactEmail ?? '').toLowerCase().contains(
+        query,
+      );
       final matchesEmail = c.email.toLowerCase().contains(query);
       final matchesCity = (c.city ?? '').toLowerCase().contains(query);
       final matchesCountry = (c.country ?? '').toLowerCase().contains(query);
-      final matchesBrands = c.brands.any((b) => b.brandName.toLowerCase().contains(query));
-      final matchesProducts = c.products.any((p) => p.name.toLowerCase().contains(query));
-      return matchesName || matchesContact || matchesContactEmail || matchesEmail ||
-          matchesCity || matchesCountry || matchesBrands || matchesProducts;
+      final matchesBrands = c.brands.any(
+        (b) => b.brandName.toLowerCase().contains(query),
+      );
+      final matchesProducts = c.products.any(
+        (p) => p.name.toLowerCase().contains(query),
+      );
+      return matchesName ||
+          matchesContact ||
+          matchesContactEmail ||
+          matchesEmail ||
+          matchesCity ||
+          matchesCountry ||
+          matchesBrands ||
+          matchesProducts;
     }).toList();
   }
 
@@ -411,7 +434,11 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingList = true);
     try {
       final data = await _companyService.getAllCompanies();
-      if (mounted) setState(() { _companies = data; _isLoadingList = false; });
+      if (mounted)
+        setState(() {
+          _companies = data;
+          _isLoadingList = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingList = false);
     }
@@ -421,7 +448,11 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingBrands = true);
     try {
       final data = await _brandService.getAllBrands();
-      if (mounted) setState(() { _availableBrands = data; _isLoadingBrands = false; });
+      if (mounted)
+        setState(() {
+          _availableBrands = data;
+          _isLoadingBrands = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingBrands = false);
     }
@@ -431,7 +462,11 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingProducts = true);
     try {
       final data = await _productService.getAllProducts();
-      if (mounted) setState(() { _availableProducts = data; _isLoadingProducts = false; });
+      if (mounted)
+        setState(() {
+          _availableProducts = data;
+          _isLoadingProducts = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingProducts = false);
     }
@@ -441,7 +476,11 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() => _isLoadingCategories = true);
     try {
       final data = await _categoryService.getAllCategories();
-      if (mounted) setState(() { _availableCategories = data; _isLoadingCategories = false; });
+      if (mounted)
+        setState(() {
+          _availableCategories = data;
+          _isLoadingCategories = false;
+        });
     } catch (_) {
       if (mounted) setState(() => _isLoadingCategories = false);
     }
@@ -500,7 +539,12 @@ class CompanyScreenState extends State<CompanyScreen> {
 
   void _removeProductAndCheckBrand(int productId, int? brandId) {
     _selectedProductIds.remove(productId);
-    final bId = brandId ?? _availableProducts.cast<ProductResponse?>().firstWhere((p) => p?.id == productId, orElse: () => null)?.brandId;
+    final bId =
+        brandId ??
+        _availableProducts
+            .cast<ProductResponse?>()
+            .firstWhere((p) => p?.id == productId, orElse: () => null)
+            ?.brandId;
     if (bId != null) {
       final hasOtherProds = _availableProducts.any(
         (p) => p.brandId == bId && _selectedProductIds.contains(p.id),
@@ -515,7 +559,8 @@ class CompanyScreenState extends State<CompanyScreen> {
     setState(() {
       for (final p in _filteredAvailableProducts) {
         if (!_selectedProductIds.contains(p.id)) _selectedProductIds.add(p.id);
-        if (!_selectedBrandIds.contains(p.brandId)) _selectedBrandIds.add(p.brandId);
+        if (!_selectedBrandIds.contains(p.brandId))
+          _selectedBrandIds.add(p.brandId);
       }
     });
   }
@@ -525,18 +570,25 @@ class CompanyScreenState extends State<CompanyScreen> {
       final filteredIds = _filteredAvailableProducts.map((p) => p.id).toSet();
       _selectedProductIds.removeWhere((id) => filteredIds.contains(id));
 
-      final remainingProds = _availableProducts.where((p) => _selectedProductIds.contains(p.id));
+      final remainingProds = _availableProducts.where(
+        (p) => _selectedProductIds.contains(p.id),
+      );
       final activeBrandIds = remainingProds.map((p) => p.brandId).toSet();
 
-      _selectedBrandIds.removeWhere((bId) =>
-          !_manuallySelectedBrandIds.contains(bId) && !activeBrandIds.contains(bId));
+      _selectedBrandIds.removeWhere(
+        (bId) =>
+            !_manuallySelectedBrandIds.contains(bId) &&
+            !activeBrandIds.contains(bId),
+      );
     });
   }
 
   void _clearSelectedProducts() {
     setState(() {
       _selectedProductIds.clear();
-      _selectedBrandIds.removeWhere((bId) => !_manuallySelectedBrandIds.contains(bId));
+      _selectedBrandIds.removeWhere(
+        (bId) => !_manuallySelectedBrandIds.contains(bId),
+      );
     });
   }
 
@@ -571,12 +623,14 @@ class CompanyScreenState extends State<CompanyScreen> {
       }
       final uri = Uri.parse(trimmed);
       final cleanParams = Map<String, String>.from(uri.queryParameters);
-      cleanParams.removeWhere((key, _) =>
-          key.toLowerCase().startsWith('utm_') ||
-          key.toLowerCase() == 'srsltid' ||
-          key.toLowerCase() == 'gclid' ||
-          key.toLowerCase() == 'fbclid' ||
-          key.toLowerCase() == 'ref');
+      cleanParams.removeWhere(
+        (key, _) =>
+            key.toLowerCase().startsWith('utm_') ||
+            key.toLowerCase() == 'srsltid' ||
+            key.toLowerCase() == 'gclid' ||
+            key.toLowerCase() == 'fbclid' ||
+            key.toLowerCase() == 'ref',
+      );
 
       final cleanUri = uri.replace(
         queryParameters: cleanParams.isEmpty ? null : cleanParams,
@@ -601,7 +655,8 @@ class CompanyScreenState extends State<CompanyScreen> {
         _feedback = FeedbackData(
           type: 'error',
           title: 'Website Required',
-          message: 'Please provide a valid official website URL in Section 03 before discovering products.',
+          message:
+              'Please provide a valid official website URL in Section 03 before discovering products.',
         );
       });
       return;
@@ -626,7 +681,10 @@ class CompanyScreenState extends State<CompanyScreen> {
           if (!_selectedProductIds.contains(p.matchedCatalogProductId)) {
             final matchedCatalogProd = _availableProducts
                 .cast<ProductResponse?>()
-                .firstWhere((ap) => ap?.id == p.matchedCatalogProductId, orElse: () => null);
+                .firstWhere(
+                  (ap) => ap?.id == p.matchedCatalogProductId,
+                  orElse: () => null,
+                );
             if (matchedCatalogProd != null) {
               _toggleProduct(matchedCatalogProd);
             }
@@ -637,9 +695,13 @@ class CompanyScreenState extends State<CompanyScreen> {
       setState(() {
         _isScrapingWebsite = false;
         _scrapedProducts = res.products;
-        final cleanUrl = _stripTrackingQuery(res.scannedUrl.isNotEmpty ? res.scannedUrl : website);
+        final cleanUrl = _stripTrackingQuery(
+          res.scannedUrl.isNotEmpty ? res.scannedUrl : website,
+        );
         _scrapedWebsiteUrl = cleanUrl;
-        _scrapedStrategyUsed = res.strategyUsed.isNotEmpty ? res.strategyUsed : 'Website Crawler';
+        _scrapedStrategyUsed = res.strategyUsed.isNotEmpty
+            ? res.strategyUsed
+            : 'Website Crawler';
         _selectedScrapedIndices.clear();
         _selectedScrapedIndices.addAll(preselectedIndices);
 
@@ -656,9 +718,13 @@ class CompanyScreenState extends State<CompanyScreen> {
             badges: [
               FeedbackBadge(icon: Icons.language, label: domain),
               FeedbackBadge(icon: Icons.bolt, label: primaryStrategy),
-              FeedbackBadge(icon: Icons.inventory_2_outlined, label: '$count Items'),
+              FeedbackBadge(
+                icon: Icons.inventory_2_outlined,
+                label: '$count Items',
+              ),
             ],
-            actionPrompt: 'Select the items you want to link to this company below.',
+            actionPrompt:
+                'Select the items you want to link to this company below.',
           );
         } else {
           _feedback = FeedbackData(
@@ -667,7 +733,8 @@ class CompanyScreenState extends State<CompanyScreen> {
             message: res.message.isNotEmpty
                 ? res.message
                 : 'We could not detect standard eCommerce products on $domain.',
-            actionPrompt: 'You can manually choose products from the catalog below.',
+            actionPrompt:
+                'You can manually choose products from the catalog below.',
           );
         }
       });
@@ -736,8 +803,12 @@ class CompanyScreenState extends State<CompanyScreen> {
         if (product.matchedCatalogProductId != null) {
           final catalogProd = _availableProducts
               .cast<ProductResponse?>()
-              .firstWhere((p) => p?.id == product.matchedCatalogProductId, orElse: () => null);
-          if (catalogProd != null && !_selectedProductIds.contains(product.matchedCatalogProductId)) {
+              .firstWhere(
+                (p) => p?.id == product.matchedCatalogProductId,
+                orElse: () => null,
+              );
+          if (catalogProd != null &&
+              !_selectedProductIds.contains(product.matchedCatalogProductId)) {
             _toggleProduct(catalogProd);
           }
         }
@@ -753,8 +824,12 @@ class CompanyScreenState extends State<CompanyScreen> {
         if (p.matchedCatalogProductId != null) {
           final catalogProd = _availableProducts
               .cast<ProductResponse?>()
-              .firstWhere((cp) => cp?.id == p.matchedCatalogProductId, orElse: () => null);
-          if (catalogProd != null && !_selectedProductIds.contains(p.matchedCatalogProductId)) {
+              .firstWhere(
+                (cp) => cp?.id == p.matchedCatalogProductId,
+                orElse: () => null,
+              );
+          if (catalogProd != null &&
+              !_selectedProductIds.contains(p.matchedCatalogProductId)) {
             _toggleProduct(catalogProd);
           }
         }
@@ -813,7 +888,8 @@ class CompanyScreenState extends State<CompanyScreen> {
       _selectedFileName = null;
       _selectedFileSize = null;
       _selectedFilePath = null;
-      _existingFileUrl = company.businessCard != null && company.businessCard!.isNotEmpty
+      _existingFileUrl =
+          company.businessCard != null && company.businessCard!.isNotEmpty
           ? _companyService.getFileUrl(company.businessCard)
           : null;
 
@@ -886,7 +962,8 @@ class CompanyScreenState extends State<CompanyScreen> {
         _feedback = FeedbackData(
           type: 'error',
           title: 'Validation Error',
-          message: 'Please fill in all mandatory fields correctly before proceeding.',
+          message:
+              'Please fill in all mandatory fields correctly before proceeding.',
         );
       });
       return;
@@ -905,17 +982,37 @@ class CompanyScreenState extends State<CompanyScreen> {
     final request = CompanyRequest(
       companyName: _nameController.text.trim(),
       email: _emailController.text.trim(),
-      landline: _landlineController.text.trim().isNotEmpty ? _landlineController.text.trim() : null,
-      address: _addressController.text.trim().isNotEmpty ? _addressController.text.trim() : null,
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-      country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : null,
-      website: _websiteController.text.trim().isNotEmpty ? _websiteController.text.trim() : null,
-      description: _descriptionController.text.trim().isNotEmpty ? _descriptionController.text.trim() : null,
+      landline: _landlineController.text.trim().isNotEmpty
+          ? _landlineController.text.trim()
+          : null,
+      address: _addressController.text.trim().isNotEmpty
+          ? _addressController.text.trim()
+          : null,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
+      country: _countryController.text.trim().isNotEmpty
+          ? _countryController.text.trim()
+          : null,
+      website: _websiteController.text.trim().isNotEmpty
+          ? _websiteController.text.trim()
+          : null,
+      description: _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : null,
       status: _status,
-      contactName: _contactNameController.text.trim().isNotEmpty ? _contactNameController.text.trim() : null,
-      contactDesignation: _contactDesignationController.text.trim().isNotEmpty ? _contactDesignationController.text.trim() : null,
-      contactEmail: _contactEmailController.text.trim().isNotEmpty ? _contactEmailController.text.trim() : null,
-      contactMobileNumber: _contactMobileController.text.trim().isNotEmpty ? _contactMobileController.text.trim() : null,
+      contactName: _contactNameController.text.trim().isNotEmpty
+          ? _contactNameController.text.trim()
+          : null,
+      contactDesignation: _contactDesignationController.text.trim().isNotEmpty
+          ? _contactDesignationController.text.trim()
+          : null,
+      contactEmail: _contactEmailController.text.trim().isNotEmpty
+          ? _contactEmailController.text.trim()
+          : null,
+      contactMobileNumber: _contactMobileController.text.trim().isNotEmpty
+          ? _contactMobileController.text.trim()
+          : null,
       brandIds: allBrandIds,
       productIds: _selectedProductIds,
     );
@@ -934,7 +1031,8 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Company Updated Successfully!',
-            message: 'Changes for "${response.companyName}" (ID #${response.id}) have been saved.',
+            message:
+                'Changes for "${response.companyName}" (ID #${response.id}) have been saved.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -952,7 +1050,8 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Company Registered Successfully!',
-            message: '"${response.companyName}" has been established with ID #${response.id}.',
+            message:
+                '"${response.companyName}" has been established with ID #${response.id}.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -964,7 +1063,9 @@ class CompanyScreenState extends State<CompanyScreen> {
         _isSubmitting = false;
         _feedback = FeedbackData(
           type: 'error',
-          title: _editingCompanyId != null ? 'Update Failed' : 'Registration Failed',
+          title: _editingCompanyId != null
+              ? 'Update Failed'
+              : 'Registration Failed',
           message: e.toString().replaceAll('Exception: ', ''),
         );
       });
@@ -977,12 +1078,14 @@ class CompanyScreenState extends State<CompanyScreen> {
     try {
       final bytes = await _companyService.exportCompaniesToExcel();
       final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final fileName = 'companies_directory_$dateStr.xlsx';
       final xFile = XFile.fromData(
         bytes,
         name: fileName,
-        mimeType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        mimeType:
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       );
       await Share.shareXFiles(
         [xFile],
@@ -995,7 +1098,8 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Excel Export Successful',
-            message: 'Companies directory spreadsheet exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
+            message:
+                'Companies directory spreadsheet exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
           );
         });
       }
@@ -1006,7 +1110,8 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message: 'Could not export Excel file: ${e.toString().replaceAll('Exception: ', '')}',
+            message:
+                'Could not export Excel file: ${e.toString().replaceAll('Exception: ', '')}',
           );
         });
       }
@@ -1019,7 +1124,8 @@ class CompanyScreenState extends State<CompanyScreen> {
     try {
       final bytes = await _companyService.exportCompaniesToPdf();
       final now = DateTime.now();
-      final dateStr = '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+      final dateStr =
+          '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
       final fileName = 'companies_directory_$dateStr.pdf';
       final xFile = XFile.fromData(
         bytes,
@@ -1037,7 +1143,8 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'PDF Export Successful',
-            message: 'Companies directory official PDF document exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
+            message:
+                'Companies directory official PDF document exported (${(bytes.length / 1024).toStringAsFixed(1)} KB).',
           );
         });
       }
@@ -1048,13 +1155,13 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message: 'Could not export PDF document: ${e.toString().replaceAll('Exception: ', '')}',
+            message:
+                'Could not export PDF document: ${e.toString().replaceAll('Exception: ', '')}',
           );
         });
       }
     }
   }
-
 
   Future<void> _downloadCompanyPdf(CompanyResponse company) async {
     try {
@@ -1062,20 +1169,29 @@ class CompanyScreenState extends State<CompanyScreen> {
         _feedback = FeedbackData(
           type: 'info',
           title: 'Generating PDF',
-          message: 'Generating executive PDF profile for ${company.companyName}...',
+          message:
+              'Generating executive PDF profile for ${company.companyName}...',
         );
       });
       final bytes = await _companyService.exportCompanyProfilePdf(company.id);
-      final safeName = company.companyName.replaceAll(RegExp(r'[^a-zA-Z0-9_-]'), '_');
+      final safeName = company.companyName.replaceAll(
+        RegExp(r'[^a-zA-Z0-9_-]'),
+        '_',
+      );
       final fileName = '${safeName}_Profile_with_Cards.pdf';
-      final xFile = XFile.fromData(bytes, name: fileName, mimeType: 'application/pdf');
+      final xFile = XFile.fromData(
+        bytes,
+        name: fileName,
+        mimeType: 'application/pdf',
+      );
       await Share.shareXFiles([xFile], text: '${company.companyName} Profile');
       if (mounted) {
         setState(() {
           _feedback = FeedbackData(
             type: 'success',
             title: 'PDF Export Ready',
-            message: 'Exported executive PDF profile for ${company.companyName}.',
+            message:
+                'Exported executive PDF profile for ${company.companyName}.',
           );
         });
       }
@@ -1099,20 +1215,44 @@ class CompanyScreenState extends State<CompanyScreen> {
           ? _nameController.text.trim()
           : 'Untitled Company',
       email: _emailController.text.trim(),
-      landline: _landlineController.text.trim().isNotEmpty ? _landlineController.text.trim() : null,
-      address: _addressController.text.trim().isNotEmpty ? _addressController.text.trim() : null,
-      city: _cityController.text.trim().isNotEmpty ? _cityController.text.trim() : null,
-      country: _countryController.text.trim().isNotEmpty ? _countryController.text.trim() : null,
-      website: _websiteController.text.trim().isNotEmpty ? _websiteController.text.trim() : null,
-      description: _descriptionController.text.trim().isNotEmpty ? _descriptionController.text.trim() : null,
-      contactName: _contactNameController.text.trim().isNotEmpty ? _contactNameController.text.trim() : null,
-      contactDesignation: _contactDesignationController.text.trim().isNotEmpty ? _contactDesignationController.text.trim() : null,
-      contactEmail: _contactEmailController.text.trim().isNotEmpty ? _contactEmailController.text.trim() : null,
-      contactMobileNumber: _contactMobileController.text.trim().isNotEmpty ? _contactMobileController.text.trim() : null,
+      landline: _landlineController.text.trim().isNotEmpty
+          ? _landlineController.text.trim()
+          : null,
+      address: _addressController.text.trim().isNotEmpty
+          ? _addressController.text.trim()
+          : null,
+      city: _cityController.text.trim().isNotEmpty
+          ? _cityController.text.trim()
+          : null,
+      country: _countryController.text.trim().isNotEmpty
+          ? _countryController.text.trim()
+          : null,
+      website: _websiteController.text.trim().isNotEmpty
+          ? _websiteController.text.trim()
+          : null,
+      description: _descriptionController.text.trim().isNotEmpty
+          ? _descriptionController.text.trim()
+          : null,
+      contactName: _contactNameController.text.trim().isNotEmpty
+          ? _contactNameController.text.trim()
+          : null,
+      contactDesignation: _contactDesignationController.text.trim().isNotEmpty
+          ? _contactDesignationController.text.trim()
+          : null,
+      contactEmail: _contactEmailController.text.trim().isNotEmpty
+          ? _contactEmailController.text.trim()
+          : null,
+      contactMobileNumber: _contactMobileController.text.trim().isNotEmpty
+          ? _contactMobileController.text.trim()
+          : null,
       status: _status,
       businessCard: _selectedFileName,
-      brands: _availableBrands.where((b) => _selectedBrandIds.contains(b.id)).toList(),
-      products: _availableProducts.where((p) => _selectedProductIds.contains(p.id)).toList(),
+      brands: _availableBrands
+          .where((b) => _selectedBrandIds.contains(b.id))
+          .toList(),
+      products: _availableProducts
+          .where((p) => _selectedProductIds.contains(p.id))
+          .toList(),
     );
     CompanyShareDialog.show(context, previewCompany);
   }
@@ -1131,7 +1271,8 @@ class CompanyScreenState extends State<CompanyScreen> {
               _feedback = FeedbackData(
                 type: 'success',
                 title: 'Company Deleted',
-                message: '"${company.companyName}" has been successfully deleted.',
+                message:
+                    '"${company.companyName}" has been successfully deleted.',
               );
               if (_selectedCompany?.id == company.id) {
                 _selectedCompany = null;
@@ -1165,7 +1306,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                 ),
               Expanded(
                 child: _activeTab == 'register'
-                    ? (isDesktop ? _buildDesktopRegisterView() : _buildMobileRegisterView())
+                    ? (isDesktop
+                          ? _buildDesktopRegisterView()
+                          : _buildMobileRegisterView())
                     : _buildDirectoryView(),
               ),
             ],
@@ -1198,7 +1341,10 @@ class CompanyScreenState extends State<CompanyScreen> {
               onTap: _switchToRegister,
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: _activeTab == 'register' && _editingCompanyId == null
                       ? AppTheme.primaryLight
@@ -1216,7 +1362,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                     Icon(
                       Icons.add_circle,
                       size: 15,
-                      color: _activeTab == 'register' && _editingCompanyId == null
+                      color:
+                          _activeTab == 'register' && _editingCompanyId == null
                           ? AppTheme.primary
                           : AppTheme.textSecondary,
                     ),
@@ -1226,7 +1373,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'register' && _editingCompanyId == null
+                        color:
+                            _activeTab == 'register' &&
+                                _editingCompanyId == null
                             ? AppTheme.primary
                             : AppTheme.textSecondary,
                       ),
@@ -1244,7 +1393,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.warningBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: AppTheme.warning.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -1254,7 +1405,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.edit, size: 13, color: AppTheme.warning),
+                          const Icon(
+                            Icons.edit,
+                            size: 13,
+                            color: AppTheme.warning,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Edit #$_editingCompanyId',
@@ -1271,7 +1426,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                     InkWell(
                       onTap: _switchToRegister,
                       borderRadius: BorderRadius.circular(10),
-                      child: const Icon(Icons.close, size: 13, color: Color(0xFFB45309)),
+                      child: const Icon(
+                        Icons.close,
+                        size: 13,
+                        color: Color(0xFFB45309),
+                      ),
                     ),
                   ],
                 ),
@@ -1284,9 +1443,14 @@ class CompanyScreenState extends State<CompanyScreen> {
               onTap: () => setState(() => _activeTab = 'directory'),
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
-                  color: _activeTab == 'directory' ? AppTheme.primaryLight : Colors.transparent,
+                  color: _activeTab == 'directory'
+                      ? AppTheme.primaryLight
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: _activeTab == 'directory'
@@ -1300,7 +1464,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                     Icon(
                       Icons.grid_view_rounded,
                       size: 15,
-                      color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                      color: _activeTab == 'directory'
+                          ? AppTheme.primary
+                          : AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 5),
                     Text(
@@ -1308,12 +1474,17 @@ class CompanyScreenState extends State<CompanyScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                        color: _activeTab == 'directory'
+                            ? AppTheme.primary
+                            : AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 5),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 1.5,
+                      ),
                       decoration: BoxDecoration(
                         color: _activeTab == 'directory'
                             ? AppTheme.primary
@@ -1378,25 +1549,36 @@ class CompanyScreenState extends State<CompanyScreen> {
               onTap: () => setState(() => _showLivePreview = !_showLivePreview),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: _showLivePreview ? AppTheme.primaryLight : AppTheme.bgSurface,
+                  color: _showLivePreview
+                      ? AppTheme.primaryLight
+                      : AppTheme.bgSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _showLivePreview ? AppTheme.primary : AppTheme.borderLight,
+                    color: _showLivePreview
+                        ? AppTheme.primary
+                        : AppTheme.borderLight,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      _showLivePreview ? Icons.visibility_off : Icons.visibility,
+                      _showLivePreview
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       size: 18,
                       color: AppTheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _showLivePreview ? 'Hide Live Card Preview' : 'Show Live Card Preview',
+                        _showLivePreview
+                            ? 'Hide Live Card Preview'
+                            : 'Show Live Card Preview',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -1455,13 +1637,18 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '01',
                 title: 'Corporate Information',
-                subtitle: 'Official registered enterprise identity & operational status',
+                subtitle:
+                    'Official registered enterprise identity & operational status',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
                       'Company Name *',
-                      style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 6),
                     TextFormField(
@@ -1469,7 +1656,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
                         hintText: 'e.g. Apex Global Technologies Inc.',
-                        prefixIcon: const Icon(Icons.apartment, size: 18, color: AppTheme.textMuted),
+                        prefixIcon: const Icon(
+                          Icons.apartment,
+                          size: 18,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                       onChanged: (_) => setState(() {}),
                       validator: (val) {
@@ -1483,7 +1674,11 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                     Text(
                       'Company Operational Status',
-                      style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 8),
                     Row(
@@ -1504,105 +1699,158 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '02',
                 title: 'Contact Person & Representative',
-                subtitle: 'Key executive or point-of-contact details for this enterprise',
-                child: LayoutBuilder(builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 500;
-                  return Column(
-                    children: [
-                      Flex(
-                        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                        children: [
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Contact Person Name', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _contactNameController,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g. Sarah Jenkins',
-                                    prefixIcon: const Icon(Icons.badge_outlined, size: 18, color: AppTheme.textMuted),
+                subtitle:
+                    'Key executive or point-of-contact details for this enterprise',
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 500;
+                    return Column(
+                      children: [
+                        Flex(
+                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          children: [
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Contact Person Name',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: isNarrow ? 0 : 12, height: isNarrow ? 12 : 0),
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Designation / Role', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _contactDesignationController,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: 'e.g. Managing Director / CTO',
-                                    prefixIcon: const Icon(Icons.work_outline, size: 18, color: AppTheme.textMuted),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _contactNameController,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: 'e.g. Sarah Jenkins',
+                                      prefixIcon: const Icon(
+                                        Icons.badge_outlined,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
                                   ),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Flex(
-                        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                        children: [
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Contact Person Email', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _contactEmailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: 'sarah.jenkins@company.com',
-                                    prefixIcon: const Icon(Icons.email_outlined, size: 18, color: AppTheme.textMuted),
+                            SizedBox(
+                              width: isNarrow ? 0 : 12,
+                              height: isNarrow ? 12 : 0,
+                            ),
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Designation / Role',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: isNarrow ? 0 : 12, height: isNarrow ? 12 : 0),
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Mobile Number', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _contactMobileController,
-                                  keyboardType: TextInputType.phone,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: '+1 (555) 987-6543',
-                                    prefixIcon: const Icon(Icons.phone_iphone, size: 18, color: AppTheme.textMuted),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _contactDesignationController,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: 'e.g. Managing Director / CTO',
+                                      prefixIcon: const Icon(
+                                        Icons.work_outline,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
                                   ),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }),
+                          ],
+                        ),
+                        const SizedBox(height: 12),
+                        Flex(
+                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          children: [
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Contact Person Email',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _contactEmailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: 'sarah.jenkins@company.com',
+                                      prefixIcon: const Icon(
+                                        Icons.email_outlined,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              width: isNarrow ? 0 : 12,
+                              height: isNarrow ? 12 : 0,
+                            ),
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Mobile Number',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _contactMobileController,
+                                    keyboardType: TextInputType.phone,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: '+1 (555) 987-6543',
+                                      prefixIcon: const Icon(
+                                        Icons.phone_iphone,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -1610,190 +1858,250 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '03',
                 title: 'Corporate Communication & Web',
-                subtitle: 'Official company-wide channels and public web portal',
-                child: LayoutBuilder(builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 500;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Flex(
-                        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                        children: [
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Corporate Email *', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _emailController,
-                                  keyboardType: TextInputType.emailAddress,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: 'contact@enterprise.com',
-                                    prefixIcon: const Icon(Icons.alternate_email, size: 18, color: AppTheme.textMuted),
+                subtitle:
+                    'Official company-wide channels and public web portal',
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 500;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Flex(
+                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          children: [
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Corporate Email *',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
-                                  onChanged: (_) => setState(() {}),
-                                  validator: (val) {
-                                    if (val == null || !val.contains('@')) {
-                                      return 'Valid corporate email is required';
-                                    }
-                                    return null;
-                                  },
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: isNarrow ? 0 : 12, height: isNarrow ? 12 : 0),
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Landline Number', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _landlineController,
-                                  keyboardType: TextInputType.phone,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: InputDecoration(
-                                    hintText: '+1 (555) 019-2834',
-                                    prefixIcon: const Icon(Icons.phone_in_talk, size: 18, color: AppTheme.textMuted),
-                                  ),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Flexible(
-                                child: Text(
-                                  'Official Website',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                              ),
-                              if (_websiteController.text.trim().isNotEmpty) ...[
-                                const SizedBox(width: 8),
-                                InkWell(
-                                  onTap: _isScrapingWebsite ? null : _triggerWebsiteProductScrape,
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                    decoration: BoxDecoration(
-                                      gradient: const LinearGradient(
-                                        colors: [Color(0xFFE0E7FF), Color(0xFFEDE9FE)],
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _emailController,
+                                    keyboardType: TextInputType.emailAddress,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: 'contact@enterprise.com',
+                                      prefixIcon: const Icon(
+                                        Icons.alternate_email,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
                                       ),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: const Color(0xFFC7D2FE)),
                                     ),
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        if (_isScrapingWebsite) ...[
-                                          const SizedBox(
-                                            width: 12,
-                                            height: 12,
-                                            child: CircularProgressIndicator(
-                                              strokeWidth: 2,
-                                              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4338CA)),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 6),
-                                          Text(
-                                            'Scanning...',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF4338CA),
-                                            ),
-                                          ),
-                                        ] else ...[
-                                          const Icon(Icons.auto_awesome, size: 13, color: Color(0xFF4338CA)),
-                                          const SizedBox(width: 5),
-                                          Text(
-                                            'Discover Products',
-                                            style: GoogleFonts.inter(
-                                              fontSize: 11,
-                                              fontWeight: FontWeight.w700,
-                                              color: const Color(0xFF4338CA),
-                                            ),
-                                          ),
-                                        ],
-                                      ],
+                                    onChanged: (_) => setState(() {}),
+                                    validator: (val) {
+                                      if (val == null || !val.contains('@')) {
+                                        return 'Valid corporate email is required';
+                                      }
+                                      return null;
+                                    },
+                                  ),
+                                ],
+                              ),
+                            ),
+                            SizedBox(
+                              width: isNarrow ? 0 : 12,
+                              height: isNarrow ? 12 : 0,
+                            ),
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Landline Number',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
                                     ),
                                   ),
-                                ),
-                            ],
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _landlineController,
+                                    keyboardType: TextInputType.phone,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: InputDecoration(
+                                      hintText: '+1 (555) 019-2834',
+                                      prefixIcon: const Icon(
+                                        Icons.phone_in_talk,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
+                            ),
                           ],
                         ),
-                        const SizedBox(height: 6),
-                          TextFormField(
-                            controller: _websiteController,
-                            keyboardType: TextInputType.url,
-                            style: GoogleFonts.inter(fontSize: 13),
-                            decoration: InputDecoration(
-                              hintText: 'https://company.example.com',
-                              prefixIcon: const Icon(Icons.language, size: 18, color: AppTheme.textMuted),
-                            ),
-                            onChanged: (_) => setState(() {}),
-                          ),
-                          if (_scrapedProducts.isNotEmpty)
-                            InkWell(
-                              onTap: _openScrapedDrawerWithScroll,
-                              borderRadius: BorderRadius.circular(20),
-                              child: Container(
-                                margin: const EdgeInsets.only(top: 8),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFFD1FAE5),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: const Color(0xFFA7F3D0)),
+                        const SizedBox(height: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Flexible(
+                                  child: Text(
+                                    'Official Website',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
                                 ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(Icons.check_circle, size: 14, color: Color(0xFF065F46)),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${_scrapedProducts.length} products discovered',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 11.5,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF065F46),
+                                if (_websiteController.text
+                                    .trim()
+                                    .isNotEmpty) ...[
+                                  const SizedBox(width: 8),
+                                  InkWell(
+                                    onTap: _isScrapingWebsite
+                                        ? null
+                                        : _triggerWebsiteProductScrape,
+                                    borderRadius: BorderRadius.circular(20),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 10,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [
+                                            Color(0xFFE0E7FF),
+                                            Color(0xFFEDE9FE),
+                                          ],
+                                        ),
+                                        borderRadius: BorderRadius.circular(20),
+                                        border: Border.all(
+                                          color: const Color(0xFFC7D2FE),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          if (_isScrapingWebsite) ...[
+                                            const SizedBox(
+                                              width: 12,
+                                              height: 12,
+                                              child: CircularProgressIndicator(
+                                                strokeWidth: 2,
+                                                valueColor:
+                                                    AlwaysStoppedAnimation<
+                                                      Color
+                                                    >(Color(0xFF4338CA)),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 6),
+                                            Text(
+                                              'Scanning...',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF4338CA),
+                                              ),
+                                            ),
+                                          ] else ...[
+                                            const Icon(
+                                              Icons.auto_awesome,
+                                              size: 13,
+                                              color: Color(0xFF4338CA),
+                                            ),
+                                            const SizedBox(width: 5),
+                                            Text(
+                                              'Discover Products',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF4338CA),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      'View List',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 11,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF047857),
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
+                                  ),
+                                ],
+                              ],
+                            ),
+                            const SizedBox(height: 6),
+                            TextFormField(
+                              controller: _websiteController,
+                              keyboardType: TextInputType.url,
+                              style: GoogleFonts.inter(fontSize: 13),
+                              decoration: InputDecoration(
+                                hintText: 'https://company.example.com',
+                                prefixIcon: const Icon(
+                                  Icons.language,
+                                  size: 18,
+                                  color: AppTheme.textMuted,
                                 ),
                               ),
+                              onChanged: (_) => setState(() {}),
                             ),
-                        ],
-                      ),
-                    ],
-                  );
-                }),
+                            if (_scrapedProducts.isNotEmpty)
+                              InkWell(
+                                onTap: _openScrapedDrawerWithScroll,
+                                borderRadius: BorderRadius.circular(20),
+                                child: Container(
+                                  margin: const EdgeInsets.only(top: 8),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFD1FAE5),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: const Color(0xFFA7F3D0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.check_circle,
+                                        size: 14,
+                                        color: Color(0xFF065F46),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${_scrapedProducts.length} products discovered',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF065F46),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        'View List',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF047857),
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -1802,64 +2110,98 @@ class CompanyScreenState extends State<CompanyScreen> {
                 stepNum: '04',
                 title: 'Corporate Headquarters',
                 subtitle: 'Registered office address and country jurisdiction',
-                child: LayoutBuilder(builder: (context, constraints) {
-                  final isNarrow = constraints.maxWidth < 500;
-                  return Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Street Address', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                      const SizedBox(height: 6),
-                      TextFormField(
-                        controller: _addressController,
-                        style: GoogleFonts.inter(fontSize: 13),
-                        decoration: InputDecoration(
-                          hintText: 'Suite 500, 100 Innovation Way',
-                          prefixIcon: const Icon(Icons.location_on_outlined, size: 18, color: AppTheme.textMuted),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isNarrow = constraints.maxWidth < 500;
+                    return Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Street Address',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textPrimary,
+                          ),
                         ),
-                        onChanged: (_) => setState(() {}),
-                      ),
-                      const SizedBox(height: 12),
-                      Flex(
-                        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                        children: [
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('City', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _cityController,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: const InputDecoration(hintText: 'San Francisco'),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
+                        const SizedBox(height: 6),
+                        TextFormField(
+                          controller: _addressController,
+                          style: GoogleFonts.inter(fontSize: 13),
+                          decoration: InputDecoration(
+                            hintText: 'Suite 500, 100 Innovation Way',
+                            prefixIcon: const Icon(
+                              Icons.location_on_outlined,
+                              size: 18,
+                              color: AppTheme.textMuted,
                             ),
                           ),
-                          SizedBox(width: isNarrow ? 0 : 12, height: isNarrow ? 12 : 0),
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text('Country', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
-                                const SizedBox(height: 6),
-                                TextFormField(
-                                  controller: _countryController,
-                                  style: GoogleFonts.inter(fontSize: 13),
-                                  decoration: const InputDecoration(hintText: 'United States'),
-                                  onChanged: (_) => setState(() {}),
-                                ),
-                              ],
+                          onChanged: (_) => setState(() {}),
+                        ),
+                        const SizedBox(height: 12),
+                        Flex(
+                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          children: [
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'City',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _cityController,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: const InputDecoration(
+                                      hintText: 'San Francisco',
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  );
-                }),
+                            SizedBox(
+                              width: isNarrow ? 0 : 12,
+                              height: isNarrow ? 12 : 0,
+                            ),
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Country',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  TextFormField(
+                                    controller: _countryController,
+                                    style: GoogleFonts.inter(fontSize: 13),
+                                    decoration: const InputDecoration(
+                                      hintText: 'United States',
+                                    ),
+                                    onChanged: (_) => setState(() {}),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    );
+                  },
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -1867,65 +2209,107 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '05',
                 title: 'Brands Dealt With & Partner Dealerships',
-                subtitle: 'Select the manufacturer brands this enterprise deals with, represents, or distributes',
+                subtitle:
+                    'Select the manufacturer brands this enterprise deals with, represents, or distributes',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Filter & Helper Action Bar
-                    LayoutBuilder(builder: (context, constraints) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 36,
-                            child: TextField(
-                              style: GoogleFonts.inter(fontSize: 12),
-                              decoration: InputDecoration(
-                                hintText: 'Filter brands by name...',
-                                prefixIcon: const Icon(Icons.search, size: 15, color: AppTheme.textMuted),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 36,
+                              child: TextField(
+                                style: GoogleFonts.inter(fontSize: 12),
+                                decoration: InputDecoration(
+                                  hintText: 'Filter brands by name...',
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    size: 15,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 0,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: (val) =>
+                                    setState(() => _brandSearchQuery = val),
                               ),
-                              onChanged: (val) => setState(() => _brandSearchQuery = val),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                '${_selectedBrandIds.length}/${_availableBrands.length} selected',
-                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
-                              ),
-                              OutlinedButton(
-                                onPressed: _availableBrands.isEmpty ? null : _selectAllBrands,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '${_selectedBrandIds.length}/${_availableBrands.length} selected',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
-                                child: const Text('Select All'),
-                              ),
-                              OutlinedButton(
-                                onPressed: _selectedBrandIds.isEmpty ? null : _clearSelectedBrands,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                                  textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                OutlinedButton(
+                                  onPressed: _availableBrands.isEmpty
+                                      ? null
+                                      : _selectAllBrands,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    textStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Select All'),
                                 ),
-                                child: const Text('Clear'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    }),
+                                OutlinedButton(
+                                  onPressed: _selectedBrandIds.isEmpty
+                                      ? null
+                                      : _clearSelectedBrands,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 6,
+                                    ),
+                                    textStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Clear'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     const SizedBox(height: 12),
 
                     if (_isLoadingBrands)
-                      const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
                     else if (_availableBrands.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
@@ -1935,19 +2319,35 @@ class CompanyScreenState extends State<CompanyScreen> {
                         ),
                         child: Text(
                           'No brands registered in the system yet. Register brands first so companies can select them.',
-                          style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
                         ),
                       )
                     else if (_filteredAvailableBrands.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: AppTheme.bgSubtle, borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(
+                          color: AppTheme.bgSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         alignment: Alignment.center,
                         child: Column(
                           children: [
-                            const Icon(Icons.filter_alt_off, size: 28, color: AppTheme.textMuted),
+                            const Icon(
+                              Icons.filter_alt_off,
+                              size: 28,
+                              color: AppTheme.textMuted,
+                            ),
                             const SizedBox(height: 6),
-                            Text('No brands match current search.', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+                            Text(
+                              'No brands match current search.',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
                           ],
                         ),
                       )
@@ -1956,11 +2356,14 @@ class CompanyScreenState extends State<CompanyScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: _filteredAvailableBrands.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 6),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 6),
                         itemBuilder: (context, index) {
                           final b = _filteredAvailableBrands[index];
                           final isSelected = _selectedBrandIds.contains(b.id);
-                          final brandProdsCount = _availableProducts.where((p) => p.brandId == b.id).length;
+                          final brandProdsCount = _availableProducts
+                              .where((p) => p.brandId == b.id)
+                              .length;
 
                           return Material(
                             color: Colors.transparent,
@@ -1969,18 +2372,27 @@ class CompanyScreenState extends State<CompanyScreen> {
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryLight.withOpacity(0.55) : AppTheme.bgSurface,
+                                  color: isSelected
+                                      ? AppTheme.primaryLight.withOpacity(0.55)
+                                      : AppTheme.bgSurface,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: isSelected ? AppTheme.primary : AppTheme.borderLight,
+                                    color: isSelected
+                                        ? AppTheme.primary
+                                        : AppTheme.borderLight,
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppTheme.primary.withOpacity(0.06),
+                                            color: AppTheme.primary.withOpacity(
+                                              0.06,
+                                            ),
                                             blurRadius: 6,
                                             offset: const Offset(0, 2),
                                           ),
@@ -1991,19 +2403,29 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   children: [
                                     // Custom Checkbox
                                     AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
                                       width: 18,
                                       height: 18,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppTheme.primary : Colors.transparent,
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : Colors.transparent,
                                         borderRadius: BorderRadius.circular(4),
                                         border: Border.all(
-                                          color: isSelected ? AppTheme.primary : AppTheme.borderMedium,
+                                          color: isSelected
+                                              ? AppTheme.primary
+                                              : AppTheme.borderMedium,
                                           width: 1.2,
                                         ),
                                       ),
                                       child: isSelected
-                                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                                          ? const Icon(
+                                              Icons.check_rounded,
+                                              size: 13,
+                                              color: Colors.white,
+                                            )
                                           : null,
                                     ),
                                     const SizedBox(width: 8),
@@ -2016,33 +2438,51 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         color: AppTheme.bgSubtle,
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: isSelected ? AppTheme.primary.withOpacity(0.3) : AppTheme.borderLight,
+                                          color: isSelected
+                                              ? AppTheme.primary.withOpacity(
+                                                  0.3,
+                                                )
+                                              : AppTheme.borderLight,
                                         ),
                                       ),
                                       clipBehavior: Clip.antiAlias,
-                                      child: (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                      child:
+                                          (b.brandLogo != null &&
+                                              b.brandLogo!.isNotEmpty)
                                           ? Image.network(
-                                              _brandService.getFileUrl(b.brandLogo),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => Center(
-                                                child: Text(
-                                                  b.initials,
-                                                  style: GoogleFonts.plusJakartaSans(
-                                                    fontSize: 12,
-                                                    fontWeight: FontWeight.w700,
-                                                    color: AppTheme.primary,
-                                                  ),
-                                                ),
+                                              _brandService.getFileUrl(
+                                                b.brandLogo,
                                               ),
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Center(
+                                                    child: Text(
+                                                      b.initials,
+                                                      style:
+                                                          GoogleFonts.plusJakartaSans(
+                                                            fontSize: 12,
+                                                            fontWeight:
+                                                                FontWeight.w700,
+                                                            color: AppTheme
+                                                                .primary,
+                                                          ),
+                                                    ),
+                                                  ),
                                             )
                                           : Center(
                                               child: Text(
                                                 b.initials,
-                                                style: GoogleFonts.plusJakartaSans(
-                                                  fontSize: 12,
-                                                  fontWeight: FontWeight.w700,
-                                                  color: AppTheme.primary,
-                                                ),
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      color: AppTheme.primary,
+                                                    ),
                                               ),
                                             ),
                                     ),
@@ -2051,7 +2491,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                                     // Brand Details
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           Row(
@@ -2059,36 +2500,71 @@ class CompanyScreenState extends State<CompanyScreen> {
                                               Flexible(
                                                 child: Text(
                                                   b.brandName,
-                                                  style: GoogleFonts.plusJakartaSans(
-                                                    fontSize: 12.5,
-                                                    fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                                    color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
-                                                  ),
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontSize: 12.5,
+                                                        fontWeight: isSelected
+                                                            ? FontWeight.w700
+                                                            : FontWeight.w600,
+                                                        color: isSelected
+                                                            ? AppTheme.primary
+                                                            : AppTheme
+                                                                  .textPrimary,
+                                                      ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                               if (b.isFeatured) ...[
                                                 const SizedBox(width: 4),
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 1.5,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFFEF3C7),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                    color: const Color(
+                                                      0xFFFEF3C7,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: const Color(
+                                                        0xFFFDE68A,
+                                                      ),
+                                                    ),
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
-                                                      const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
-                                                      const SizedBox(width: 1.5),
+                                                      const Icon(
+                                                        Icons.star_rounded,
+                                                        size: 10,
+                                                        color: Color(
+                                                          0xFFD97706,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 1.5,
+                                                      ),
                                                       Text(
                                                         'Featured',
-                                                        style: GoogleFonts.inter(
-                                                          fontSize: 8.5,
-                                                          color: const Color(0xFFB45309),
-                                                          fontWeight: FontWeight.w700,
-                                                        ),
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                              fontSize: 8.5,
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFB45309,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
                                                       ),
                                                     ],
                                                   ),
@@ -2110,11 +2586,13 @@ class CompanyScreenState extends State<CompanyScreen> {
                                                   '$brandProdsCount ${brandProdsCount == 1 ? 'product' : 'products'}',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 10,
-                                                    color: AppTheme.textSecondary,
+                                                    color:
+                                                        AppTheme.textSecondary,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -2126,16 +2604,25 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                                     // Selection status indicator badge
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3.5,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : AppTheme.bgSubtle,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (isSelected) ...[
-                                            const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                                            const Icon(
+                                              Icons.check_rounded,
+                                              size: 11,
+                                              color: Colors.white,
+                                            ),
                                             const SizedBox(width: 2.5),
                                           ],
                                           Text(
@@ -2143,7 +2630,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                             style: GoogleFonts.inter(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
-                                              color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : AppTheme.textSecondary,
                                             ),
                                           ),
                                         ],
@@ -2165,19 +2654,28 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '06',
                 title: 'Authorized Products Catalog',
-                subtitle: 'Choose products from brands through categories that this enterprise offers or distributes',
+                subtitle:
+                    'Choose products from brands through categories that this enterprise offers or distributes',
                 action: _websiteController.text.trim().isNotEmpty
                     ? InkWell(
-                        onTap: _isScrapingWebsite ? null : _triggerWebsiteProductScrape,
+                        onTap: _isScrapingWebsite
+                            ? null
+                            : _triggerWebsiteProductScrape,
                         borderRadius: BorderRadius.circular(20),
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFEEF2FF), Color(0xFFFAF5FF)],
                             ),
                             borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFFC7D2FE), width: 1.5),
+                            border: Border.all(
+                              color: const Color(0xFFC7D2FE),
+                              width: 1.5,
+                            ),
                           ),
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -2188,7 +2686,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   height: 12,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF4F46E5)),
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Color(0xFF4F46E5),
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(width: 6),
@@ -2201,7 +2701,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   ),
                                 ),
                               ] else ...[
-                                const Icon(Icons.auto_awesome, size: 13, color: Color(0xFF4F46E5)),
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  size: 13,
+                                  color: Color(0xFF4F46E5),
+                                ),
                                 const SizedBox(width: 5),
                                 Text(
                                   'Scan Website for Products',
@@ -2231,7 +2735,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                       children: [
                         // Filter by Brand
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.bgSubtle,
                             borderRadius: BorderRadius.circular(8),
@@ -2240,15 +2747,26 @@ class CompanyScreenState extends State<CompanyScreen> {
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _activeProductBrandFilter,
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textPrimary,
+                              ),
                               items: [
-                                DropdownMenuItem(value: 'all', child: Text('All Brands (${_availableProducts.length} total)')),
+                                DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text(
+                                    'All Brands (${_availableProducts.length} total)',
+                                  ),
+                                ),
                                 ..._brandsWithProducts.map((item) {
-                                  final BrandResponse b = item['brand'] as BrandResponse;
+                                  final BrandResponse b =
+                                      item['brand'] as BrandResponse;
                                   final int count = item['count'] as int;
                                   return DropdownMenuItem(
                                     value: b.id.toString(),
-                                    child: Text('${b.brandName} ($count prods)'),
+                                    child: Text(
+                                      '${b.brandName} ($count prods)',
+                                    ),
                                   );
                                 }),
                               ],
@@ -2267,7 +2785,10 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                         // Filter by Category
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.bgSubtle,
                             borderRadius: BorderRadius.circular(8),
@@ -2276,11 +2797,24 @@ class CompanyScreenState extends State<CompanyScreen> {
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _activeProductCategoryFilter,
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textPrimary,
+                              ),
                               items: [
-                                DropdownMenuItem(value: 'all', child: Text(_isLoadingCategories ? 'Loading Categories...' : 'All Categories')),
+                                DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text(
+                                    _isLoadingCategories
+                                        ? 'Loading Categories...'
+                                        : 'All Categories',
+                                  ),
+                                ),
                                 ..._availableCategoriesForBrand.map((c) {
-                                  return DropdownMenuItem(value: c.id.toString(), child: Text(c.name));
+                                  return DropdownMenuItem(
+                                    value: c.id.toString(),
+                                    child: Text(c.name),
+                                  );
                                 }),
                               ],
                               onChanged: (val) {
@@ -2297,7 +2831,10 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                         // Filter by Subcategory
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 2,
+                          ),
                           decoration: BoxDecoration(
                             color: AppTheme.bgSubtle,
                             borderRadius: BorderRadius.circular(8),
@@ -2306,15 +2843,27 @@ class CompanyScreenState extends State<CompanyScreen> {
                           child: DropdownButtonHideUnderline(
                             child: DropdownButton<String>(
                               value: _activeProductSubCategoryFilter,
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textPrimary,
+                              ),
                               items: [
-                                const DropdownMenuItem(value: 'all', child: Text('All Subcategories')),
+                                const DropdownMenuItem(
+                                  value: 'all',
+                                  child: Text('All Subcategories'),
+                                ),
                                 ..._availableSubCategoriesForSelection.map((s) {
-                                  return DropdownMenuItem(value: s.id.toString(), child: Text(s.name));
+                                  return DropdownMenuItem(
+                                    value: s.id.toString(),
+                                    child: Text(s.name),
+                                  );
                                 }),
                               ],
                               onChanged: (val) {
-                                if (val != null) setState(() => _activeProductSubCategoryFilter = val);
+                                if (val != null)
+                                  setState(
+                                    () => _activeProductSubCategoryFilter = val,
+                                  );
                               },
                             ),
                           ),
@@ -2324,71 +2873,122 @@ class CompanyScreenState extends State<CompanyScreen> {
                     const SizedBox(height: 10),
 
                     // Product Search Input & Selection Actions Bar
-                    LayoutBuilder(builder: (context, constraints) {
-                      return Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          SizedBox(
-                            height: 36,
-                            child: TextField(
-                              style: GoogleFonts.inter(fontSize: 12),
-                              decoration: InputDecoration(
-                                hintText: 'Search product name, code...',
-                                prefixIcon: const Icon(Icons.search, size: 15, color: AppTheme.textMuted),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                                border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SizedBox(
+                              height: 36,
+                              child: TextField(
+                                style: GoogleFonts.inter(fontSize: 12),
+                                decoration: InputDecoration(
+                                  hintText: 'Search product name, code...',
+                                  prefixIcon: const Icon(
+                                    Icons.search,
+                                    size: 15,
+                                    color: AppTheme.textMuted,
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 0,
+                                  ),
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                ),
+                                onChanged: (val) =>
+                                    setState(() => _productSearchQuery = val),
                               ),
-                              onChanged: (val) => setState(() => _productSearchQuery = val),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Wrap(
-                            spacing: 6,
-                            runSpacing: 6,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              Text(
-                                '${_selectedProductIds.length}/${_availableProducts.length} chosen',
-                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
-                              ),
-                              OutlinedButton(
-                                onPressed: _filteredAvailableProducts.isEmpty ? null : _selectAllFilteredProducts,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            const SizedBox(height: 8),
+                            Wrap(
+                              spacing: 6,
+                              runSpacing: 6,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              children: [
+                                Text(
+                                  '${_selectedProductIds.length}/${_availableProducts.length} chosen',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppTheme.textSecondary,
+                                  ),
                                 ),
-                                child: Text('Select (${_filteredAvailableProducts.length})'),
-                              ),
-                              OutlinedButton(
-                                onPressed: _filteredAvailableProducts.isEmpty ? null : _deselectFilteredProducts,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                OutlinedButton(
+                                  onPressed: _filteredAvailableProducts.isEmpty
+                                      ? null
+                                      : _selectAllFilteredProducts,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    textStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: Text(
+                                    'Select (${_filteredAvailableProducts.length})',
+                                  ),
                                 ),
-                                child: const Text('Deselect'),
-                              ),
-                              OutlinedButton(
-                                onPressed: _selectedProductIds.isEmpty ? null : _clearSelectedProducts,
-                                style: OutlinedButton.styleFrom(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                                  textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                OutlinedButton(
+                                  onPressed: _filteredAvailableProducts.isEmpty
+                                      ? null
+                                      : _deselectFilteredProducts,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    textStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Deselect'),
                                 ),
-                                child: const Text('Clear'),
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    }),
+                                OutlinedButton(
+                                  onPressed: _selectedProductIds.isEmpty
+                                      ? null
+                                      : _clearSelectedProducts,
+                                  style: OutlinedButton.styleFrom(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 6,
+                                    ),
+                                    textStyle: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                  ),
+                                  child: const Text('Clear'),
+                                ),
+                              ],
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     const SizedBox(height: 10),
 
                     // Selected Products Pills Strip
                     if (_selectedProductIds.isNotEmpty) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 6,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.bgSubtle,
                           borderRadius: BorderRadius.circular(10),
@@ -2400,7 +3000,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                           children: [
                             Text(
                               'Selected (${_selectedProductIds.length}):',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                             ..._selectedProductsList.map((p) {
                               return Container(
@@ -2408,28 +3012,44 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 decoration: BoxDecoration(
                                   color: AppTheme.bgSurface,
                                   borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(color: AppTheme.borderMedium),
+                                  border: Border.all(
+                                    color: AppTheme.borderMedium,
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
                                     Text(
                                       p.name,
-                                      style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 11,
+                                        fontWeight: FontWeight.w600,
+                                        color: AppTheme.textPrimary,
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     Text(
                                       '(${p.brandName ?? ''})',
-                                      style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: AppTheme.textMuted,
+                                      ),
                                     ),
                                     const SizedBox(width: 4),
                                     InkWell(
                                       onTap: () {
                                         setState(() {
-                                          _removeProductAndCheckBrand(p.id, p.brandId);
+                                          _removeProductAndCheckBrand(
+                                            p.id,
+                                            p.brandId,
+                                          );
                                         });
                                       },
-                                      child: const Icon(Icons.close, size: 14, color: AppTheme.textMuted),
+                                      child: const Icon(
+                                        Icons.close,
+                                        size: 14,
+                                        color: AppTheme.textMuted,
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -2443,23 +3063,50 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                     // Products Selection Grid
                     if (_isLoadingProducts)
-                      const Center(child: Padding(padding: EdgeInsets.all(20), child: CircularProgressIndicator()))
+                      const Center(
+                        child: Padding(
+                          padding: EdgeInsets.all(20),
+                          child: CircularProgressIndicator(),
+                        ),
+                      )
                     else if (_availableProducts.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: AppTheme.bgSubtle, borderRadius: BorderRadius.circular(12)),
-                        child: Text('No products available yet. Register products first.', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+                        decoration: BoxDecoration(
+                          color: AppTheme.bgSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          'No products available yet. Register products first.',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
                       )
                     else if (_filteredAvailableProducts.isEmpty)
                       Container(
                         padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(color: AppTheme.bgSubtle, borderRadius: BorderRadius.circular(12)),
+                        decoration: BoxDecoration(
+                          color: AppTheme.bgSubtle,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                         alignment: Alignment.center,
                         child: Column(
                           children: [
-                            const Icon(Icons.filter_alt_off, size: 28, color: AppTheme.textMuted),
+                            const Icon(
+                              Icons.filter_alt_off,
+                              size: 28,
+                              color: AppTheme.textMuted,
+                            ),
                             const SizedBox(height: 6),
-                            Text('No products match current filters.', style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted)),
+                            Text(
+                              'No products match current filters.',
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
                           ],
                         ),
                       )
@@ -2468,7 +3115,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
                         itemCount: _filteredAvailableProducts.length,
-                        separatorBuilder: (context, index) => const SizedBox(height: 6),
+                        separatorBuilder: (context, index) =>
+                            const SizedBox(height: 6),
                         itemBuilder: (context, index) {
                           final p = _filteredAvailableProducts[index];
                           final isSelected = _selectedProductIds.contains(p.id);
@@ -2480,18 +3128,27 @@ class CompanyScreenState extends State<CompanyScreen> {
                               borderRadius: BorderRadius.circular(10),
                               child: AnimatedContainer(
                                 duration: const Duration(milliseconds: 150),
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 8,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSelected ? AppTheme.primaryLight.withOpacity(0.55) : AppTheme.bgSurface,
+                                  color: isSelected
+                                      ? AppTheme.primaryLight.withOpacity(0.55)
+                                      : AppTheme.bgSurface,
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: isSelected ? AppTheme.primary : AppTheme.borderLight,
+                                    color: isSelected
+                                        ? AppTheme.primary
+                                        : AppTheme.borderLight,
                                     width: isSelected ? 1.5 : 1,
                                   ),
                                   boxShadow: isSelected
                                       ? [
                                           BoxShadow(
-                                            color: AppTheme.primary.withOpacity(0.06),
+                                            color: AppTheme.primary.withOpacity(
+                                              0.06,
+                                            ),
                                             blurRadius: 6,
                                             offset: const Offset(0, 2),
                                           ),
@@ -2503,19 +3160,29 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   children: [
                                     // Custom Checkbox
                                     AnimatedContainer(
-                                      duration: const Duration(milliseconds: 150),
+                                      duration: const Duration(
+                                        milliseconds: 150,
+                                      ),
                                       width: 18,
                                       height: 18,
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppTheme.primary : Colors.transparent,
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : Colors.transparent,
                                         borderRadius: BorderRadius.circular(4),
                                         border: Border.all(
-                                          color: isSelected ? AppTheme.primary : AppTheme.borderMedium,
+                                          color: isSelected
+                                              ? AppTheme.primary
+                                              : AppTheme.borderMedium,
                                           width: 1.2,
                                         ),
                                       ),
                                       child: isSelected
-                                          ? const Icon(Icons.check_rounded, size: 13, color: Colors.white)
+                                          ? const Icon(
+                                              Icons.check_rounded,
+                                              size: 13,
+                                              color: Colors.white,
+                                            )
                                           : null,
                                     ),
                                     const SizedBox(width: 8),
@@ -2528,20 +3195,42 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         color: AppTheme.bgSubtle,
                                         borderRadius: BorderRadius.circular(8),
                                         border: Border.all(
-                                          color: isSelected ? AppTheme.primary.withOpacity(0.3) : AppTheme.borderLight,
+                                          color: isSelected
+                                              ? AppTheme.primary.withOpacity(
+                                                  0.3,
+                                                )
+                                              : AppTheme.borderLight,
                                         ),
                                       ),
                                       clipBehavior: Clip.antiAlias,
-                                      child: (p.image != null && p.image!.isNotEmpty)
+                                      child:
+                                          (p.image != null &&
+                                              p.image!.isNotEmpty)
                                           ? Image.network(
-                                              _productService.getFileUrl(p.image),
-                                              fit: BoxFit.cover,
-                                              errorBuilder: (context, error, stackTrace) => const Center(
-                                                child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                                              _productService.getFileUrl(
+                                                p.image,
                                               ),
+                                              fit: BoxFit.cover,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => const Center(
+                                                    child: Icon(
+                                                      Icons
+                                                          .inventory_2_outlined,
+                                                      size: 18,
+                                                      color: AppTheme.textMuted,
+                                                    ),
+                                                  ),
                                             )
                                           : const Center(
-                                              child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                                              child: Icon(
+                                                Icons.inventory_2_outlined,
+                                                size: 18,
+                                                color: AppTheme.textMuted,
+                                              ),
                                             ),
                                     ),
                                     const SizedBox(width: 8),
@@ -2549,29 +3238,41 @@ class CompanyScreenState extends State<CompanyScreen> {
                                     // Product Details
                                     Expanded(
                                       child: Column(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           // Brand Tag & Featured Tag Row
                                           Row(
                                             children: [
-                                              if (p.brandName != null && p.brandName!.isNotEmpty) ...[
+                                              if (p.brandName != null &&
+                                                  p.brandName!.isNotEmpty) ...[
                                                 Flexible(
                                                   child: Container(
-                                                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 5,
+                                                          vertical: 1.5,
+                                                        ),
                                                     decoration: BoxDecoration(
-                                                      color: AppTheme.primary.withOpacity(0.1),
-                                                      borderRadius: BorderRadius.circular(4),
+                                                      color: AppTheme.primary
+                                                          .withOpacity(0.1),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            4,
+                                                          ),
                                                     ),
                                                     child: Text(
                                                       p.brandName!,
                                                       style: GoogleFonts.inter(
                                                         fontSize: 9,
-                                                        fontWeight: FontWeight.w700,
+                                                        fontWeight:
+                                                            FontWeight.w700,
                                                         color: AppTheme.primary,
                                                       ),
                                                       maxLines: 1,
-                                                      overflow: TextOverflow.ellipsis,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
                                                     ),
                                                   ),
                                                 ),
@@ -2579,24 +3280,52 @@ class CompanyScreenState extends State<CompanyScreen> {
                                               ],
                                               if (p.isFeatured) ...[
                                                 Container(
-                                                  padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                                  padding:
+                                                      const EdgeInsets.symmetric(
+                                                        horizontal: 5,
+                                                        vertical: 1.5,
+                                                      ),
                                                   decoration: BoxDecoration(
-                                                    color: const Color(0xFFFEF3C7),
-                                                    borderRadius: BorderRadius.circular(4),
-                                                    border: Border.all(color: const Color(0xFFFDE68A)),
+                                                    color: const Color(
+                                                      0xFFFEF3C7,
+                                                    ),
+                                                    borderRadius:
+                                                        BorderRadius.circular(
+                                                          4,
+                                                        ),
+                                                    border: Border.all(
+                                                      color: const Color(
+                                                        0xFFFDE68A,
+                                                      ),
+                                                    ),
                                                   ),
                                                   child: Row(
-                                                    mainAxisSize: MainAxisSize.min,
+                                                    mainAxisSize:
+                                                        MainAxisSize.min,
                                                     children: [
-                                                      const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
-                                                      const SizedBox(width: 1.5),
+                                                      const Icon(
+                                                        Icons.star_rounded,
+                                                        size: 10,
+                                                        color: Color(
+                                                          0xFFD97706,
+                                                        ),
+                                                      ),
+                                                      const SizedBox(
+                                                        width: 1.5,
+                                                      ),
                                                       Text(
                                                         'Featured',
-                                                        style: GoogleFonts.inter(
-                                                          fontSize: 8.5,
-                                                          color: const Color(0xFFB45309),
-                                                          fontWeight: FontWeight.w700,
-                                                        ),
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                              fontSize: 8.5,
+                                                              color:
+                                                                  const Color(
+                                                                    0xFFB45309,
+                                                                  ),
+                                                              fontWeight:
+                                                                  FontWeight
+                                                                      .w700,
+                                                            ),
                                                       ),
                                                     ],
                                                   ),
@@ -2611,8 +3340,12 @@ class CompanyScreenState extends State<CompanyScreen> {
                                             p.name,
                                             style: GoogleFonts.plusJakartaSans(
                                               fontSize: 12,
-                                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
-                                              color: isSelected ? AppTheme.primary : AppTheme.textPrimary,
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w600,
+                                              color: isSelected
+                                                  ? AppTheme.primary
+                                                  : AppTheme.textPrimary,
                                             ),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
@@ -2622,18 +3355,24 @@ class CompanyScreenState extends State<CompanyScreen> {
                                           // Category Path
                                           Row(
                                             children: [
-                                              const Icon(Icons.category_outlined, size: 11, color: AppTheme.textMuted),
+                                              const Icon(
+                                                Icons.category_outlined,
+                                                size: 11,
+                                                color: AppTheme.textMuted,
+                                              ),
                                               const SizedBox(width: 3.5),
                                               Expanded(
                                                 child: Text(
                                                   '${p.categoryName ?? 'General'}${p.subCategoryName != null && p.subCategoryName!.isNotEmpty ? ' › ${p.subCategoryName}' : ''}',
                                                   style: GoogleFonts.inter(
                                                     fontSize: 10,
-                                                    color: AppTheme.textSecondary,
+                                                    color:
+                                                        AppTheme.textSecondary,
                                                     fontWeight: FontWeight.w500,
                                                   ),
                                                   maxLines: 1,
-                                                  overflow: TextOverflow.ellipsis,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
                                                 ),
                                               ),
                                             ],
@@ -2645,16 +3384,25 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                                     // Selection status indicator badge
                                     Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 3.5,
+                                      ),
                                       decoration: BoxDecoration(
-                                        color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
+                                        color: isSelected
+                                            ? AppTheme.primary
+                                            : AppTheme.bgSubtle,
                                         borderRadius: BorderRadius.circular(16),
                                       ),
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
                                           if (isSelected) ...[
-                                            const Icon(Icons.check_rounded, size: 11, color: Colors.white),
+                                            const Icon(
+                                              Icons.check_rounded,
+                                              size: 11,
+                                              color: Colors.white,
+                                            ),
                                             const SizedBox(width: 2.5),
                                           ],
                                           Text(
@@ -2662,7 +3410,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                             style: GoogleFonts.inter(
                                               fontSize: 10,
                                               fontWeight: FontWeight.w600,
-                                              color: isSelected ? Colors.white : AppTheme.textSecondary,
+                                              color: isSelected
+                                                  ? Colors.white
+                                                  : AppTheme.textSecondary,
                                             ),
                                           ),
                                         ],
@@ -2684,11 +3434,19 @@ class CompanyScreenState extends State<CompanyScreen> {
               _buildFormCard(
                 stepNum: '07',
                 title: 'Business Card & Brand Asset',
-                subtitle: 'Upload company logo, digital visiting card, or certificate (JPEG, PNG, WEBP, PDF)',
+                subtitle:
+                    'Upload company logo, digital visiting card, or certificate (JPEG, PNG, WEBP, PDF)',
                 child: FileUploadBox(
                   title: 'Drop your business card or company logo here',
                   hint: 'or browse files from your computer',
-                  allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif', 'pdf'],
+                  allowedExtensions: const [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'webp',
+                    'gif',
+                    'pdf',
+                  ],
                   fileName: _selectedFileName,
                   fileSize: _selectedFileSize,
                   existingFileUrl: _existingFileUrl,
@@ -2711,19 +3469,35 @@ class CompanyScreenState extends State<CompanyScreen> {
                     });
                   },
                   onOcrScan: () async {
-                    if (_selectedFileBytes != null && _selectedFileName != null) {
-                      _handleOcrCardUpload(_selectedFileBytes, _selectedFileName, _selectedFileSize, _selectedFilePath);
-                    } else if (_existingFileUrl != null && _existingFileUrl!.isNotEmpty) {
+                    if (_selectedFileBytes != null &&
+                        _selectedFileName != null) {
+                      _handleOcrCardUpload(
+                        _selectedFileBytes,
+                        _selectedFileName,
+                        _selectedFileSize,
+                        _selectedFilePath,
+                      );
+                    } else if (_existingFileUrl != null &&
+                        _existingFileUrl!.isNotEmpty) {
                       try {
-                        final fullUrl = ApiConfig().getFileUrl(_existingFileUrl);
+                        final fullUrl = ApiConfig().getFileUrl(
+                          _existingFileUrl,
+                        );
                         final res = await http.get(Uri.parse(fullUrl));
                         if (res.statusCode == 200) {
                           final name = _existingFileUrl!.split('/').last;
-                          _handleOcrCardUpload(res.bodyBytes, name, res.bodyBytes.length, null);
+                          _handleOcrCardUpload(
+                            res.bodyBytes,
+                            name,
+                            res.bodyBytes.length,
+                            null,
+                          );
                           return;
                         }
                       } catch (e) {
-                        debugPrint('Could not download existing file for OCR: $e');
+                        debugPrint(
+                          'Could not download existing file for OCR: $e',
+                        );
                       }
                       _handleOcrCardUpload();
                     } else {
@@ -2742,7 +3516,14 @@ class CompanyScreenState extends State<CompanyScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Company Summary', style: GoogleFonts.inter(fontSize: 13, fontWeight: FontWeight.w600, color: AppTheme.textPrimary)),
+                    Text(
+                      'Company Summary',
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textPrimary,
+                      ),
+                    ),
                     const SizedBox(height: 6),
                     TextFormField(
                       controller: _descriptionController,
@@ -2750,7 +3531,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                       maxLength: 1000,
                       style: GoogleFonts.inter(fontSize: 13),
                       decoration: const InputDecoration(
-                        hintText: 'Briefly describe your company\'s core business, services, products, and mission...',
+                        hintText:
+                            'Briefly describe your company\'s core business, services, products, and mission...',
                         alignLabelWithHint: true,
                       ),
                       onChanged: (_) => setState(() {}),
@@ -2769,16 +3551,35 @@ class CompanyScreenState extends State<CompanyScreen> {
                   OutlinedButton(
                     onPressed: _isSubmitting ? null : _resetForm,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       side: const BorderSide(color: AppTheme.borderMedium),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_editingCompanyId != null ? Icons.cancel_outlined : Icons.restart_alt, size: 16, color: AppTheme.textSecondary),
+                        Icon(
+                          _editingCompanyId != null
+                              ? Icons.cancel_outlined
+                              : Icons.restart_alt,
+                          size: 16,
+                          color: AppTheme.textSecondary,
+                        ),
                         const SizedBox(width: 8),
-                        Text(_editingCompanyId != null ? 'Cancel Edit' : 'Reset Form', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+                        Text(
+                          _editingCompanyId != null
+                              ? 'Cancel Edit'
+                              : 'Reset Form',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w600,
+                            color: AppTheme.textSecondary,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -2787,20 +3588,42 @@ class CompanyScreenState extends State<CompanyScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
                     child: _isSubmitting
-                        ? const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                        ? const SizedBox(
+                            width: 18,
+                            height: 18,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              Icon(_editingCompanyId != null ? Icons.check_circle_outline : Icons.add_circle, size: 16),
+                              Icon(
+                                _editingCompanyId != null
+                                    ? Icons.check_circle_outline
+                                    : Icons.add_circle,
+                                size: 16,
+                              ),
                               const SizedBox(width: 8),
                               Text(
-                                _editingCompanyId != null ? 'Update Company Details' : 'Complete Company Registration',
-                                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w700, fontSize: 14),
+                                _editingCompanyId != null
+                                    ? 'Update Company Details'
+                                    : 'Complete Company Registration',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                ),
                               ),
                             ],
                           ),
@@ -2831,12 +3654,15 @@ class CompanyScreenState extends State<CompanyScreen> {
             height: 38,
             decoration: BoxDecoration(
               gradient: isEdit
-                  ? const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)])
+                  ? const LinearGradient(
+                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    )
                   : AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary).withValues(alpha: 0.25),
+                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary)
+                      .withValues(alpha: 0.25),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -2857,7 +3683,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        isEdit ? 'Update Company Record' : 'Company Registration',
+                        isEdit
+                            ? 'Update Company Record'
+                            : 'Company Registration',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
@@ -2870,11 +3698,16 @@ class CompanyScreenState extends State<CompanyScreen> {
                     if (isEdit) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.warningBg,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: AppTheme.warning.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Text(
                           'ID #$_editingCompanyId',
@@ -2893,7 +3726,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                   isEdit
                       ? 'Modify official details for this registered entity.'
                       : 'Register your enterprise with official records and contacts.',
-                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -2910,12 +3746,18 @@ class CompanyScreenState extends State<CompanyScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_circle, size: 13, color: AppTheme.primary),
+                    const Icon(
+                      Icons.add_circle,
+                      size: 13,
+                      color: AppTheme.primary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'New',
@@ -2950,7 +3792,11 @@ class CompanyScreenState extends State<CompanyScreen> {
           Expanded(
             child: Text(
               'Editing company #$_editingCompanyId.',
-              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w500, color: const Color(0xFF92400E)),
+              style: GoogleFonts.inter(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF92400E),
+              ),
             ),
           ),
           TextButton(
@@ -2961,7 +3807,11 @@ class CompanyScreenState extends State<CompanyScreen> {
             ),
             child: Text(
               'Cancel / New',
-              style: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.primary),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.primary,
+              ),
             ),
           ),
         ],
@@ -2978,7 +3828,9 @@ class CompanyScreenState extends State<CompanyScreen> {
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.1) : AppTheme.bgSurface,
+            color: isSelected
+                ? color.withValues(alpha: 0.1)
+                : AppTheme.bgSurface,
             borderRadius: BorderRadius.circular(10),
             border: Border.all(
               color: isSelected ? color : AppTheme.borderLight,
@@ -3002,7 +3854,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                     val,
                     style: GoogleFonts.inter(
                       fontSize: 11,
-                      fontWeight: isSelected ? FontWeight.w700 : FontWeight.w600,
+                      fontWeight: isSelected
+                          ? FontWeight.w700
+                          : FontWeight.w600,
                       color: isSelected ? color : AppTheme.textSecondary,
                     ),
                   ),
@@ -3088,11 +3942,7 @@ class CompanyScreenState extends State<CompanyScreen> {
               if (isSmallCard && action != null) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    headerInfo,
-                    const SizedBox(height: 8),
-                    action,
-                  ],
+                  children: [headerInfo, const SizedBox(height: 8), action],
                 );
               }
               return headerInfo;
@@ -3153,7 +4003,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                       ],
                     ),
                     alignment: Alignment.center,
-                    child: const Icon(Icons.language, color: Colors.white, size: 20),
+                    child: const Icon(
+                      Icons.language,
+                      color: Colors.white,
+                      size: 20,
+                    ),
                   ),
                   const SizedBox(width: 10),
                   Expanded(
@@ -3173,7 +4027,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                           children: [
                             Text(
                               'Scanned: ',
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                              ),
                             ),
                             Expanded(
                               child: InkWell(
@@ -3201,9 +4058,13 @@ class CompanyScreenState extends State<CompanyScreen> {
                         if (_scrapedStrategyUsed.isNotEmpty) ...[
                           const SizedBox(height: 4),
                           Tooltip(
-                            message: 'Detection Pipeline: $_scrapedStrategyUsed',
+                            message:
+                                'Detection Pipeline: $_scrapedStrategyUsed',
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2.5,
+                              ),
                               decoration: BoxDecoration(
                                 color: const Color(0xFFEDE9FE),
                                 borderRadius: BorderRadius.circular(12),
@@ -3211,11 +4072,17 @@ class CompanyScreenState extends State<CompanyScreen> {
                               child: Row(
                                 mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(Icons.bolt, size: 10.5, color: Color(0xFF6D28D9)),
+                                  const Icon(
+                                    Icons.bolt,
+                                    size: 10.5,
+                                    color: Color(0xFF6D28D9),
+                                  ),
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      _cleanPrimaryStrategy(_scrapedStrategyUsed),
+                                      _cleanPrimaryStrategy(
+                                        _scrapedStrategyUsed,
+                                      ),
                                       maxLines: 1,
                                       overflow: TextOverflow.ellipsis,
                                       style: GoogleFonts.inter(
@@ -3245,29 +4112,56 @@ class CompanyScreenState extends State<CompanyScreen> {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         OutlinedButton.icon(
-                          onPressed: _scrapedProducts.isEmpty ? null : _selectAllScrapedProducts,
+                          onPressed: _scrapedProducts.isEmpty
+                              ? null
+                              : _selectAllScrapedProducts,
                           icon: const Icon(Icons.done_all, size: 13),
-                          label: Text('Select All (${_scrapedProducts.length})'),
+                          label: Text(
+                            'Select All (${_scrapedProducts.length})',
+                          ),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                            textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 6,
+                            ),
+                            textStyle: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                             foregroundColor: const Color(0xFF475569),
                             backgroundColor: const Color(0xFFF1F5F9),
                             side: const BorderSide(color: Color(0xFFCBD5E1)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                         OutlinedButton.icon(
-                          onPressed: _selectedScrapedIndices.isEmpty ? null : _deselectAllScrapedProducts,
-                          icon: const Icon(Icons.remove_circle_outline, size: 13),
-                          label: Text('Clear (${_selectedScrapedIndices.length})'),
+                          onPressed: _selectedScrapedIndices.isEmpty
+                              ? null
+                              : _deselectAllScrapedProducts,
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            size: 13,
+                          ),
+                          label: Text(
+                            'Clear (${_selectedScrapedIndices.length})',
+                          ),
                           style: OutlinedButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 6),
-                            textStyle: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 9,
+                              vertical: 6,
+                            ),
+                            textStyle: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                            ),
                             foregroundColor: const Color(0xFF475569),
                             backgroundColor: const Color(0xFFF1F5F9),
                             side: const BorderSide(color: Color(0xFFCBD5E1)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ],
@@ -3283,7 +4177,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(6),
                       ),
-                      child: const Icon(Icons.close, size: 18, color: Color(0xFF94A3B8)),
+                      child: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: Color(0xFF94A3B8),
+                      ),
                     ),
                   ),
                 ],
@@ -3292,11 +4190,7 @@ class CompanyScreenState extends State<CompanyScreen> {
               if (isNarrow) {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    titleGroup,
-                    const SizedBox(height: 10),
-                    actions,
-                  ],
+                  children: [titleGroup, const SizedBox(height: 10), actions],
                 );
               }
               return Row(
@@ -3323,7 +4217,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                     height: 52,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF6366F1), width: 3),
+                      border: Border.all(
+                        color: const Color(0xFF6366F1),
+                        width: 3,
+                      ),
                       boxShadow: const [
                         BoxShadow(
                           color: Color(0x556366F1),
@@ -3354,7 +4251,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Analyzing Schema.org JSON-LD, OpenGraph, and product collections',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -3365,7 +4265,11 @@ class CompanyScreenState extends State<CompanyScreen> {
               alignment: Alignment.center,
               child: Column(
                 children: [
-                  const Icon(Icons.search_off_rounded, size: 36, color: Color(0xFFCBD5E1)),
+                  const Icon(
+                    Icons.search_off_rounded,
+                    size: 36,
+                    color: Color(0xFFCBD5E1),
+                  ),
                   const SizedBox(height: 8),
                   Text(
                     'No products could be automatically extracted from this domain.',
@@ -3378,7 +4282,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                   const SizedBox(height: 4),
                   Text(
                     'Please pick products from the master catalog below or register new ones.',
-                    style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                    style: GoogleFonts.inter(
+                      fontSize: 11,
+                      color: AppTheme.textMuted,
+                    ),
                   ),
                 ],
               ),
@@ -3387,7 +4294,9 @@ class CompanyScreenState extends State<CompanyScreen> {
             // Products Grid
             LayoutBuilder(
               builder: (context, constraints) {
-                final crossAxisCount = (constraints.maxWidth / 220).floor().clamp(1, 4);
+                final crossAxisCount = (constraints.maxWidth / 220)
+                    .floor()
+                    .clamp(1, 4);
                 return ConstrainedBox(
                   constraints: const BoxConstraints(maxHeight: 380),
                   child: GridView.builder(
@@ -3408,17 +4317,26 @@ class CompanyScreenState extends State<CompanyScreen> {
                         borderRadius: BorderRadius.circular(10),
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 180),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 7),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 7,
+                          ),
                           decoration: BoxDecoration(
-                            color: isSelected ? const Color(0xFFEEF2FF) : Colors.white,
+                            color: isSelected
+                                ? const Color(0xFFEEF2FF)
+                                : Colors.white,
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
-                              color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
+                              color: isSelected
+                                  ? const Color(0xFF6366F1)
+                                  : const Color(0xFFE2E8F0),
                               width: isSelected ? 1.5 : 1.0,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(isSelected ? 0.06 : 0.02),
+                                color: Colors.black.withOpacity(
+                                  isSelected ? 0.06 : 0.02,
+                                ),
                                 blurRadius: isSelected ? 8 : 4,
                                 offset: const Offset(0, 1),
                               ),
@@ -3432,7 +4350,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 child: Checkbox(
                                   value: isSelected,
                                   activeColor: const Color(0xFF4F46E5),
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
                                   onChanged: (_) => _toggleScrapedProduct(idx),
                                 ),
                               ),
@@ -3443,19 +4363,33 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF1F5F9),
                                   borderRadius: BorderRadius.circular(6),
-                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
                                 ),
                                 clipBehavior: Clip.antiAlias,
-                                child: (item.imageUrl != null && item.imageUrl!.trim().isNotEmpty)
+                                child:
+                                    (item.imageUrl != null &&
+                                        item.imageUrl!.trim().isNotEmpty)
                                     ? Image.network(
                                         item.imageUrl!,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Center(
-                                          child: Icon(Icons.inventory_2_outlined, size: 20, color: Color(0xFF94A3B8)),
-                                        ),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Center(
+                                                  child: Icon(
+                                                    Icons.inventory_2_outlined,
+                                                    size: 20,
+                                                    color: Color(0xFF94A3B8),
+                                                  ),
+                                                ),
                                       )
                                     : const Center(
-                                        child: Icon(Icons.inventory_2_outlined, size: 20, color: Color(0xFF94A3B8)),
+                                        child: Icon(
+                                          Icons.inventory_2_outlined,
+                                          size: 20,
+                                          color: Color(0xFF94A3B8),
+                                        ),
                                       ),
                               ),
                               const SizedBox(width: 8),
@@ -3474,7 +4408,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         color: AppTheme.textPrimary,
                                       ),
                                     ),
-                                    if (item.price != null && item.price!.trim().isNotEmpty) ...[
+                                    if (item.price != null &&
+                                        item.price!.trim().isNotEmpty) ...[
                                       const SizedBox(height: 2),
                                       Text(
                                         item.price!,
@@ -3486,18 +4421,28 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         ),
                                       ),
                                     ],
-                                    if (item.matchedCatalogProductId != null) ...[
+                                    if (item.matchedCatalogProductId !=
+                                        null) ...[
                                       const SizedBox(height: 2),
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 5,
+                                          vertical: 1.5,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFDBEAFE),
-                                          borderRadius: BorderRadius.circular(10),
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.link, size: 10, color: Color(0xFF2563EB)),
+                                            const Icon(
+                                              Icons.link,
+                                              size: 10,
+                                              color: Color(0xFF2563EB),
+                                            ),
                                             const SizedBox(width: 3),
                                             Text(
                                               'In Catalog',
@@ -3545,7 +4490,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                           ),
                         ),
                         TextSpan(
-                          text: 'of ${_scrapedProducts.length} website products selected',
+                          text:
+                              'of ${_scrapedProducts.length} website products selected',
                           style: GoogleFonts.inter(
                             fontSize: 11.5,
                             fontWeight: FontWeight.w600,
@@ -3558,7 +4504,10 @@ class CompanyScreenState extends State<CompanyScreen> {
 
                   final hintWidget = Text(
                     'Selected items will be linked with this company upon registration.',
-                    style: GoogleFonts.inter(fontSize: 10.5, color: AppTheme.textMuted),
+                    style: GoogleFonts.inter(
+                      fontSize: 10.5,
+                      color: AppTheme.textMuted,
+                    ),
                   );
 
                   if (isNarrowFooter) {
@@ -3591,8 +4540,12 @@ class CompanyScreenState extends State<CompanyScreen> {
 
   // --- Live Preview Sidebar ---
   Widget _buildLivePreviewSidebar() {
-    final name = _nameController.text.trim().isNotEmpty ? _nameController.text.trim() : 'Your Company Name';
-    final email = _emailController.text.trim().isNotEmpty ? _emailController.text.trim() : 'contact@company.com';
+    final name = _nameController.text.trim().isNotEmpty
+        ? _nameController.text.trim()
+        : 'Your Company Name';
+    final email = _emailController.text.trim().isNotEmpty
+        ? _emailController.text.trim()
+        : 'contact@company.com';
     final landline = _landlineController.text.trim();
     final city = _cityController.text.trim();
     final country = _countryController.text.trim();
@@ -3617,9 +4570,20 @@ class CompanyScreenState extends State<CompanyScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.visibility, size: 14, color: AppTheme.primary),
+                  const Icon(
+                    Icons.visibility,
+                    size: 14,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 4),
-                  Text('Live Preview', style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.primary)),
+                  Text(
+                    'Live Preview',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.primary,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -3629,7 +4593,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                   onTap: _shareCurrentPreview,
                   borderRadius: BorderRadius.circular(20),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFECFDF5),
                       borderRadius: BorderRadius.circular(20),
@@ -3637,18 +4604,32 @@ class CompanyScreenState extends State<CompanyScreen> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.share, size: 13, color: Color(0xFF059669)),
+                        const Icon(
+                          Icons.share,
+                          size: 13,
+                          color: Color(0xFF059669),
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'Share',
-                          style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: const Color(0xFF059669)),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFF059669),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
-                Text('Real-time card', style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
+                Text(
+                  'Real-time card',
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textMuted,
+                  ),
+                ),
               ],
             ),
           ],
@@ -3679,14 +4660,32 @@ class CompanyScreenState extends State<CompanyScreen> {
                       decoration: BoxDecoration(
                         color: Colors.white.withValues(alpha: 0.15),
                         borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+                        border: Border.all(
+                          color: Colors.white.withValues(alpha: 0.2),
+                        ),
                       ),
                       clipBehavior: Clip.antiAlias,
                       child: _selectedFileBytes != null
                           ? Image.memory(_selectedFileBytes!, fit: BoxFit.cover)
                           : (_existingFileUrl != null
-                              ? Image.network(_existingFileUrl!, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) => const Center(child: Icon(Icons.apartment, color: Colors.white70)))
-                              : const Center(child: Icon(Icons.apartment, color: Colors.white70))),
+                                ? Image.network(
+                                    _existingFileUrl!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Center(
+                                              child: Icon(
+                                                Icons.apartment,
+                                                color: Colors.white70,
+                                              ),
+                                            ),
+                                  )
+                                : const Center(
+                                    child: Icon(
+                                      Icons.apartment,
+                                      color: Colors.white70,
+                                    ),
+                                  )),
                     ),
                     const SizedBox(width: 14),
                     Expanded(
@@ -3727,7 +4726,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Key Contact Box (if present)
-                    if (contactMobile.isNotEmpty || contactEmail.isNotEmpty) ...[
+                    if (contactMobile.isNotEmpty ||
+                        contactEmail.isNotEmpty) ...[
                       Container(
                         padding: const EdgeInsets.all(10),
                         decoration: BoxDecoration(
@@ -3737,22 +4737,49 @@ class CompanyScreenState extends State<CompanyScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Key Contact', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: Colors.white54)),
+                            Text(
+                              'Key Contact',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                color: Colors.white54,
+                              ),
+                            ),
                             const SizedBox(height: 4),
                             if (contactMobile.isNotEmpty)
                               Row(
                                 children: [
-                                  const Icon(Icons.phone_iphone, size: 12, color: Colors.white70),
+                                  const Icon(
+                                    Icons.phone_iphone,
+                                    size: 12,
+                                    color: Colors.white70,
+                                  ),
                                   const SizedBox(width: 6),
-                                  Text(contactMobile, style: GoogleFonts.inter(fontSize: 11, color: Colors.white)),
+                                  Text(
+                                    contactMobile,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ],
                               ),
                             if (contactEmail.isNotEmpty)
                               Row(
                                 children: [
-                                  const Icon(Icons.email_outlined, size: 12, color: Colors.white70),
+                                  const Icon(
+                                    Icons.email_outlined,
+                                    size: 12,
+                                    color: Colors.white70,
+                                  ),
                                   const SizedBox(width: 6),
-                                  Text(contactEmail, style: GoogleFonts.inter(fontSize: 11, color: Colors.white)),
+                                  Text(
+                                    contactEmail,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: Colors.white,
+                                    ),
+                                  ),
                                 ],
                               ),
                           ],
@@ -3765,23 +4792,36 @@ class CompanyScreenState extends State<CompanyScreen> {
                     _buildPreviewDetailRow(Icons.email_outlined, email),
 
                     if (landline.isNotEmpty)
-                      _buildPreviewDetailRow(Icons.phone_in_talk_outlined, landline),
+                      _buildPreviewDetailRow(
+                        Icons.phone_in_talk_outlined,
+                        landline,
+                      ),
 
                     // Location
                     _buildPreviewDetailRow(
                       Icons.location_on_outlined,
-                      city.isNotEmpty || country.isNotEmpty ? '${city.isNotEmpty ? '$city, ' : ''}$country' : 'Headquarters Location',
+                      city.isNotEmpty || country.isNotEmpty
+                          ? '${city.isNotEmpty ? '$city, ' : ''}$country'
+                          : 'Headquarters Location',
                     ),
 
                     if (website.isNotEmpty)
-                      _buildPreviewDetailRow(Icons.language, website, isAccent: true),
+                      _buildPreviewDetailRow(
+                        Icons.language,
+                        website,
+                        isAccent: true,
+                      ),
 
                     // Brands Dealt With in Preview
                     if (_selectedBrandIds.isNotEmpty) ...[
                       const SizedBox(height: 10),
                       Text(
                         'Brands Dealt With (${_selectedBrandIds.length}):',
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white70),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white70,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -3789,7 +4829,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                         runSpacing: 6,
                         children: _selectedBrandsList.map((b) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
@@ -3797,7 +4840,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                if (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                if (b.brandLogo != null &&
+                                    b.brandLogo!.isNotEmpty)
                                   ClipRRect(
                                     borderRadius: BorderRadius.circular(2),
                                     child: Image.network(
@@ -3805,11 +4849,24 @@ class CompanyScreenState extends State<CompanyScreen> {
                                       width: 14,
                                       height: 14,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.verified, size: 12, color: Colors.white),
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const Icon(
+                                                Icons.verified,
+                                                size: 12,
+                                                color: Colors.white,
+                                              ),
                                     ),
                                   ),
                                 const SizedBox(width: 4),
-                                Text(b.brandName, style: GoogleFonts.inter(fontSize: 10, color: Colors.white, fontWeight: FontWeight.w600)),
+                                Text(
+                                  b.brandName,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
                               ],
                             ),
                           );
@@ -3822,7 +4879,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                       const SizedBox(height: 10),
                       Text(
                         'Products Portfolio (${_selectedProductIds.length}):',
-                        style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: Colors.white70),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white70,
+                        ),
                       ),
                       const SizedBox(height: 6),
                       Wrap(
@@ -3830,14 +4891,20 @@ class CompanyScreenState extends State<CompanyScreen> {
                         runSpacing: 6,
                         children: _selectedProductsList.map((p) {
                           return Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.white.withValues(alpha: 0.12),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
                               '${p.name} (${p.brandName ?? ''})',
-                              style: GoogleFonts.inter(fontSize: 10, color: Colors.white),
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                color: Colors.white,
+                              ),
                             ),
                           );
                         }).toList(),
@@ -3848,7 +4915,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                       const SizedBox(height: 10),
                       Text(
                         desc,
-                        style: GoogleFonts.inter(fontSize: 11, color: Colors.white70, height: 1.35),
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          color: Colors.white70,
+                          height: 1.35,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -3859,19 +4930,41 @@ class CompanyScreenState extends State<CompanyScreen> {
 
               // Card Footer
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 18,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.black.withValues(alpha: 0.4),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text('CORPORATE PROFILE IDENTIFIER', style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: Colors.white38, letterSpacing: 0.5)),
+                    Text(
+                      'CORPORATE PROFILE IDENTIFIER',
+                      style: GoogleFonts.inter(
+                        fontSize: 9,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white38,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
                     Row(
                       children: [
-                        const Icon(Icons.shield, size: 12, color: Color(0xFF34D399)),
+                        const Icon(
+                          Icons.shield,
+                          size: 12,
+                          color: Color(0xFF34D399),
+                        ),
                         const SizedBox(width: 4),
-                        Text('VERIFIED', style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w800, color: const Color(0xFF34D399))),
+                        Text(
+                          'VERIFIED',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
+                            color: const Color(0xFF34D399),
+                          ),
+                        ),
                       ],
                     ),
                   ],
@@ -3884,7 +4977,11 @@ class CompanyScreenState extends State<CompanyScreen> {
     );
   }
 
-  Widget _buildPreviewDetailRow(IconData icon, String text, {bool isAccent = false}) {
+  Widget _buildPreviewDetailRow(
+    IconData icon,
+    String text, {
+    bool isAccent = false,
+  }) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
       child: Row(
@@ -3922,7 +5019,12 @@ class CompanyScreenState extends State<CompanyScreen> {
           const SizedBox(height: 16),
 
           if (_isLoadingList) ...[
-            const Center(child: Padding(padding: EdgeInsets.all(40), child: CircularProgressIndicator())),
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(40),
+                child: CircularProgressIndicator(),
+              ),
+            ),
           ] else if (companies.isEmpty) ...[
             _buildEmptyState(),
           ] else ...[
@@ -3942,89 +5044,155 @@ class CompanyScreenState extends State<CompanyScreen> {
         border: Border.all(color: AppTheme.borderLight),
         boxShadow: AppTheme.shadowSm,
       ),
-      child: LayoutBuilder(builder: (context, constraints) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Registered Companies Directory', style: GoogleFonts.plusJakartaSans(fontSize: 16, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
-            const SizedBox(height: 2),
-            Text('Manage, view, edit, and delete company records in the system.', style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary)),
-            const SizedBox(height: 12),
-            Row(
-              children: [
-                Expanded(
-                  child: CompanySearchBar(
-                    allCompanies: _companies,
-                    searchQuery: _searchQuery,
-                    onSearchChanged: (val) => setState(() => _searchQuery = val),
-                    onCompanyInspect: (comp) => setState(() => _selectedCompany = comp),
-                    onCompanySelected: (comp) => setState(() => _searchQuery = comp.companyName),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Registered Companies Directory',
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.textPrimary,
                 ),
-                const SizedBox(width: 8),
-                IconButton(
-                  onPressed: _fetchCompanies,
-                  icon: const Icon(Icons.refresh, size: 20),
-                  tooltip: 'Refresh Database',
-                  style: IconButton.styleFrom(
-                    backgroundColor: AppTheme.bgSubtle,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                'Manage, view, edit, and delete company records in the system.',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: AppTheme.textSecondary,
                 ),
-              ],
-            ),
-            const SizedBox(height: 10),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: [
-                // Excel Export Button
-                ElevatedButton.icon(
-                  onPressed: _isExportingExcel || _companies.isEmpty ? null : _exportToExcel,
-                  icon: _isExportingExcel
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.file_download, size: 15),
-                  label: Text(_isExportingExcel ? 'Exporting...' : 'Export Excel'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF059669),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: CompanySearchBar(
+                      allCompanies: _companies,
+                      searchQuery: _searchQuery,
+                      onSearchChanged: (val) =>
+                          setState(() => _searchQuery = val),
+                      onCompanyInspect: (comp) =>
+                          setState(() => _selectedCompany = comp),
+                      onCompanySelected: (comp) =>
+                          setState(() => _searchQuery = comp.companyName),
+                    ),
                   ),
-                ),
-                // PDF Export Button
-                ElevatedButton.icon(
-                  onPressed: _isExportingPdf || _companies.isEmpty ? null : _exportToPdf,
-                  icon: _isExportingPdf
-                      ? const SizedBox(width: 14, height: 14, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : const Icon(Icons.picture_as_pdf, size: 15),
-                  label: Text(_isExportingPdf ? 'Generating...' : 'Export PDF'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFE11D48),
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600),
+                  const SizedBox(width: 8),
+                  IconButton(
+                    onPressed: _fetchCompanies,
+                    icon: const Icon(Icons.refresh, size: 20),
+                    tooltip: 'Refresh Database',
+                    style: IconButton.styleFrom(
+                      backgroundColor: AppTheme.bgSubtle,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                   ),
-                ),
-                ElevatedButton.icon(
-                  onPressed: _switchToRegister,
-                  icon: const Icon(Icons.add, size: 15),
-                  label: const Text('New Company'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppTheme.primary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    textStyle: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600),
+                ],
+              ),
+              const SizedBox(height: 10),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  // Excel Export Button
+                  ElevatedButton.icon(
+                    onPressed: _isExportingExcel || _companies.isEmpty
+                        ? null
+                        : _exportToExcel,
+                    icon: _isExportingExcel
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.file_download, size: 15),
+                    label: Text(
+                      _isExportingExcel ? 'Exporting...' : 'Export Excel',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF059669),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
-        );
-      }),
+                  // PDF Export Button
+                  ElevatedButton.icon(
+                    onPressed: _isExportingPdf || _companies.isEmpty
+                        ? null
+                        : _exportToPdf,
+                    icon: _isExportingPdf
+                        ? const SizedBox(
+                            width: 14,
+                            height: 14,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Icon(Icons.picture_as_pdf, size: 15),
+                    label: Text(
+                      _isExportingPdf ? 'Generating...' : 'Export PDF',
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFE11D48),
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: _switchToRegister,
+                    icon: const Icon(Icons.add, size: 15),
+                    label: const Text('New Company'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primary,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 8,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      textStyle: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          );
+        },
+      ),
     );
   }
 
@@ -4037,13 +5205,33 @@ class CompanyScreenState extends State<CompanyScreen> {
             Container(
               width: 64,
               height: 64,
-              decoration: BoxDecoration(color: AppTheme.primaryLight, shape: BoxShape.circle),
-              child: const Icon(Icons.apartment, size: 32, color: AppTheme.primary),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryLight,
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.apartment,
+                size: 32,
+                color: AppTheme.primary,
+              ),
             ),
             const SizedBox(height: 16),
-            Text('No Companies Found', style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary)),
+            Text(
+              'No Companies Found',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
+            ),
             const SizedBox(height: 6),
-            Text('No records match your criteria or none have been registered yet.', style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary)),
+            Text(
+              'No records match your criteria or none have been registered yet.',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
+            ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _switchToRegister,
@@ -4052,8 +5240,13 @@ class CompanyScreenState extends State<CompanyScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],
@@ -4063,25 +5256,29 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   Widget _buildCompaniesGrid(List<CompanyResponse> companies) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final crossAxisCount = constraints.maxWidth > 1100 ? 3 : (constraints.maxWidth > 650 ? 2 : 1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 1100
+            ? 3
+            : (constraints.maxWidth > 650 ? 2 : 1);
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          mainAxisExtent: 360,
-        ),
-        itemCount: companies.length,
-        itemBuilder: (context, index) {
-          final comp = companies[index];
-          return _buildCompanyCard(comp);
-        },
-      );
-    });
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 360,
+          ),
+          itemCount: companies.length,
+          itemBuilder: (context, index) {
+            final comp = companies[index];
+            return _buildCompanyCard(comp);
+          },
+        );
+      },
+    );
   }
 
   Widget _buildCompanyCard(CompanyResponse comp) {
@@ -4115,21 +5312,42 @@ class CompanyScreenState extends State<CompanyScreen> {
                           borderRadius: BorderRadius.circular(10),
                         ),
                         clipBehavior: Clip.antiAlias,
-                        child: comp.allCards.isNotEmpty && !comp.allCards.first.toLowerCase().endsWith('.pdf')
+                        child:
+                            comp.allCards.isNotEmpty &&
+                                !comp.allCards.first.toLowerCase().endsWith(
+                                  '.pdf',
+                                )
                             ? Image.network(
                                 _companyService.getFileUrl(comp.allCards.first),
                                 fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) => Center(
-                                  child: Text(
-                                    comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
-                                    style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
-                                  ),
-                                ),
+                                errorBuilder: (context, error, stackTrace) =>
+                                    Center(
+                                      child: Text(
+                                        comp.companyName.isNotEmpty
+                                            ? comp.companyName
+                                                  .substring(0, 1)
+                                                  .toUpperCase()
+                                            : 'C',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontWeight: FontWeight.w800,
+                                          color: AppTheme.primary,
+                                          fontSize: 16,
+                                        ),
+                                      ),
+                                    ),
                               )
                             : Center(
                                 child: Text(
-                                  comp.companyName.isNotEmpty ? comp.companyName.substring(0, 1).toUpperCase() : 'C',
-                                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, color: AppTheme.primary, fontSize: 16),
+                                  comp.companyName.isNotEmpty
+                                      ? comp.companyName
+                                            .substring(0, 1)
+                                            .toUpperCase()
+                                      : 'C',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontWeight: FontWeight.w800,
+                                    color: AppTheme.primary,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
                       ),
@@ -4138,20 +5356,34 @@ class CompanyScreenState extends State<CompanyScreen> {
                           right: -3,
                           bottom: -3,
                           child: Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 4,
+                              vertical: 1,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.primary,
                               borderRadius: BorderRadius.circular(8),
-                              border: Border.all(color: Colors.white, width: 1.5),
+                              border: Border.all(
+                                color: Colors.white,
+                                width: 1.5,
+                              ),
                             ),
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.collections_rounded, size: 8, color: Colors.white),
+                                const Icon(
+                                  Icons.collections_rounded,
+                                  size: 8,
+                                  color: Colors.white,
+                                ),
                                 const SizedBox(width: 2),
                                 Text(
                                   '${comp.allCards.length}',
-                                  style: GoogleFonts.inter(fontSize: 8, fontWeight: FontWeight.w800, color: Colors.white),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                  ),
                                 ),
                               ],
                             ),
@@ -4166,20 +5398,33 @@ class CompanyScreenState extends State<CompanyScreen> {
                       children: [
                         Text(
                           comp.companyName,
-                          style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                            color: AppTheme.textPrimary,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        if (comp.contactName != null && comp.contactName!.isNotEmpty) ...[
+                        if (comp.contactName != null &&
+                            comp.contactName!.isNotEmpty) ...[
                           const SizedBox(height: 1),
                           Row(
                             children: [
-                              const Icon(Icons.person_outline, size: 12, color: Color(0xFF2563EB)),
+                              const Icon(
+                                Icons.person_outline,
+                                size: 12,
+                                color: Color(0xFF2563EB),
+                              ),
                               const SizedBox(width: 3),
                               Expanded(
                                 child: Text(
                                   comp.contactName!,
-                                  style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: const Color(0xFF2563EB)),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF2563EB),
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -4192,7 +5437,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                   ),
                   const SizedBox(width: 6),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(5),
@@ -4200,7 +5448,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                     ),
                     child: Text(
                       '#${comp.id}',
-                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: const Color(0xFF64748B)),
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF64748B),
+                      ),
                     ),
                   ),
                   const SizedBox(width: 6),
@@ -4217,8 +5469,14 @@ class CompanyScreenState extends State<CompanyScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      comp.description != null && comp.description!.isNotEmpty ? comp.description! : 'No corporate summary provided.',
-                      style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.35),
+                      comp.description != null && comp.description!.isNotEmpty
+                          ? comp.description!
+                          : 'No corporate summary provided.',
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        color: AppTheme.textSecondary,
+                        height: 1.35,
+                      ),
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
                     ),
@@ -4227,7 +5485,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                     // Contact Details Box
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFF8FAFC),
                         borderRadius: BorderRadius.circular(10),
@@ -4238,28 +5499,43 @@ class CompanyScreenState extends State<CompanyScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.mail_outline, size: 12, color: Color(0xFF64748B)),
+                              const Icon(
+                                Icons.mail_outline,
+                                size: 12,
+                                color: Color(0xFF64748B),
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   comp.email.isNotEmpty ? comp.email : 'N/A',
-                                  style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569)),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: const Color(0xFF475569),
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
                           ),
-                          if (comp.landline != null && comp.landline!.isNotEmpty) ...[
+                          if (comp.landline != null &&
+                              comp.landline!.isNotEmpty) ...[
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                const Icon(Icons.phone_outlined, size: 12, color: Color(0xFF64748B)),
+                                const Icon(
+                                  Icons.phone_outlined,
+                                  size: 12,
+                                  color: Color(0xFF64748B),
+                                ),
                                 const SizedBox(width: 6),
                                 Expanded(
                                   child: Text(
                                     comp.landline!,
-                                    style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569)),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      color: const Color(0xFF475569),
+                                    ),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -4270,14 +5546,30 @@ class CompanyScreenState extends State<CompanyScreen> {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.location_on_outlined, size: 12, color: Color(0xFF64748B)),
+                              const Icon(
+                                Icons.location_on_outlined,
+                                size: 12,
+                                color: Color(0xFF64748B),
+                              ),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
-                                  [comp.city, comp.country].where((p) => p != null && p.isNotEmpty).join(', ').isNotEmpty
-                                      ? [comp.city, comp.country].where((p) => p != null && p.isNotEmpty).join(', ')
+                                  [comp.city, comp.country]
+                                          .where(
+                                            (p) => p != null && p.isNotEmpty,
+                                          )
+                                          .join(', ')
+                                          .isNotEmpty
+                                      ? [comp.city, comp.country]
+                                            .where(
+                                              (p) => p != null && p.isNotEmpty,
+                                            )
+                                            .join(', ')
                                       : 'Global',
-                                  style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF475569)),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: const Color(0xFF475569),
+                                  ),
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
@@ -4294,11 +5586,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Icon(Icons.military_tech_outlined, size: 12, color: Color(0xFF4F46E5)),
+                          const Icon(
+                            Icons.military_tech_outlined,
+                            size: 12,
+                            color: Color(0xFF4F46E5),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Brands (${comp.brands.length}):',
-                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textMuted,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -4308,38 +5608,59 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 children: comp.brands.map((b) {
                                   return Container(
                                     margin: const EdgeInsets.only(right: 4),
-                                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 7,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF1F5F9),
                                       borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                                      border: Border.all(
+                                        color: const Color(0xFFE2E8F0),
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        if (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                        if (b.brandLogo != null &&
+                                            b.brandLogo!.isNotEmpty)
                                           Container(
                                             width: 12,
                                             height: 12,
-                                            margin: const EdgeInsets.only(right: 4),
+                                            margin: const EdgeInsets.only(
+                                              right: 4,
+                                            ),
                                             child: Image.network(
-                                              _brandService.getFileUrl(b.brandLogo),
-                                              fit: BoxFit.contain,
-                                              errorBuilder: (context, error, stackTrace) => Container(
-                                                width: 6,
-                                                height: 6,
-                                                decoration: const BoxDecoration(
-                                                  color: Color(0xFFEA580C),
-                                                  shape: BoxShape.circle,
-                                                ),
+                                              _brandService.getFileUrl(
+                                                b.brandLogo,
                                               ),
+                                              fit: BoxFit.contain,
+                                              errorBuilder:
+                                                  (
+                                                    context,
+                                                    error,
+                                                    stackTrace,
+                                                  ) => Container(
+                                                    width: 6,
+                                                    height: 6,
+                                                    decoration:
+                                                        const BoxDecoration(
+                                                          color: Color(
+                                                            0xFFEA580C,
+                                                          ),
+                                                          shape:
+                                                              BoxShape.circle,
+                                                        ),
+                                                  ),
                                             ),
                                           )
                                         else
                                           Container(
                                             width: 6,
                                             height: 6,
-                                            margin: const EdgeInsets.only(right: 4),
+                                            margin: const EdgeInsets.only(
+                                              right: 4,
+                                            ),
                                             decoration: const BoxDecoration(
                                               color: Color(0xFFEA580C),
                                               shape: BoxShape.circle,
@@ -4347,7 +5668,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                           ),
                                         Text(
                                           b.brandName,
-                                          style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF334155)),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: const Color(0xFF334155),
+                                          ),
                                         ),
                                       ],
                                     ),
@@ -4366,11 +5691,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                       Row(
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
-                          const Icon(Icons.inventory_2_outlined, size: 12, color: Color(0xFF4F46E5)),
+                          const Icon(
+                            Icons.inventory_2_outlined,
+                            size: 12,
+                            color: Color(0xFF4F46E5),
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Products (${comp.products.length}):',
-                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w700, color: AppTheme.textMuted),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textMuted,
+                            ),
                           ),
                           const SizedBox(width: 6),
                           Expanded(
@@ -4380,15 +5713,24 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 children: comp.products.map((p) {
                                   return Container(
                                     margin: const EdgeInsets.only(right: 4),
-                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFECFDF5),
                                       borderRadius: BorderRadius.circular(4),
-                                      border: Border.all(color: const Color(0xFFA7F3D0)),
+                                      border: Border.all(
+                                        color: const Color(0xFFA7F3D0),
+                                      ),
                                     ),
                                     child: Text(
                                       p.name,
-                                      style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: const Color(0xFF065F46)),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: const Color(0xFF065F46),
+                                      ),
                                     ),
                                   );
                                 }).toList(),
@@ -4473,13 +5815,20 @@ class CompanyScreenState extends State<CompanyScreen> {
                     onTap: () => _promptDelete(comp),
                     borderRadius: BorderRadius.circular(6),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFFFEF2F2),
                         borderRadius: BorderRadius.circular(6),
                         border: Border.all(color: const Color(0xFFFECACA)),
                       ),
-                      child: const Icon(Icons.delete_outline_rounded, size: 14, color: Color(0xFFDC2626)),
+                      child: const Icon(
+                        Icons.delete_outline_rounded,
+                        size: 14,
+                        color: Color(0xFFDC2626),
+                      ),
                     ),
                   ),
                 ],
@@ -4518,7 +5867,11 @@ class CompanyScreenState extends State<CompanyScreen> {
             Flexible(
               child: Text(
                 label,
-                style: GoogleFonts.inter(fontSize: 10.5, fontWeight: FontWeight.w700, color: textColor),
+                style: GoogleFonts.inter(
+                  fontSize: 10.5,
+                  fontWeight: FontWeight.w700,
+                  color: textColor,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -4556,10 +5909,15 @@ class CompanyScreenState extends State<CompanyScreen> {
             children: [
               // FIXED Header
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
-                  border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderLight),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -4569,12 +5927,21 @@ class CompanyScreenState extends State<CompanyScreen> {
                         children: [
                           Text(
                             'Enterprise Profile • ID #${comp.id}',
-                            style: GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.w600, color: AppTheme.textMuted, letterSpacing: 0.2),
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textMuted,
+                              letterSpacing: 0.2,
+                            ),
                           ),
                           const SizedBox(height: 2),
                           Text(
                             comp.companyName,
-                            style: GoogleFonts.plusJakartaSans(fontSize: 15, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: AppTheme.textPrimary,
+                            ),
                             maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -4586,10 +5953,17 @@ class CompanyScreenState extends State<CompanyScreen> {
                     const SizedBox(width: 4),
                     IconButton(
                       onPressed: () => setState(() => _selectedCompany = null),
-                      icon: const Icon(Icons.close, size: 18, color: AppTheme.textSecondary),
+                      icon: const Icon(
+                        Icons.close,
+                        size: 18,
+                        color: AppTheme.textSecondary,
+                      ),
                       visualDensity: VisualDensity.compact,
                       padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(minWidth: 28, minHeight: 28),
+                      constraints: const BoxConstraints(
+                        minWidth: 28,
+                        minHeight: 28,
+                      ),
                     ),
                   ],
                 ),
@@ -4605,7 +5979,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                     children: [
                       // Meta Bar (Structured grid)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.bgSubtle,
                           borderRadius: BorderRadius.circular(8),
@@ -4616,32 +5993,82 @@ class CompanyScreenState extends State<CompanyScreen> {
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(child: _buildModalMetaItem('Corporate Email', comp.email, icon: Icons.mail_outline)),
+                                Expanded(
+                                  child: _buildModalMetaItem(
+                                    'Corporate Email',
+                                    comp.email,
+                                    icon: Icons.mail_outline,
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                Expanded(child: _buildModalMetaItem('Landline', comp.landline?.isNotEmpty == true ? comp.landline! : 'Not Specified', icon: Icons.phone_outlined)),
+                                Expanded(
+                                  child: _buildModalMetaItem(
+                                    'Landline',
+                                    comp.landline?.isNotEmpty == true
+                                        ? comp.landline!
+                                        : 'Not Specified',
+                                    icon: Icons.phone_outlined,
+                                  ),
+                                ),
                               ],
                             ),
                             Padding(
                               padding: const EdgeInsets.symmetric(vertical: 6),
-                              child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight.withValues(alpha: 0.6)),
+                              child: Divider(
+                                height: 1,
+                                thickness: 1,
+                                color: AppTheme.borderLight.withValues(
+                                  alpha: 0.6,
+                                ),
+                              ),
                             ),
                             Row(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Expanded(child: _buildModalMetaItem('Contact Person', '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null && comp.contactDesignation!.isNotEmpty ? ' (${comp.contactDesignation})' : ''}', icon: Icons.person_outline)),
+                                Expanded(
+                                  child: _buildModalMetaItem(
+                                    'Contact Person',
+                                    '${comp.contactName ?? 'N/A'}${comp.contactDesignation != null && comp.contactDesignation!.isNotEmpty ? ' (${comp.contactDesignation})' : ''}',
+                                    icon: Icons.person_outline,
+                                  ),
+                                ),
                                 const SizedBox(width: 8),
-                                Expanded(child: _buildModalMetaItem('Contact Mobile', comp.contactMobileNumber?.isNotEmpty == true ? comp.contactMobileNumber! : 'N/A', icon: Icons.smartphone_outlined)),
+                                Expanded(
+                                  child: _buildModalMetaItem(
+                                    'Contact Mobile',
+                                    comp.contactMobileNumber?.isNotEmpty == true
+                                        ? comp.contactMobileNumber!
+                                        : 'N/A',
+                                    icon: Icons.smartphone_outlined,
+                                  ),
+                                ),
                               ],
                             ),
-                            if (comp.contactEmail != null && comp.contactEmail!.trim().isNotEmpty && comp.contactEmail != comp.email) ...[
+                            if (comp.contactEmail != null &&
+                                comp.contactEmail!.trim().isNotEmpty &&
+                                comp.contactEmail != comp.email) ...[
                               Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 6),
-                                child: Divider(height: 1, thickness: 1, color: AppTheme.borderLight.withValues(alpha: 0.6)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 6,
+                                ),
+                                child: Divider(
+                                  height: 1,
+                                  thickness: 1,
+                                  color: AppTheme.borderLight.withValues(
+                                    alpha: 0.6,
+                                  ),
+                                ),
                               ),
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Expanded(child: _buildModalMetaItem('Contact Direct Email', comp.contactEmail!, icon: Icons.alternate_email_rounded)),
+                                  Expanded(
+                                    child: _buildModalMetaItem(
+                                      'Contact Direct Email',
+                                      comp.contactEmail!,
+                                      icon: Icons.alternate_email_rounded,
+                                    ),
+                                  ),
                                 ],
                               ),
                             ],
@@ -4668,7 +6095,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 color: AppTheme.primaryLight,
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(Icons.location_on_outlined, size: 13, color: AppTheme.primary),
+                              child: const Icon(
+                                Icons.location_on_outlined,
+                                size: 13,
+                                color: AppTheme.primary,
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -4677,18 +6108,37 @@ class CompanyScreenState extends State<CompanyScreen> {
                                 children: [
                                   Text(
                                     'REGISTERED ADDRESS',
-                                    style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.textMuted, letterSpacing: 0.5),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 9,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppTheme.textMuted,
+                                      letterSpacing: 0.5,
+                                    ),
                                   ),
                                   const SizedBox(height: 2),
                                   Text(
                                     comp.address ?? 'Not Specified',
-                                    style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
-                                  if ((comp.city != null && comp.city!.isNotEmpty) || (comp.country != null && comp.country!.isNotEmpty)) ...[
+                                  if ((comp.city != null &&
+                                          comp.city!.isNotEmpty) ||
+                                      (comp.country != null &&
+                                          comp.country!.isNotEmpty)) ...[
                                     const SizedBox(height: 1),
                                     Text(
-                                      [comp.city, comp.country].where((s) => s != null && s.isNotEmpty).join(', '),
-                                      style: GoogleFonts.inter(fontSize: 10.5, color: AppTheme.textSecondary),
+                                      [comp.city, comp.country]
+                                          .where(
+                                            (s) => s != null && s.isNotEmpty,
+                                          )
+                                          .join(', '),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10.5,
+                                        color: AppTheme.textSecondary,
+                                      ),
                                     ),
                                   ],
                                 ],
@@ -4699,11 +6149,15 @@ class CompanyScreenState extends State<CompanyScreen> {
                       ),
 
                       // Online Presence / Website Card
-                      if (comp.website != null && comp.website!.trim().isNotEmpty) ...[
+                      if (comp.website != null &&
+                          comp.website!.trim().isNotEmpty) ...[
                         const SizedBox(height: 8),
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFEFF6FF),
                             borderRadius: BorderRadius.circular(8),
@@ -4717,7 +6171,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   color: const Color(0xFFDBEAFE),
                                   borderRadius: BorderRadius.circular(6),
                                 ),
-                                child: const Icon(Icons.language_outlined, size: 13, color: Color(0xFF2563EB)),
+                                child: const Icon(
+                                  Icons.language_outlined,
+                                  size: 13,
+                                  color: Color(0xFF2563EB),
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Expanded(
@@ -4726,7 +6184,12 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   children: [
                                     Text(
                                       'ONLINE PRESENCE',
-                                      style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: const Color(0xFF1E40AF), letterSpacing: 0.5),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 9,
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFF1E40AF),
+                                        letterSpacing: 0.5,
+                                      ),
                                     ),
                                     const SizedBox(height: 2),
                                     InkWell(
@@ -4749,7 +6212,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   ],
                                 ),
                               ),
-                              const Icon(Icons.open_in_new, size: 13, color: Color(0xFF3B82F6)),
+                              const Icon(
+                                Icons.open_in_new,
+                                size: 13,
+                                color: Color(0xFF3B82F6),
+                              ),
                             ],
                           ),
                         ),
@@ -4760,11 +6227,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                       if (comp.brands.isNotEmpty) ...[
                         Row(
                           children: [
-                            const Icon(Icons.military_tech_rounded, size: 14, color: AppTheme.primary),
+                            const Icon(
+                              Icons.military_tech_rounded,
+                              size: 14,
+                              color: AppTheme.primary,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Brands Dealt With (${comp.brands.length})',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -4773,8 +6248,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: comp.brands.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 5),
-                          itemBuilder: (context, index) => _buildModalBrandCard(comp.brands[index]),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 5),
+                          itemBuilder: (context, index) =>
+                              _buildModalBrandCard(comp.brands[index]),
                         ),
                         const SizedBox(height: 10),
                       ],
@@ -4783,11 +6260,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                       if (comp.products.isNotEmpty) ...[
                         Row(
                           children: [
-                            const Icon(Icons.inventory_2_rounded, size: 14, color: Color(0xFF6B21A8)),
+                            const Icon(
+                              Icons.inventory_2_rounded,
+                              size: 14,
+                              color: Color(0xFF6B21A8),
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Products Portfolio (${comp.products.length})',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -4796,21 +6281,32 @@ class CompanyScreenState extends State<CompanyScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: comp.products.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 5),
-                          itemBuilder: (context, index) => _buildModalProductCard(comp.products[index]),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 5),
+                          itemBuilder: (context, index) =>
+                              _buildModalProductCard(comp.products[index]),
                         ),
                         const SizedBox(height: 10),
                       ],
 
                       // Description Section
-                      if (comp.description != null && comp.description!.trim().isNotEmpty) ...[
+                      if (comp.description != null &&
+                          comp.description!.trim().isNotEmpty) ...[
                         Row(
                           children: [
-                            const Icon(Icons.notes_rounded, size: 14, color: AppTheme.textSecondary),
+                            const Icon(
+                              Icons.notes_rounded,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Description',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -4825,7 +6321,11 @@ class CompanyScreenState extends State<CompanyScreen> {
                           ),
                           child: Text(
                             comp.description!,
-                            style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary, height: 1.35),
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: AppTheme.textSecondary,
+                              height: 1.35,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 10),
@@ -4835,11 +6335,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                       if (comp.allCards.isNotEmpty) ...[
                         Row(
                           children: [
-                            const Icon(Icons.collections_rounded, size: 14, color: AppTheme.primary),
+                            const Icon(
+                              Icons.collections_rounded,
+                              size: 14,
+                              color: AppTheme.primary,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               'Visiting Cards & Brand Documents (${comp.allCards.length})',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.textPrimary,
+                              ),
                             ),
                           ],
                         ),
@@ -4848,7 +6356,8 @@ class CompanyScreenState extends State<CompanyScreen> {
                           shrinkWrap: true,
                           physics: const NeverScrollableScrollPhysics(),
                           itemCount: comp.allCards.length,
-                          separatorBuilder: (context, index) => const SizedBox(height: 6),
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 6),
                           itemBuilder: (context, idx) {
                             final card = comp.allCards[idx];
                             final isPdf = card.toLowerCase().endsWith('.pdf');
@@ -4865,7 +6374,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFFEF2F2),
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: const Color(0xFFFECACA)),
+                                    border: Border.all(
+                                      color: const Color(0xFFFECACA),
+                                    ),
                                   ),
                                   child: Row(
                                     children: [
@@ -4873,27 +6384,45 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         padding: const EdgeInsets.all(6),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFFEE2E2),
-                                          borderRadius: BorderRadius.circular(6),
+                                          borderRadius: BorderRadius.circular(
+                                            6,
+                                          ),
                                         ),
-                                        child: const Icon(Icons.picture_as_pdf, color: AppTheme.error, size: 16),
+                                        child: const Icon(
+                                          Icons.picture_as_pdf,
+                                          color: AppTheme.error,
+                                          size: 16,
+                                        ),
                                       ),
                                       const SizedBox(width: 8),
                                       Expanded(
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             Text(
                                               'Visiting Card (PDF)',
-                                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.error),
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11,
+                                                fontWeight: FontWeight.w700,
+                                                color: AppTheme.error,
+                                              ),
                                             ),
                                             Text(
                                               'Open document ›',
-                                              style: GoogleFonts.inter(fontSize: 9.5, color: const Color(0xFF991B1B)),
+                                              style: GoogleFonts.inter(
+                                                fontSize: 9.5,
+                                                color: const Color(0xFF991B1B),
+                                              ),
                                             ),
                                           ],
                                         ),
                                       ),
-                                      const Icon(Icons.open_in_new, size: 13, color: AppTheme.error),
+                                      const Icon(
+                                        Icons.open_in_new,
+                                        size: 13,
+                                        color: AppTheme.error,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -4911,7 +6440,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                   width: double.infinity,
                                   decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(color: AppTheme.borderLight),
+                                    border: Border.all(
+                                      color: AppTheme.borderLight,
+                                    ),
                                     color: AppTheme.bgSubtle,
                                   ),
                                   clipBehavior: Clip.antiAlias,
@@ -4921,9 +6452,15 @@ class CompanyScreenState extends State<CompanyScreen> {
                                       Image.network(
                                         _companyService.getFileUrl(card),
                                         fit: BoxFit.contain,
-                                        errorBuilder: (context, error, stackTrace) => const Center(
-                                          child: Icon(Icons.broken_image, size: 32, color: AppTheme.textMuted),
-                                        ),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Center(
+                                                  child: Icon(
+                                                    Icons.broken_image,
+                                                    size: 32,
+                                                    color: AppTheme.textMuted,
+                                                  ),
+                                                ),
                                       ),
                                       Positioned(
                                         right: 6,
@@ -4931,10 +6468,18 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         child: Container(
                                           padding: const EdgeInsets.all(4),
                                           decoration: BoxDecoration(
-                                            color: Colors.black.withValues(alpha: 0.6),
-                                            borderRadius: BorderRadius.circular(4),
+                                            color: Colors.black.withValues(
+                                              alpha: 0.6,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              4,
+                                            ),
                                           ),
-                                          child: const Icon(Icons.fullscreen_rounded, size: 14, color: Colors.white),
+                                          child: const Icon(
+                                            Icons.fullscreen_rounded,
+                                            size: 14,
+                                            color: Colors.white,
+                                          ),
                                         ),
                                       ),
                                     ],
@@ -4953,7 +6498,10 @@ class CompanyScreenState extends State<CompanyScreen> {
               // FIXED Footer Actions
               Container(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(top: BorderSide(color: AppTheme.borderLight)),
@@ -4966,18 +6514,24 @@ class CompanyScreenState extends State<CompanyScreen> {
                       children: [
                         Expanded(
                           child: ElevatedButton.icon(
-                            onPressed: () => CompanyShareDialog.show(context, comp),
+                            onPressed: () =>
+                                CompanyShareDialog.show(context, comp),
                             icon: const Icon(Icons.share_rounded, size: 15),
                             label: Text(
                               'Share Contact',
-                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF059669),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 9),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
@@ -4985,17 +6539,25 @@ class CompanyScreenState extends State<CompanyScreen> {
                         Expanded(
                           child: ElevatedButton.icon(
                             onPressed: () => _downloadCompanyPdf(comp),
-                            icon: const Icon(Icons.picture_as_pdf_rounded, size: 15),
+                            icon: const Icon(
+                              Icons.picture_as_pdf_rounded,
+                              size: 15,
+                            ),
                             label: Text(
                               'PDF Profile',
-                              style: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFFDC2626),
                               foregroundColor: Colors.white,
                               elevation: 0,
                               padding: const EdgeInsets.symmetric(vertical: 9),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
@@ -5013,16 +6575,28 @@ class CompanyScreenState extends State<CompanyScreen> {
                               setState(() => _selectedCompany = null);
                               _promptDelete(target);
                             },
-                            icon: const Icon(Icons.delete_outline_rounded, size: 15, color: AppTheme.error),
+                            icon: const Icon(
+                              Icons.delete_outline_rounded,
+                              size: 15,
+                              color: AppTheme.error,
+                            ),
                             label: Text(
                               'Delete',
-                              style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.error, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                color: AppTheme.error,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: OutlinedButton.styleFrom(
                               backgroundColor: const Color(0xFFFEF2F2),
                               side: const BorderSide(color: Color(0xFFFECACA)),
-                              padding: const EdgeInsets.symmetric(vertical: 8.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
@@ -5033,30 +6607,48 @@ class CompanyScreenState extends State<CompanyScreen> {
                             icon: const Icon(Icons.edit_rounded, size: 14),
                             label: Text(
                               'Edit',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppTheme.primary,
                               foregroundColor: Colors.white,
                               elevation: 0,
-                              padding: const EdgeInsets.symmetric(vertical: 8.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                           ),
                         ),
                         const SizedBox(width: 8),
                         Expanded(
                           child: OutlinedButton(
-                            onPressed: () => setState(() => _selectedCompany = null),
+                            onPressed: () =>
+                                setState(() => _selectedCompany = null),
                             style: OutlinedButton.styleFrom(
-                              side: const BorderSide(color: AppTheme.borderLight),
+                              side: const BorderSide(
+                                color: AppTheme.borderLight,
+                              ),
                               backgroundColor: AppTheme.bgSurface,
-                              padding: const EdgeInsets.symmetric(vertical: 8.5),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 8.5,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
                             ),
                             child: Text(
                               'Close',
-                              style: GoogleFonts.inter(fontSize: 11.5, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                           ),
                         ),
@@ -5085,7 +6677,11 @@ class CompanyScreenState extends State<CompanyScreen> {
             Expanded(
               child: Text(
                 label,
-                style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
+                style: GoogleFonts.inter(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w600,
+                  color: AppTheme.textMuted,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -5095,7 +6691,11 @@ class CompanyScreenState extends State<CompanyScreen> {
         const SizedBox(height: 2),
         Text(
           value,
-          style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textPrimary),
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 11,
+            fontWeight: FontWeight.w600,
+            color: AppTheme.textPrimary,
+          ),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,
         ),
@@ -5129,15 +6729,27 @@ class CompanyScreenState extends State<CompanyScreen> {
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) => Center(
                       child: Text(
-                        brand.brandName.length >= 2 ? brand.brandName.substring(0, 2).toUpperCase() : brand.brandName.toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                        brand.brandName.length >= 2
+                            ? brand.brandName.substring(0, 2).toUpperCase()
+                            : brand.brandName.toUpperCase(),
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: AppTheme.primary,
+                        ),
                       ),
                     ),
                   )
                 : Center(
                     child: Text(
-                      brand.brandName.length >= 2 ? brand.brandName.substring(0, 2).toUpperCase() : brand.brandName.toUpperCase(),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 11, fontWeight: FontWeight.w800, color: AppTheme.primary),
+                      brand.brandName.length >= 2
+                          ? brand.brandName.substring(0, 2).toUpperCase()
+                          : brand.brandName.toUpperCase(),
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        color: AppTheme.primary,
+                      ),
                     ),
                   ),
           ),
@@ -5149,14 +6761,21 @@ class CompanyScreenState extends State<CompanyScreen> {
               children: [
                 Text(
                   brand.brandName,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (isFeatured) ...[
                   const SizedBox(height: 2),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 5,
+                      vertical: 1.5,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFFEF3C7),
                       borderRadius: BorderRadius.circular(4),
@@ -5165,11 +6784,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.star_rounded, size: 10, color: Color(0xFFD97706)),
+                        const Icon(
+                          Icons.star_rounded,
+                          size: 10,
+                          color: Color(0xFFD97706),
+                        ),
                         const SizedBox(width: 2),
                         Text(
                           'Featured Brand',
-                          style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                          style: GoogleFonts.inter(
+                            fontSize: 9.5,
+                            fontWeight: FontWeight.w700,
+                            color: const Color(0xFFB45309),
+                          ),
                         ),
                       ],
                     ),
@@ -5209,11 +6836,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                     _productService.getFileUrl(prod.image),
                     fit: BoxFit.contain,
                     errorBuilder: (context, error, stackTrace) => const Center(
-                      child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                      child: Icon(
+                        Icons.inventory_2_outlined,
+                        size: 18,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
                   )
                 : const Center(
-                    child: Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                    child: Icon(
+                      Icons.inventory_2_outlined,
+                      size: 18,
+                      color: AppTheme.textMuted,
+                    ),
                   ),
           ),
           const SizedBox(width: 10),
@@ -5223,9 +6858,13 @@ class CompanyScreenState extends State<CompanyScreen> {
               children: [
                 Row(
                   children: [
-                    if (prod.brandName != null && prod.brandName!.isNotEmpty) ...[
+                    if (prod.brandName != null &&
+                        prod.brandName!.isNotEmpty) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryLight.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(4),
@@ -5233,11 +6872,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.military_tech_outlined, size: 10, color: AppTheme.primary),
+                            const Icon(
+                              Icons.military_tech_outlined,
+                              size: 10,
+                              color: AppTheme.primary,
+                            ),
                             const SizedBox(width: 2),
                             Text(
                               prod.brandName!,
-                              style: GoogleFonts.inter(fontSize: 9.5, fontWeight: FontWeight.w600, color: AppTheme.primary),
+                              style: GoogleFonts.inter(
+                                fontSize: 9.5,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.primary,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -5248,7 +6895,10 @@ class CompanyScreenState extends State<CompanyScreen> {
                     ],
                     if (isFeatured)
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 5,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF3C7),
                           borderRadius: BorderRadius.circular(4),
@@ -5257,11 +6907,19 @@ class CompanyScreenState extends State<CompanyScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star_rounded, size: 9, color: Color(0xFFD97706)),
+                            const Icon(
+                              Icons.star_rounded,
+                              size: 9,
+                              color: Color(0xFFD97706),
+                            ),
                             const SizedBox(width: 1),
                             Text(
                               'Featured',
-                              style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: const Color(0xFFB45309)),
+                              style: GoogleFonts.inter(
+                                fontSize: 9,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFFB45309),
+                              ),
                             ),
                           ],
                         ),
@@ -5271,15 +6929,29 @@ class CompanyScreenState extends State<CompanyScreen> {
                 const SizedBox(height: 3),
                 Text(
                   prod.name,
-                  style: GoogleFonts.plusJakartaSans(fontSize: 12, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: AppTheme.textPrimary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                if ((prod.categoryName != null && prod.categoryName!.isNotEmpty) || (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty)) ...[
+                if ((prod.categoryName != null &&
+                        prod.categoryName!.isNotEmpty) ||
+                    (prod.subCategoryName != null &&
+                        prod.subCategoryName!.isNotEmpty)) ...[
                   const SizedBox(height: 1),
                   Text(
-                    [prod.categoryName, prod.subCategoryName].where((s) => s != null && s.isNotEmpty).join(' › '),
-                    style: GoogleFonts.inter(fontSize: 10, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+                    [
+                      prod.categoryName,
+                      prod.subCategoryName,
+                    ].where((s) => s != null && s.isNotEmpty).join(' › '),
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      color: AppTheme.textMuted,
+                      fontWeight: FontWeight.w500,
+                    ),
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),

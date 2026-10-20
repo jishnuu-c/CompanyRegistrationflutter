@@ -23,10 +23,14 @@ class _MainShellScreenState extends State<MainShellScreen> {
   final Set<int> _loadedTabs = {0};
   DateTime? _lastBackPressTime;
 
-  final GlobalKey<CompanyScreenState> _companyScreenKey = GlobalKey<CompanyScreenState>();
-  final GlobalKey<CategoryScreenState> _categoryScreenKey = GlobalKey<CategoryScreenState>();
-  final GlobalKey<BrandScreenState> _brandScreenKey = GlobalKey<BrandScreenState>();
-  final GlobalKey<ProductScreenState> _productScreenKey = GlobalKey<ProductScreenState>();
+  final GlobalKey<CompanyScreenState> _companyScreenKey =
+      GlobalKey<CompanyScreenState>();
+  final GlobalKey<CategoryScreenState> _categoryScreenKey =
+      GlobalKey<CategoryScreenState>();
+  final GlobalKey<BrandScreenState> _brandScreenKey =
+      GlobalKey<BrandScreenState>();
+  final GlobalKey<ProductScreenState> _productScreenKey =
+      GlobalKey<ProductScreenState>();
 
   @override
   void initState() {
@@ -53,16 +57,20 @@ class _MainShellScreenState extends State<MainShellScreen> {
     bool handledByScreen = false;
     switch (_currentIndex) {
       case 0:
-        handledByScreen = _companyScreenKey.currentState?.handleBackPress() ?? false;
+        handledByScreen =
+            _companyScreenKey.currentState?.handleBackPress() ?? false;
         break;
       case 1:
-        handledByScreen = _categoryScreenKey.currentState?.handleBackPress() ?? false;
+        handledByScreen =
+            _categoryScreenKey.currentState?.handleBackPress() ?? false;
         break;
       case 2:
-        handledByScreen = _brandScreenKey.currentState?.handleBackPress() ?? false;
+        handledByScreen =
+            _brandScreenKey.currentState?.handleBackPress() ?? false;
         break;
       case 3:
-        handledByScreen = _productScreenKey.currentState?.handleBackPress() ?? false;
+        handledByScreen =
+            _productScreenKey.currentState?.handleBackPress() ?? false;
         break;
     }
 
@@ -85,7 +93,8 @@ class _MainShellScreenState extends State<MainShellScreen> {
 
     // 4. On root screen (Companies): Double-tap to exit protection
     final now = DateTime.now();
-    if (_lastBackPressTime == null || now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
+    if (_lastBackPressTime == null ||
+        now.difference(_lastBackPressTime!) > const Duration(seconds: 2)) {
       _lastBackPressTime = now;
       ScaffoldMessenger.of(context).removeCurrentSnackBar();
       ScaffoldMessenger.of(context).showSnackBar(
@@ -93,11 +102,19 @@ class _MainShellScreenState extends State<MainShellScreen> {
           content: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.info_outline_rounded, color: Colors.white, size: 16),
+              const Icon(
+                Icons.info_outline_rounded,
+                color: Colors.white,
+                size: 16,
+              ),
               const SizedBox(width: 8),
               Text(
                 'Press back again to exit',
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.white, fontWeight: FontWeight.w500),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
             ],
           ),
@@ -105,7 +122,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
           margin: const EdgeInsets.symmetric(horizontal: 40, vertical: 16),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         ),
       );
@@ -186,7 +205,10 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     _buildTopModuleChip(
@@ -217,10 +239,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
               ),
             ),
             Expanded(
-              child: IndexedStack(
-                index: _currentIndex,
-                children: screens,
-              ),
+              child: IndexedStack(index: _currentIndex, children: screens),
             ),
           ],
         ),
@@ -331,7 +350,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
             color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: isSelected ? const Color(0xFF6366F1) : const Color(0xFFE2E8F0),
+              color: isSelected
+                  ? const Color(0xFF6366F1)
+                  : const Color(0xFFE2E8F0),
               width: isSelected ? 1.5 : 1,
             ),
             boxShadow: isSelected
@@ -350,7 +371,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
               Icon(
                 icon,
                 size: 15,
-                color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF64748B),
+                color: isSelected
+                    ? const Color(0xFF4F46E5)
+                    : const Color(0xFF64748B),
               ),
               const SizedBox(width: 6),
               Text(
@@ -358,7 +381,9 @@ class _MainShellScreenState extends State<MainShellScreen> {
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12.5,
                   fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected ? const Color(0xFF4F46E5) : const Color(0xFF475569),
+                  color: isSelected
+                      ? const Color(0xFF4F46E5)
+                      : const Color(0xFF475569),
                 ),
               ),
             ],
@@ -368,4 +393,3 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 }
-

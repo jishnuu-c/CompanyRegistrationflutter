@@ -2,16 +2,10 @@ class CategoryRequest {
   final String name;
   final int? parentId;
 
-  CategoryRequest({
-    required this.name,
-    this.parentId,
-  });
+  CategoryRequest({required this.name, this.parentId});
 
   Map<String, dynamic> toJson() {
-    return {
-      'name': name,
-      if (parentId != null) 'parentId': parentId,
-    };
+    return {'name': name, if (parentId != null) 'parentId': parentId};
   }
 
   factory CategoryRequest.fromJson(Map<String, dynamic> json) {
@@ -41,13 +35,18 @@ class CategoryResponse {
 
   factory CategoryResponse.fromJson(Map<String, dynamic> json) {
     return CategoryResponse(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       name: json['name'] ?? '',
-      categoryImage: json['categoryImage'] ?? json['category_image'] ?? json['image'],
+      categoryImage:
+          json['categoryImage'] ?? json['category_image'] ?? json['image'],
       parentId: json['parentId'] is int
           ? json['parentId']
           : int.tryParse(json['parentId']?.toString() ?? ''),
-      parentName: json['parentName'] ?? (json['parent'] != null ? json['parent']['name'] : null),
+      parentName:
+          json['parentName'] ??
+          (json['parent'] != null ? json['parent']['name'] : null),
     );
   }
 

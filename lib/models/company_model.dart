@@ -68,14 +68,24 @@ class CompanyRequest {
       description: json['description'],
       status: json['status'] ?? 'ACTIVE',
       contactName: json['contactName'] ?? json['contact_name'],
-      contactDesignation: json['contactDesignation'] ?? json['contact_designation'],
+      contactDesignation:
+          json['contactDesignation'] ?? json['contact_designation'],
       contactEmail: json['contactEmail'] ?? json['contact_email'],
-      contactMobileNumber: json['contactMobileNumber'] ?? json['contact_mobile_number'],
+      contactMobileNumber:
+          json['contactMobileNumber'] ?? json['contact_mobile_number'],
       brandIds: json['brandIds'] != null
-          ? List<int>.from(json['brandIds'].map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
+          ? List<int>.from(
+              json['brandIds'].map(
+                (e) => e is int ? e : int.tryParse(e.toString()) ?? 0,
+              ),
+            )
           : const [],
       productIds: json['productIds'] != null
-          ? List<int>.from(json['productIds'].map((e) => e is int ? e : int.tryParse(e.toString()) ?? 0))
+          ? List<int>.from(
+              json['productIds'].map(
+                (e) => e is int ? e : int.tryParse(e.toString()) ?? 0,
+              ),
+            )
           : const [],
     );
   }
@@ -142,7 +152,9 @@ class CompanyResponse {
     List<BrandResponse> parsedBrands = [];
     if (json['brands'] != null && json['brands'] is List) {
       parsedBrands = (json['brands'] as List)
-          .map((b) => BrandResponse.fromJson(b is Map<String, dynamic> ? b : {}))
+          .map(
+            (b) => BrandResponse.fromJson(b is Map<String, dynamic> ? b : {}),
+          )
           .toList();
     }
 
@@ -159,7 +171,9 @@ class CompanyResponse {
     List<ProductResponse> parsedProducts = [];
     if (json['products'] != null && json['products'] is List) {
       parsedProducts = (json['products'] as List)
-          .map((p) => ProductResponse.fromJson(p is Map<String, dynamic> ? p : {}))
+          .map(
+            (p) => ProductResponse.fromJson(p is Map<String, dynamic> ? p : {}),
+          )
           .toList();
     }
 
@@ -182,23 +196,34 @@ class CompanyResponse {
     }
 
     String? extractedBusinessCard;
-    if (json['businessCard'] != null && json['businessCard'].toString().isNotEmpty) {
+    if (json['businessCard'] != null &&
+        json['businessCard'].toString().isNotEmpty) {
       extractedBusinessCard = json['businessCard'].toString();
-    } else if (json['business_card'] != null && json['business_card'].toString().isNotEmpty) {
+    } else if (json['business_card'] != null &&
+        json['business_card'].toString().isNotEmpty) {
       extractedBusinessCard = json['business_card'].toString();
-    } else if (json['visitingCard'] != null && json['visitingCard'].toString().isNotEmpty) {
+    } else if (json['visitingCard'] != null &&
+        json['visitingCard'].toString().isNotEmpty) {
       extractedBusinessCard = json['visitingCard'].toString();
     } else if (parsedCards.isNotEmpty) {
       extractedBusinessCard = parsedCards.first;
     }
 
-    if (parsedCards.isEmpty && extractedBusinessCard != null && extractedBusinessCard.isNotEmpty) {
+    if (parsedCards.isEmpty &&
+        extractedBusinessCard != null &&
+        extractedBusinessCard.isNotEmpty) {
       parsedCards = [extractedBusinessCard];
     }
 
     return CompanyResponse(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
-      companyName: json['companyName']?.toString() ?? json['company_name']?.toString() ?? json['name']?.toString() ?? '',
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      companyName:
+          json['companyName']?.toString() ??
+          json['company_name']?.toString() ??
+          json['name']?.toString() ??
+          '',
       email: json['email']?.toString() ?? '',
       landline: json['landline']?.toString(),
       address: json['address']?.toString(),
@@ -210,9 +235,13 @@ class CompanyResponse {
       businessCard: extractedBusinessCard,
       businessCards: parsedCards,
       contactName: (json['contactName'] ?? json['contact_name'])?.toString(),
-      contactDesignation: (json['contactDesignation'] ?? json['contact_designation'])?.toString(),
+      contactDesignation:
+          (json['contactDesignation'] ?? json['contact_designation'])
+              ?.toString(),
       contactEmail: (json['contactEmail'] ?? json['contact_email'])?.toString(),
-      contactMobileNumber: (json['contactMobileNumber'] ?? json['contact_mobile_number'])?.toString(),
+      contactMobileNumber:
+          (json['contactMobileNumber'] ?? json['contact_mobile_number'])
+              ?.toString(),
       createdAt: json['createdAt']?.toString(),
       updatedAt: json['updatedAt']?.toString(),
       brandIds: parsedBrandIds,

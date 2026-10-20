@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:company_reg_flutter/models/brand_model.dart';
 import 'package:company_reg_flutter/models/company_model.dart';
@@ -27,8 +27,20 @@ void main() {
       BrandResponse(id: 102, brandName: 'Nike', brandLogo: null),
     ],
     products: [
-      ProductResponse(id: 201, name: 'Mixer', brandId: 101, brandName: 'Apex Dynamics', categoryId: 1),
-      ProductResponse(id: 202, name: 'MP', brandId: 102, brandName: 'Nike', categoryId: 1),
+      ProductResponse(
+        id: 201,
+        name: 'Mixer',
+        brandId: 101,
+        brandName: 'Apex Dynamics',
+        categoryId: 1,
+      ),
+      ProductResponse(
+        id: 202,
+        name: 'MP',
+        brandId: 102,
+        brandName: 'Nike',
+        categoryId: 1,
+      ),
     ],
   );
 
@@ -62,32 +74,36 @@ void main() {
   });
 
   group('CompanyShareDialog Widget Test', () {
-    testWidgets('renders modal header, preview card and all 6 share channel buttons', (WidgetTester tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: Builder(
-              builder: (context) => ElevatedButton(
-                onPressed: () => CompanyShareDialog.show(context, sampleCompany),
-                child: const Text('Open Share'),
+    testWidgets(
+      'renders modal header, preview card and all 6 share channel buttons',
+      (WidgetTester tester) async {
+        await tester.pumpWidget(
+          MaterialApp(
+            home: Scaffold(
+              body: Builder(
+                builder: (context) => ElevatedButton(
+                  onPressed: () =>
+                      CompanyShareDialog.show(context, sampleCompany),
+                  child: const Text('Open Share'),
+                ),
               ),
             ),
           ),
-        ),
-      );
+        );
 
-      await tester.tap(find.text('Open Share'));
-      await tester.pumpAndSettle();
+        await tester.tap(find.text('Open Share'));
+        await tester.pumpAndSettle();
 
-      expect(find.text('ENTERPRISE CONTACT SHARING'), findsOneWidget);
-      expect(find.text('ABC Company'), findsNWidgets(2));
-      expect(find.text('Copy Contact Details'), findsOneWidget);
-      expect(find.text('Share on WhatsApp'), findsOneWidget);
-      expect(find.text('Send via Email'), findsOneWidget);
-      expect(find.text('Download vCard (.vcf)'), findsOneWidget);
-      expect(find.text('Download PDF Profile'), findsOneWidget);
-      expect(find.text('Device Share Sheet'), findsOneWidget);
-      expect(find.text('Done'), findsOneWidget);
-    });
+        expect(find.text('ENTERPRISE CONTACT SHARING'), findsOneWidget);
+        expect(find.text('ABC Company'), findsNWidgets(2));
+        expect(find.text('Copy Contact Details'), findsOneWidget);
+        expect(find.text('Share on WhatsApp'), findsOneWidget);
+        expect(find.text('Send via Email'), findsOneWidget);
+        expect(find.text('Download vCard (.vcf)'), findsOneWidget);
+        expect(find.text('Download PDF Profile'), findsOneWidget);
+        expect(find.text('Device Share Sheet'), findsOneWidget);
+        expect(find.text('Done'), findsOneWidget);
+      },
+    );
   });
 }

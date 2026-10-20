@@ -1,55 +1,179 @@
 import '../models/ocr_model.dart';
 
 class BusinessCardParserService {
-  static final RegExp _emailRegex =
-      RegExp(r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}', caseSensitive: false);
-  static final RegExp _urlRegex =
-      RegExp(r'(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)', caseSensitive: false);
-  static final RegExp _phoneRegex =
-      RegExp(r'(?:(?:\+|00)\d{1,4}[-.\s]*)?(?:\(?\d{2,5}\)?[-.\s]*)?\d{3,4}[-.\s]*\d{3,4}');
+  static final RegExp _emailRegex = RegExp(
+    r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}',
+    caseSensitive: false,
+  );
+  static final RegExp _urlRegex = RegExp(
+    r'(?:https?:\/\/)?(?:www\.)?([a-zA-Z0-9-]+\.[a-zA-Z]{2,}(?:\/[^\s]*)?)',
+    caseSensitive: false,
+  );
+  static final RegExp _phoneRegex = RegExp(
+    r'(?:(?:\+|00)\d{1,4}[-.\s]*)?(?:\(?\d{2,5}\)?[-.\s]*)?\d{3,4}[-.\s]*\d{3,4}',
+  );
 
   // Specific job titles / designations have higher priority
   static const List<String> _highPriorityDesignations = [
-    'chief executive officer', 'ceo', 'chief technology officer', 'cto',
-    'chief operating officer', 'coo', 'chief financial officer', 'cfo',
-    'managing director', 'director', 'general manager', 'vice president', 'vp',
-    'president', 'founder', 'co-founder', 'owner', 'partner', 'principal',
-    'realtor', 'real estate agent', 'real estate broker', 'broker',
-    'attorney', 'lawyer', 'physician', 'doctor', 'accountant',
-    'lead engineer', 'software engineer', 'senior engineer', 'engineer',
-    'project manager', 'product manager', 'marketing manager', 'sales manager',
-    'account manager', 'business development manager', 'creative director',
-    'consultant', 'senior consultant', 'specialist', 'architect'
+    'chief executive officer',
+    'ceo',
+    'chief technology officer',
+    'cto',
+    'chief operating officer',
+    'coo',
+    'chief financial officer',
+    'cfo',
+    'managing director',
+    'director',
+    'general manager',
+    'vice president',
+    'vp',
+    'president',
+    'founder',
+    'co-founder',
+    'owner',
+    'partner',
+    'principal',
+    'realtor',
+    'real estate agent',
+    'real estate broker',
+    'broker',
+    'attorney',
+    'lawyer',
+    'physician',
+    'doctor',
+    'accountant',
+    'lead engineer',
+    'software engineer',
+    'senior engineer',
+    'engineer',
+    'project manager',
+    'product manager',
+    'marketing manager',
+    'sales manager',
+    'account manager',
+    'business development manager',
+    'creative director',
+    'consultant',
+    'senior consultant',
+    'specialist',
+    'architect',
   ];
 
   static const List<String> _commonDesignations = [
     ..._highPriorityDesignations,
-    'manager', 'executive', 'supervisor', 'agent', 'representative',
-    'sales representative', 'associate', 'advisor', 'coordinator',
-    'developer', 'designer', 'analyst', 'real estate', 'sales'
+    'manager',
+    'executive',
+    'supervisor',
+    'agent',
+    'representative',
+    'sales representative',
+    'associate',
+    'advisor',
+    'coordinator',
+    'developer',
+    'designer',
+    'analyst',
+    'real estate',
+    'sales',
   ];
 
   static const List<String> _companySuffixes = [
-    'inc', 'inc.', 'llc', 'ltd', 'ltd.', 'corp', 'corp.', 'corporation',
-    'technologies', 'technology', 'solutions', 'systems', 'group',
-    'enterprises', 'industries', 'holdings', 'services', 'consulting',
-    'global', 'international', 'pvt ltd', 'pvt. ltd.', 'co.', 'company',
-    'studios', 'labs', 'ventures', 'professionals', 'realty', 'properties',
-    'agency', 'associates', 'partners', 'clinic', 'center', 'centre', 'network'
+    'inc',
+    'inc.',
+    'llc',
+    'ltd',
+    'ltd.',
+    'corp',
+    'corp.',
+    'corporation',
+    'technologies',
+    'technology',
+    'solutions',
+    'systems',
+    'group',
+    'enterprises',
+    'industries',
+    'holdings',
+    'services',
+    'consulting',
+    'global',
+    'international',
+    'pvt ltd',
+    'pvt. ltd.',
+    'co.',
+    'company',
+    'studios',
+    'labs',
+    'ventures',
+    'professionals',
+    'realty',
+    'properties',
+    'agency',
+    'associates',
+    'partners',
+    'clinic',
+    'center',
+    'centre',
+    'network',
   ];
 
   static const List<String> _nonPersonWords = [
-    'catalogue', 'catalog', 'pages', 'page', 'screenshot', 'settings',
-    'battery', 'menu', 'deals', 'weekly', 'daily', 'total', 'header',
-    'footer', 'price', 'product', 'products', 'items', 'item', 'details',
-    'home', 'search', 'notification', 'notifications', 'order', 'orders',
-    'profile', 'account', 'status', 'wifi', 'bluetooth', 'camera', 'photo'
+    'catalogue',
+    'catalog',
+    'pages',
+    'page',
+    'screenshot',
+    'settings',
+    'battery',
+    'menu',
+    'deals',
+    'weekly',
+    'daily',
+    'total',
+    'header',
+    'footer',
+    'price',
+    'product',
+    'products',
+    'items',
+    'item',
+    'details',
+    'home',
+    'search',
+    'notification',
+    'notifications',
+    'order',
+    'orders',
+    'profile',
+    'account',
+    'status',
+    'wifi',
+    'bluetooth',
+    'camera',
+    'photo',
   ];
 
   static const List<String> _countries = [
-    'united states', 'usa', 'us', 'united kingdom', 'uk', 'canada', 'australia',
-    'india', 'germany', 'france', 'singapore', 'united arab emirates', 'uae',
-    'japan', 'netherlands', 'switzerland', 'saudi arabia', 'qatar', 'malaysia'
+    'united states',
+    'usa',
+    'us',
+    'united kingdom',
+    'uk',
+    'canada',
+    'australia',
+    'india',
+    'germany',
+    'france',
+    'singapore',
+    'united arab emirates',
+    'uae',
+    'japan',
+    'netherlands',
+    'switzerland',
+    'saudi arabia',
+    'qatar',
+    'malaysia',
   ];
 
   BusinessCardScanResult parse(String rawText) {
@@ -68,10 +192,7 @@ class BusinessCardParserService {
         .where((l) => l.isNotEmpty)
         .toList();
 
-    final result = BusinessCardScanResult(
-      rawText: rawText,
-      lines: lines,
-    );
+    final result = BusinessCardScanResult(rawText: rawText, lines: lines);
 
     final claimedIndices = <int>{};
 
@@ -92,7 +213,9 @@ class BusinessCardParserService {
 
     if (foundEmails.isNotEmpty) {
       result.email = foundEmails.first;
-      result.contactEmail = foundEmails.length > 1 ? foundEmails[1] : foundEmails.first;
+      result.contactEmail = foundEmails.length > 1
+          ? foundEmails[1]
+          : foundEmails.first;
     }
 
     // 2. Extract Website
@@ -121,20 +244,32 @@ class BusinessCardParserService {
       // Skip lines that look like pure timestamps (e.g. 15:34 or 10:46)
       if (RegExp(r'^\d{1,2}:\d{2}').hasMatch(line)) continue;
 
-      final hasMobileCue = RegExp(r'\b(m|mob|mobile|cell|c)\b[:.]?', caseSensitive: false).hasMatch(line);
-      final hasLandlineCue = RegExp(r'\b(t|tel|phone|office|ph|fax|landline|o)\b[:.]?', caseSensitive: false).hasMatch(line);
+      final hasMobileCue = RegExp(
+        r'\b(m|mob|mobile|cell|c)\b[:.]?',
+        caseSensitive: false,
+      ).hasMatch(line);
+      final hasLandlineCue = RegExp(
+        r'\b(t|tel|phone|office|ph|fax|landline|o)\b[:.]?',
+        caseSensitive: false,
+      ).hasMatch(line);
 
       final matches = _phoneRegex.allMatches(line);
       for (final m in matches) {
         final phoneStr = m.group(0)?.trim() ?? '';
-        final cleanPhone = phoneStr.replaceAll(RegExp(r'[^\d+()\-\s]'), '').trim();
+        final cleanPhone = phoneStr
+            .replaceAll(RegExp(r'[^\d+()\-\s]'), '')
+            .trim();
         final digitsOnly = cleanPhone.replaceAll(RegExp(r'\D'), '');
         if (digitsOnly.length >= 7) {
-          phoneCandidates.add(_PhoneCandidate(
-            phone: cleanPhone,
-            isMobile: hasMobileCue || (!hasLandlineCue && cleanPhone.startsWith('+')),
-            lineIdx: i,
-          ));
+          phoneCandidates.add(
+            _PhoneCandidate(
+              phone: cleanPhone,
+              isMobile:
+                  hasMobileCue ||
+                  (!hasLandlineCue && cleanPhone.startsWith('+')),
+              lineIdx: i,
+            ),
+          );
           claimedIndices.add(i);
         }
       }
@@ -147,7 +282,9 @@ class BusinessCardParserService {
       );
       result.contactMobileNumber = mobile.phone;
 
-      final landlines = phoneCandidates.where((p) => p.phone != mobile.phone).toList();
+      final landlines = phoneCandidates
+          .where((p) => p.phone != mobile.phone)
+          .toList();
       if (landlines.isNotEmpty) {
         result.landline = landlines.first.phone;
       }
@@ -159,7 +296,11 @@ class BusinessCardParserService {
       for (int i = 0; i < lines.length; i++) {
         if (claimedIndices.contains(i)) continue;
         final lower = lines[i].toLowerCase().trim();
-        if (lower == desig || RegExp('\\b${RegExp.escape(desig)}\\b', caseSensitive: false).hasMatch(lower)) {
+        if (lower == desig ||
+            RegExp(
+              '\\b${RegExp.escape(desig)}\\b',
+              caseSensitive: false,
+            ).hasMatch(lower)) {
           result.contactDesignation = lines[i].trim();
           designationLineIdx = i;
           claimedIndices.add(i);
@@ -174,7 +315,11 @@ class BusinessCardParserService {
         for (int i = 0; i < lines.length; i++) {
           if (claimedIndices.contains(i)) continue;
           final lower = lines[i].toLowerCase().trim();
-          if (lower == desig || RegExp('\\b${RegExp.escape(desig)}\\b', caseSensitive: false).hasMatch(lower)) {
+          if (lower == desig ||
+              RegExp(
+                '\\b${RegExp.escape(desig)}\\b',
+                caseSensitive: false,
+              ).hasMatch(lower)) {
             result.contactDesignation = lines[i].trim();
             designationLineIdx = i;
             claimedIndices.add(i);
@@ -187,7 +332,8 @@ class BusinessCardParserService {
 
     // 5. Extract Contact Name
     // A) Line directly above designation
-    if (designationLineIdx > 0 && !claimedIndices.contains(designationLineIdx - 1)) {
+    if (designationLineIdx > 0 &&
+        !claimedIndices.contains(designationLineIdx - 1)) {
       final candidateAbove = lines[designationLineIdx - 1];
       if (_isValidPersonName(candidateAbove)) {
         result.contactName = candidateAbove;
@@ -196,7 +342,9 @@ class BusinessCardParserService {
     }
 
     // B) Line directly below designation
-    if (result.contactName == null && designationLineIdx >= 0 && designationLineIdx + 1 < lines.length) {
+    if (result.contactName == null &&
+        designationLineIdx >= 0 &&
+        designationLineIdx + 1 < lines.length) {
       if (!claimedIndices.contains(designationLineIdx + 1)) {
         final candidateBelow = lines[designationLineIdx + 1];
         if (_isValidPersonName(candidateBelow)) {
@@ -224,7 +372,12 @@ class BusinessCardParserService {
       if (claimedIndices.contains(i)) continue;
       final lower = lines[i].toLowerCase();
 
-      final hasSuffix = _companySuffixes.any((s) => RegExp('\\b${RegExp.escape(s)}\\b', caseSensitive: false).hasMatch(lower));
+      final hasSuffix = _companySuffixes.any(
+        (s) => RegExp(
+          '\\b${RegExp.escape(s)}\\b',
+          caseSensitive: false,
+        ).hasMatch(lower),
+      );
       if (hasSuffix) {
         result.companyName = lines[i].trim();
         hasCompanyWithSuffix = true;
@@ -233,7 +386,8 @@ class BusinessCardParserService {
       }
     }
 
-    final hasAnyCardCues = result.email != null ||
+    final hasAnyCardCues =
+        result.email != null ||
         result.contactMobileNumber != null ||
         result.landline != null ||
         result.contactName != null ||
@@ -245,10 +399,13 @@ class BusinessCardParserService {
         if (!claimedIndices.contains(i)) {
           final text = lines[i].trim();
           // Skip timestamps (e.g. 15:34) or strings without letters
-          if (RegExp(r':').hasMatch(text) || !RegExp(r'[A-Za-z]').hasMatch(text)) {
+          if (RegExp(r':').hasMatch(text) ||
+              !RegExp(r'[A-Za-z]').hasMatch(text)) {
             continue;
           }
-          if (!RegExp(r'\d{3,}').hasMatch(text) && text.length > 2 && text.length < 60) {
+          if (!RegExp(r'\d{3,}').hasMatch(text) &&
+              text.length > 2 &&
+              text.length < 60) {
             result.companyName = text;
             claimedIndices.add(i);
             break;
@@ -270,7 +427,10 @@ class BusinessCardParserService {
       for (final line in remainingLines) {
         final lower = line.toLowerCase();
         for (final country in _countries) {
-          if (RegExp('\\b${RegExp.escape(country)}\\b', caseSensitive: false).hasMatch(lower)) {
+          if (RegExp(
+            '\\b${RegExp.escape(country)}\\b',
+            caseSensitive: false,
+          ).hasMatch(lower)) {
             result.country = _formatCountryName(country);
             break;
           }
@@ -283,7 +443,9 @@ class BusinessCardParserService {
         final parts = line.split(',').map((p) => p.trim()).toList();
         if (parts.length >= 2) {
           result.city = parts[0].replaceAll(RegExp(r'\d+'), '').trim();
-          if (result.country == null && (line.toLowerCase().contains('us') || line.toLowerCase().contains('usa'))) {
+          if (result.country == null &&
+              (line.toLowerCase().contains('us') ||
+                  line.toLowerCase().contains('usa'))) {
             result.country = 'United States';
           }
           break;
@@ -291,13 +453,21 @@ class BusinessCardParserService {
       }
 
       // Address: look for street/suite/lane/box or digit+word
-      final addressLines = remainingLines.where((l) =>
-          RegExp(r'\b(st|street|ave|avenue|rd|road|blvd|boulevard|suite|ste|floor|fl|building|bldg|box|po box|lane|ln|drive|dr|way|plaza|tower)\b', caseSensitive: false).hasMatch(l) ||
-          RegExp(r'\d+\s+[A-Za-z]+').hasMatch(l)).toList();
+      final addressLines = remainingLines
+          .where(
+            (l) =>
+                RegExp(
+                  r'\b(st|street|ave|avenue|rd|road|blvd|boulevard|suite|ste|floor|fl|building|bldg|box|po box|lane|ln|drive|dr|way|plaza|tower)\b',
+                  caseSensitive: false,
+                ).hasMatch(l) ||
+                RegExp(r'\d+\s+[A-Za-z]+').hasMatch(l),
+          )
+          .toList();
 
       if (addressLines.isNotEmpty) {
         result.address = addressLines.first;
-      } else if (remainingLines.isNotEmpty && result.city != remainingLines.first) {
+      } else if (remainingLines.isNotEmpty &&
+          result.city != remainingLines.first) {
         result.address = remainingLines.first;
       }
     }
@@ -310,7 +480,8 @@ class BusinessCardParserService {
     if (result.contactName != null) score += 15;
     if (result.contactDesignation != null) score += 10;
     if (result.website != null) score += 10;
-    if (result.address != null || result.city != null || result.country != null) score += 10;
+    if (result.address != null || result.city != null || result.country != null)
+      score += 10;
 
     if (hasCompanyWithSuffix) {
       score += 20;
@@ -338,20 +509,34 @@ class BusinessCardParserService {
     if (clean.length < 3 || clean.length > 40) return false;
     // Reject digits, timestamps, and special characters
     if (RegExp(r'\d').hasMatch(clean)) return false;
-    if (RegExp(r'[@#$%^&*()_+={}\[\]:;"\x27<>?/\\|]').hasMatch(clean)) return false;
+    if (RegExp(r'[@#$%^&*()_+={}\[\]:;"\x27<>?/\\|]').hasMatch(clean))
+      return false;
 
     final lower = clean.toLowerCase();
     // Reject if it contains common company suffixes
-    if (_companySuffixes.any((s) => RegExp('\\b${RegExp.escape(s)}\\b', caseSensitive: false).hasMatch(lower))) {
+    if (_companySuffixes.any(
+      (s) => RegExp(
+        '\\b${RegExp.escape(s)}\\b',
+        caseSensitive: false,
+      ).hasMatch(lower),
+    )) {
       return false;
     }
 
     // Reject common generic non-name words (e.g. Catalogue Pages, Screenshot, Deals, etc.)
-    if (_nonPersonWords.any((w) => RegExp('\\b${RegExp.escape(w)}\\b', caseSensitive: false).hasMatch(lower))) {
+    if (_nonPersonWords.any(
+      (w) => RegExp(
+        '\\b${RegExp.escape(w)}\\b',
+        caseSensitive: false,
+      ).hasMatch(lower),
+    )) {
       return false;
     }
 
-    final words = clean.split(RegExp(r'\s+')).where((w) => w.isNotEmpty).toList();
+    final words = clean
+        .split(RegExp(r'\s+'))
+        .where((w) => w.isNotEmpty)
+        .toList();
     return words.length >= 2 && words.length <= 4;
   }
 
@@ -359,7 +544,10 @@ class BusinessCardParserService {
     if (country == 'usa' || country == 'us') return 'United States';
     if (country == 'uk') return 'United Kingdom';
     if (country == 'uae') return 'United Arab Emirates';
-    return country.split(' ').map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}').join(' ');
+    return country
+        .split(' ')
+        .map((w) => w.isEmpty ? '' : '${w[0].toUpperCase()}${w.substring(1)}')
+        .join(' ');
   }
 }
 

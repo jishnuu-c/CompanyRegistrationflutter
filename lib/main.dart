@@ -6,7 +6,7 @@ import 'theme/app_theme.dart';
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
   runApp(const CompanyRegistrationApp());
-  
+
   // Asynchronously test connection to Spring Boot backend after app renders
   WidgetsBinding.instance.addPostFrameCallback((_) {
     ApiConfig().checkConnection();

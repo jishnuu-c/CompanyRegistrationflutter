@@ -37,8 +37,10 @@ class CompanyService {
 
   Future<CompanyResponse> getCompanyById(int id) async {
     final response = await http
-        .get(Uri.parse('$_apiUrl/$id'),
-            headers: _auth.getAuthHeaders({'Accept': 'application/json'}))
+        .get(
+          Uri.parse('$_apiUrl/$id'),
+          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+        )
         .timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
@@ -59,7 +61,9 @@ class CompanyService {
   }) async {
     final uri = Uri.parse('$_apiUrl/create');
     final request = http.MultipartRequest('POST', uri);
-    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
+    request.headers.addAll(
+      _auth.getAuthHeaders({'Accept': 'application/json'}),
+    );
 
     final jsonStr = jsonEncode(companyData.toJson());
     request.files.add(
@@ -105,7 +109,9 @@ class CompanyService {
   }) async {
     final uri = Uri.parse('$_apiUrl/update/$id');
     final request = http.MultipartRequest('PUT', uri);
-    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
+    request.headers.addAll(
+      _auth.getAuthHeaders({'Accept': 'application/json'}),
+    );
 
     final jsonStr = jsonEncode(companyData.toJson());
     request.files.add(
@@ -230,7 +236,8 @@ class CompanyService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return ScrapeProductsResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      String errMsg = 'Failed to scrape products from website (status: ${response.statusCode})';
+      String errMsg =
+          'Failed to scrape products from website (status: ${response.statusCode})';
       try {
         final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
         if (decoded is Map && decoded['message'] != null) {

@@ -143,15 +143,18 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
       // If it's a PDF, kick off raster preview render immediately in parallel
       // so the preview appears as fast as possible while parsing runs:
       if (_isPdf && _previewImageBytes == null) {
-        _ocrService.renderPdfPageToImage(_fileBytes, pageNumber: 1).then((res) {
-          if (mounted && _previewImageBytes == null) {
-            setState(() {
-              _previewImageBytes = res.imageBytes;
+        _ocrService
+            .renderPdfPageToImage(_fileBytes, pageNumber: 1)
+            .then((res) {
+              if (mounted && _previewImageBytes == null) {
+                setState(() {
+                  _previewImageBytes = res.imageBytes;
+                });
+              }
+            })
+            .catchError((err) {
+              debugPrint('Parallel PDF preview error: $err');
             });
-          }
-        }).catchError((err) {
-          debugPrint('Parallel PDF preview error: $err');
-        });
       }
 
       final outcome = await _ocrService.scanCard(
@@ -179,7 +182,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
         _countryCtrl.text = res.country ?? 'United States';
       });
 
-      if ((outcome.result.confidenceScore == 0 || outcome.result.isLowConfidence) && widget.onUnrecognized != null) {
+      if ((outcome.result.confidenceScore == 0 ||
+              outcome.result.isLowConfidence) &&
+          widget.onUnrecognized != null) {
         widget.onUnrecognized!(
           _isPdf ? 'Unrecognized PDF Document' : 'Unrecognized Image',
           'No contact or corporate details could be recognized on this file. Please review or try a clearer business card.',
@@ -236,17 +241,35 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
 
   void _applyResult() {
     final updatedResult = BusinessCardScanResult(
-      companyName: _companyNameCtrl.text.trim().isEmpty ? null : _companyNameCtrl.text.trim(),
-      contactName: _contactNameCtrl.text.trim().isEmpty ? null : _contactNameCtrl.text.trim(),
-      contactDesignation: _designationCtrl.text.trim().isEmpty ? null : _designationCtrl.text.trim(),
+      companyName: _companyNameCtrl.text.trim().isEmpty
+          ? null
+          : _companyNameCtrl.text.trim(),
+      contactName: _contactNameCtrl.text.trim().isEmpty
+          ? null
+          : _contactNameCtrl.text.trim(),
+      contactDesignation: _designationCtrl.text.trim().isEmpty
+          ? null
+          : _designationCtrl.text.trim(),
       email: _emailCtrl.text.trim().isEmpty ? null : _emailCtrl.text.trim(),
-      contactEmail: _contactEmailCtrl.text.trim().isEmpty ? null : _contactEmailCtrl.text.trim(),
-      contactMobileNumber: _mobileCtrl.text.trim().isEmpty ? null : _mobileCtrl.text.trim(),
-      landline: _landlineCtrl.text.trim().isEmpty ? null : _landlineCtrl.text.trim(),
-      website: _websiteCtrl.text.trim().isEmpty ? null : _websiteCtrl.text.trim(),
-      address: _addressCtrl.text.trim().isEmpty ? null : _addressCtrl.text.trim(),
+      contactEmail: _contactEmailCtrl.text.trim().isEmpty
+          ? null
+          : _contactEmailCtrl.text.trim(),
+      contactMobileNumber: _mobileCtrl.text.trim().isEmpty
+          ? null
+          : _mobileCtrl.text.trim(),
+      landline: _landlineCtrl.text.trim().isEmpty
+          ? null
+          : _landlineCtrl.text.trim(),
+      website: _websiteCtrl.text.trim().isEmpty
+          ? null
+          : _websiteCtrl.text.trim(),
+      address: _addressCtrl.text.trim().isEmpty
+          ? null
+          : _addressCtrl.text.trim(),
       city: _cityCtrl.text.trim().isEmpty ? null : _cityCtrl.text.trim(),
-      country: _countryCtrl.text.trim().isEmpty ? null : _countryCtrl.text.trim(),
+      country: _countryCtrl.text.trim().isEmpty
+          ? null
+          : _countryCtrl.text.trim(),
       confidenceScore: _scanResult?.confidenceScore ?? 50,
       rawText: _scanResult?.rawText ?? '',
       lines: _scanResult?.lines ?? [],
@@ -339,7 +362,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _isScanning ? 'Scanning Visiting Card...' : 'Review Visiting Card Details',
+                    _isScanning
+                        ? 'Scanning Visiting Card...'
+                        : 'Review Visiting Card Details',
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 16.5,
                       fontWeight: FontWeight.w700,
@@ -366,7 +391,11 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
             ],
             IconButton(
               onPressed: _isScanning ? null : () => Navigator.of(context).pop(),
-              icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B), size: 20),
+              icon: const Icon(
+                Icons.close_rounded,
+                color: Color(0xFF64748B),
+                size: 20,
+              ),
               padding: EdgeInsets.zero,
               constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
               tooltip: 'Close',
@@ -409,7 +438,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  _isScanning ? 'Scanning Visiting Card...' : 'Review Visiting Card Details',
+                  _isScanning
+                      ? 'Scanning Visiting Card...'
+                      : 'Review Visiting Card Details',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 15,
                     fontWeight: FontWeight.w700,
@@ -421,8 +452,14 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
               ),
               const SizedBox(width: 6),
               IconButton(
-                onPressed: _isScanning ? null : () => Navigator.of(context).pop(),
-                icon: const Icon(Icons.close_rounded, color: Color(0xFF64748B), size: 22),
+                onPressed: _isScanning
+                    ? null
+                    : () => Navigator.of(context).pop(),
+                icon: const Icon(
+                  Icons.close_rounded,
+                  color: Color(0xFF64748B),
+                  size: 22,
+                ),
                 padding: EdgeInsets.zero,
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
                 tooltip: 'Close',
@@ -512,15 +549,10 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Left Column: Image Preview
-          SizedBox(
-            width: 340,
-            child: _buildPreviewPane(isCompact: false),
-          ),
+          SizedBox(width: 340, child: _buildPreviewPane(isCompact: false)),
           const SizedBox(width: 20),
           // Right Column: Extracted Fields
-          Expanded(
-            child: _buildFieldsCard(isDesktop: true),
-          ),
+          Expanded(child: _buildFieldsCard(isDesktop: true)),
         ],
       ),
     );
@@ -566,10 +598,7 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
             fit: StackFit.expand,
             children: [
               if (_previewImageBytes != null)
-                Image.memory(
-                  _previewImageBytes!,
-                  fit: BoxFit.contain,
-                )
+                Image.memory(_previewImageBytes!, fit: BoxFit.contain)
               else if (_isPdf)
                 Container(
                   color: const Color(0xFF0F172A),
@@ -577,11 +606,18 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      const Icon(Icons.picture_as_pdf_rounded, color: Color(0xFFEF4444), size: 40),
+                      const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: Color(0xFFEF4444),
+                        size: 40,
+                      ),
                       const SizedBox(height: 8),
                       Text(
                         'Rendering PDF Page 1...',
-                        style: GoogleFonts.inter(fontSize: 11.5, color: Colors.white70),
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          color: Colors.white70,
+                        ),
                       ),
                     ],
                   ),
@@ -590,7 +626,11 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                 Container(
                   color: const Color(0xFF0F172A),
                   alignment: Alignment.center,
-                  child: const Icon(Icons.image_outlined, color: Colors.white54, size: 40),
+                  child: const Icon(
+                    Icons.image_outlined,
+                    color: Colors.white54,
+                    size: 40,
+                  ),
                 ),
 
               // PDF Badge matching Angular
@@ -599,7 +639,10 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                   top: 8,
                   left: 8,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFDC2626),
                       borderRadius: BorderRadius.circular(6),
@@ -614,7 +657,11 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.picture_as_pdf_rounded, size: 12, color: Colors.white),
+                        const Icon(
+                          Icons.picture_as_pdf_rounded,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'PDF Page 1',
@@ -669,7 +716,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                         height: 32,
                         child: CircularProgressIndicator(
                           strokeWidth: 3,
-                          valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF38BDF8)),
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF38BDF8),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -679,7 +728,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                           fontSize: 11.5,
                           fontWeight: FontWeight.w700,
                           color: Colors.white,
-                          shadows: const [Shadow(blurRadius: 4, color: Colors.black)],
+                          shadows: const [
+                            Shadow(blurRadius: 4, color: Colors.black),
+                          ],
                         ),
                       ),
                     ],
@@ -694,9 +745,15 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
           children: [
             OutlinedButton.icon(
               onPressed: _isScanning ? null : _pickAnotherCard,
-              icon: const Icon(Icons.sync_rounded, size: 13, color: Color(0xFF334155)),
+              icon: const Icon(
+                Icons.sync_rounded,
+                size: 13,
+                color: Color(0xFF334155),
+              ),
               label: Text(
-                _previewImageBytes != null ? 'Change Card / PDF' : 'Select Card / PDF',
+                _previewImageBytes != null
+                    ? 'Change Card / PDF'
+                    : 'Select Card / PDF',
                 style: GoogleFonts.inter(
                   fontSize: 11,
                   fontWeight: FontWeight.w600,
@@ -707,7 +764,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                 backgroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 5),
                 side: const BorderSide(color: Color(0xFFCBD5E1)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(6),
+                ),
                 visualDensity: VisualDensity.compact,
               ),
             ),
@@ -715,7 +774,10 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
             Expanded(
               child: Text(
                 _fileName,
-                style: GoogleFonts.inter(fontSize: 10, color: const Color(0xFF64748B)),
+                style: GoogleFonts.inter(
+                  fontSize: 10,
+                  color: const Color(0xFF64748B),
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
@@ -781,17 +843,28 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.error_outline_rounded, color: AppTheme.error, size: 32),
+              const Icon(
+                Icons.error_outline_rounded,
+                color: AppTheme.error,
+                size: 32,
+              ),
               const SizedBox(height: 8),
               Text(
                 'Scanning Failed',
-                style: GoogleFonts.plusJakartaSans(fontSize: 14, fontWeight: FontWeight.w700, color: AppTheme.error),
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: AppTheme.error,
+                ),
               ),
               const SizedBox(height: 4),
               Text(
                 _errorMessage!,
                 textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 11, color: const Color(0xFF64748B)),
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  color: const Color(0xFF64748B),
+                ),
               ),
               const SizedBox(height: 10),
               ElevatedButton.icon(
@@ -801,8 +874,13 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4F46E5),
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 7,
+                  ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(6),
+                  ),
                 ),
               ),
             ],
@@ -811,7 +889,9 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
       );
     }
 
-    final isLowConfidence = (_scanResult?.confidenceScore ?? 0) < 40 || (_scanResult?.isLowConfidence ?? false);
+    final isLowConfidence =
+        (_scanResult?.confidenceScore ?? 0) < 40 ||
+        (_scanResult?.isLowConfidence ?? false);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -828,7 +908,11 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Icon(Icons.warning_amber_rounded, color: Color(0xFFD97706), size: 18),
+                const Icon(
+                  Icons.warning_amber_rounded,
+                  color: Color(0xFFD97706),
+                  size: 18,
+                ),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Column(
@@ -869,7 +953,11 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
           ),
           child: Row(
             children: [
-              const Icon(Icons.info_outline_rounded, size: 14, color: Color(0xFF4F46E5)),
+              const Icon(
+                Icons.info_outline_rounded,
+                size: 14,
+                color: Color(0xFF4F46E5),
+              ),
               const SizedBox(width: 7),
               Expanded(
                 child: Text(
@@ -1162,8 +1250,14 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
           decoration: InputDecoration(
             isDense: true,
             hintText: hint,
-            hintStyle: GoogleFonts.inter(fontSize: 12, color: const Color(0xFF94A3B8)),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 11, vertical: 9.5),
+            hintStyle: GoogleFonts.inter(
+              fontSize: 12,
+              color: const Color(0xFF94A3B8),
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 11,
+              vertical: 9.5,
+            ),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
               borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
@@ -1174,7 +1268,10 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(8),
-              borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.5),
+              borderSide: const BorderSide(
+                color: Color(0xFF6366F1),
+                width: 1.5,
+              ),
             ),
             fillColor: const Color(0xFFF8FAFC),
             filled: true,
@@ -1193,9 +1290,7 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
       ),
       decoration: const BoxDecoration(
         color: Colors.white,
-        border: Border(
-          top: BorderSide(color: Color(0xFFF1F5F9)),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFF1F5F9))),
       ),
       child: Row(
         children: [
@@ -1206,9 +1301,14 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
               onPressed: _isScanning ? null : () => Navigator.of(context).pop(),
               style: OutlinedButton.styleFrom(
                 backgroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 20 : 12, vertical: 11),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? 20 : 12,
+                  vertical: 11,
+                ),
                 side: const BorderSide(color: Color(0xFFCBD5E1)),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: Text(
                 'Cancel',
@@ -1224,19 +1324,29 @@ class _BusinessCardOcrDialogState extends State<BusinessCardOcrDialog>
           Expanded(
             flex: isDesktop ? 0 : 2,
             child: ElevatedButton.icon(
-              onPressed: (_isScanning || !_hasAnyFieldFilled) ? null : _applyResult,
+              onPressed: (_isScanning || !_hasAnyFieldFilled)
+                  ? null
+                  : _applyResult,
               icon: const Icon(Icons.check_circle_outline_rounded, size: 16),
               label: Text(
                 'Apply Details to Form',
-                style: GoogleFonts.inter(fontSize: 12.5, fontWeight: FontWeight.w700),
+                style: GoogleFonts.inter(
+                  fontSize: 12.5,
+                  fontWeight: FontWeight.w700,
+                ),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
               ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF10B981),
                 foregroundColor: Colors.white,
-                padding: EdgeInsets.symmetric(horizontal: isDesktop ? 20 : 12, vertical: 11),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                padding: EdgeInsets.symmetric(
+                  horizontal: isDesktop ? 20 : 12,
+                  vertical: 11,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
                 elevation: 0,
               ),
             ),

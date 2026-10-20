@@ -107,9 +107,9 @@ class CategoryScreenState extends State<CategoryScreen> {
     final parents = _parentCategories;
     return _categories.where((c) => c.parentId != null).map((sub) {
       final parent = parents.cast<CategoryResponse?>().firstWhere(
-            (p) => p?.id == sub.parentId,
-            orElse: () => null,
-          );
+        (p) => p?.id == sub.parentId,
+        orElse: () => null,
+      );
       return sub.copyWith(parentName: parent?.name ?? 'None');
     }).toList();
   }
@@ -123,7 +123,8 @@ class CategoryScreenState extends State<CategoryScreen> {
     final query = _searchQuery.toLowerCase().trim();
     if (query.isEmpty) return _parentCategories;
     return _parentCategories.where((c) {
-      return c.name.toLowerCase().contains(query) || c.id.toString().contains(query);
+      return c.name.toLowerCase().contains(query) ||
+          c.id.toString().contains(query);
     }).toList();
   }
 
@@ -137,7 +138,9 @@ class CategoryScreenState extends State<CategoryScreen> {
       }
       if (query.isNotEmpty) {
         final matchesName = sub.name.toLowerCase().contains(query);
-        final matchesParent = (sub.parentName ?? '').toLowerCase().contains(query);
+        final matchesParent = (sub.parentName ?? '').toLowerCase().contains(
+          query,
+        );
         final matchesId = sub.id.toString().contains(query);
         if (!matchesName && !matchesParent && !matchesId) return false;
       }
@@ -152,9 +155,9 @@ class CategoryScreenState extends State<CategoryScreen> {
   String _getParentName(int? parentId) {
     if (parentId == null) return 'None';
     final parent = _parentCategories.cast<CategoryResponse?>().firstWhere(
-          (p) => p?.id == parentId,
-          orElse: () => null,
-        );
+      (p) => p?.id == parentId,
+      orElse: () => null,
+    );
     return parent?.name ?? 'None';
   }
 
@@ -187,7 +190,8 @@ class CategoryScreenState extends State<CategoryScreen> {
       _selectedFileName = null;
       _selectedFileSize = null;
       _selectedFilePath = null;
-      _existingFileUrl = cat.categoryImage != null && cat.categoryImage!.isNotEmpty
+      _existingFileUrl =
+          cat.categoryImage != null && cat.categoryImage!.isNotEmpty
           ? _categoryService.getFileUrl(cat.categoryImage)
           : null;
 
@@ -271,7 +275,8 @@ class CategoryScreenState extends State<CategoryScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Category Updated Successfully!',
-            message: 'Category "${response.name}" (ID #${response.id}) has been updated.',
+            message:
+                'Category "${response.name}" (ID #${response.id}) has been updated.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -289,8 +294,11 @@ class CategoryScreenState extends State<CategoryScreen> {
           _isSubmitting = false;
           _feedback = FeedbackData(
             type: 'success',
-            title: isSub ? 'Subcategory Registered!' : 'Main Category Registered!',
-            message: 'Category "${response.name}" has been created with ID #${response.id}.',
+            title: isSub
+                ? 'Subcategory Registered!'
+                : 'Main Category Registered!',
+            message:
+                'Category "${response.name}" has been created with ID #${response.id}.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -305,7 +313,9 @@ class CategoryScreenState extends State<CategoryScreen> {
         _isSubmitting = false;
         _feedback = FeedbackData(
           type: 'error',
-          title: _editingCategoryId != null ? 'Update Failed' : 'Registration Failed',
+          title: _editingCategoryId != null
+              ? 'Update Failed'
+              : 'Registration Failed',
           message: e.toString().replaceAll('Exception: ', ''),
         );
       });
@@ -360,7 +370,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                 ),
               Expanded(
                 child: _activeTab == 'register'
-                    ? (isDesktop ? _buildDesktopRegisterView() : _buildMobileRegisterView())
+                    ? (isDesktop
+                          ? _buildDesktopRegisterView()
+                          : _buildMobileRegisterView())
                     : _buildDirectoryView(),
               ),
             ],
@@ -394,14 +406,18 @@ class CategoryScreenState extends State<CategoryScreen> {
               onTap: _switchToRegister,
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: _activeTab == 'register' && _editingCategoryId == null
                       ? AppTheme.primaryLight
                       : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _activeTab == 'register' && _editingCategoryId == null
+                    color:
+                        _activeTab == 'register' && _editingCategoryId == null
                         ? AppTheme.primary.withValues(alpha: 0.3)
                         : Colors.transparent,
                   ),
@@ -412,7 +428,8 @@ class CategoryScreenState extends State<CategoryScreen> {
                     Icon(
                       Icons.add_circle,
                       size: 16,
-                      color: _activeTab == 'register' && _editingCategoryId == null
+                      color:
+                          _activeTab == 'register' && _editingCategoryId == null
                           ? AppTheme.primary
                           : AppTheme.textSecondary,
                     ),
@@ -422,7 +439,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'register' && _editingCategoryId == null
+                        color:
+                            _activeTab == 'register' &&
+                                _editingCategoryId == null
                             ? AppTheme.primary
                             : AppTheme.textSecondary,
                       ),
@@ -436,11 +455,16 @@ class CategoryScreenState extends State<CategoryScreen> {
             // Edit Category Pill (when in edit mode)
             if (_editingCategoryId != null) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.warningBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: AppTheme.warning.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -450,7 +474,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.edit, size: 14, color: AppTheme.warning),
+                          const Icon(
+                            Icons.edit,
+                            size: 14,
+                            color: AppTheme.warning,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Edit #$_editingCategoryId',
@@ -467,7 +495,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                     InkWell(
                       onTap: _switchToRegister,
                       borderRadius: BorderRadius.circular(10),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFFB45309)),
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Color(0xFFB45309),
+                      ),
                     ),
                   ],
                 ),
@@ -480,9 +512,14 @@ class CategoryScreenState extends State<CategoryScreen> {
               onTap: () => setState(() => _activeTab = 'directory'),
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: _activeTab == 'directory' ? AppTheme.primaryLight : Colors.transparent,
+                  color: _activeTab == 'directory'
+                      ? AppTheme.primaryLight
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: _activeTab == 'directory'
@@ -496,7 +533,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                     Icon(
                       Icons.grid_view_rounded,
                       size: 16,
-                      color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                      color: _activeTab == 'directory'
+                          ? AppTheme.primary
+                          : AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -504,12 +543,17 @@ class CategoryScreenState extends State<CategoryScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                        color: _activeTab == 'directory'
+                            ? AppTheme.primary
+                            : AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _activeTab == 'directory'
                             ? AppTheme.primary
@@ -576,25 +620,36 @@ class CategoryScreenState extends State<CategoryScreen> {
               onTap: () => setState(() => _showLivePreview = !_showLivePreview),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: _showLivePreview ? AppTheme.primaryLight : AppTheme.bgSurface,
+                  color: _showLivePreview
+                      ? AppTheme.primaryLight
+                      : AppTheme.bgSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _showLivePreview ? AppTheme.primary : AppTheme.borderLight,
+                    color: _showLivePreview
+                        ? AppTheme.primary
+                        : AppTheme.borderLight,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      _showLivePreview ? Icons.visibility_off : Icons.visibility,
+                      _showLivePreview
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       size: 18,
                       color: AppTheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _showLivePreview ? 'Hide Live Preview' : 'Show Live Card Preview',
+                        _showLivePreview
+                            ? 'Hide Live Preview'
+                            : 'Show Live Card Preview',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -648,7 +703,8 @@ class CategoryScreenState extends State<CategoryScreen> {
               _buildFormCard(
                 stepNum: '01',
                 title: 'Category Identity & Hierarchy',
-                subtitle: 'Set category name and choose an optional parent category',
+                subtitle:
+                    'Set category name and choose an optional parent category',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -663,7 +719,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                     ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.bgSurface,
                         borderRadius: BorderRadius.circular(12),
@@ -673,10 +732,17 @@ class CategoryScreenState extends State<CategoryScreen> {
                         child: DropdownButton<int?>(
                           isExpanded: true,
                           value: _selectedParentId,
-                          icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: AppTheme.textSecondary,
+                          ),
                           hint: Row(
                             children: [
-                              const Icon(Icons.account_tree_outlined, size: 18, color: AppTheme.textMuted),
+                              const Icon(
+                                Icons.account_tree_outlined,
+                                size: 18,
+                                color: AppTheme.textMuted,
+                              ),
                               const SizedBox(width: 10),
                               Text(
                                 'None (Root / Main Category)',
@@ -693,7 +759,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                               value: null,
                               child: Row(
                                 children: [
-                                  const Icon(Icons.folder_outlined, size: 18, color: AppTheme.primary),
+                                  const Icon(
+                                    Icons.folder_outlined,
+                                    size: 18,
+                                    color: AppTheme.primary,
+                                  ),
                                   const SizedBox(width: 10),
                                   Text(
                                     'None (Root / Main Category)',
@@ -711,7 +781,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                                 value: parent.id,
                                 child: Row(
                                   children: [
-                                    const Icon(Icons.folder, size: 18, color: AppTheme.textSecondary),
+                                    const Icon(
+                                      Icons.folder,
+                                      size: 18,
+                                      color: AppTheme.textSecondary,
+                                    ),
                                     const SizedBox(width: 10),
                                     Text(
                                       '${parent.name} (ID #${parent.id})',
@@ -757,8 +831,13 @@ class CategoryScreenState extends State<CategoryScreen> {
                       controller: _nameController,
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'e.g. Consumer Electronics, Laptops, Software, Footwear',
-                        prefixIcon: const Icon(Icons.label_outline, size: 18, color: AppTheme.textMuted),
+                        hintText:
+                            'e.g. Consumer Electronics, Laptops, Software, Footwear',
+                        prefixIcon: const Icon(
+                          Icons.label_outline,
+                          size: 18,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                       onChanged: (_) => setState(() {}),
                       validator: (value) {
@@ -777,11 +856,18 @@ class CategoryScreenState extends State<CategoryScreen> {
               _buildFormCard(
                 stepNum: '02',
                 title: 'Category Icon & Banner',
-                subtitle: 'Upload a visual thumbnail or banner image for this category (JPG, PNG, WEBP, GIF)',
+                subtitle:
+                    'Upload a visual thumbnail or banner image for this category (JPG, PNG, WEBP, GIF)',
                 child: FileUploadBox(
                   title: 'Drop your category banner or icon here',
                   hint: 'or browse images from your device',
-                  allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+                  allowedExtensions: const [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'webp',
+                    'gif',
+                  ],
                   fileName: _selectedFileName,
                   fileSize: _selectedFileSize,
                   existingFileUrl: _existingFileUrl,
@@ -816,21 +902,30 @@ class CategoryScreenState extends State<CategoryScreen> {
                   OutlinedButton(
                     onPressed: _isSubmitting ? null : _resetForm,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       side: const BorderSide(color: AppTheme.borderMedium),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _editingCategoryId != null ? Icons.cancel_outlined : Icons.restart_alt,
+                          _editingCategoryId != null
+                              ? Icons.cancel_outlined
+                              : Icons.restart_alt,
                           size: 16,
                           color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _editingCategoryId != null ? 'Cancel Edit' : 'Reset Form',
+                          _editingCategoryId != null
+                              ? 'Cancel Edit'
+                              : 'Reset Form',
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textSecondary,
@@ -844,26 +939,38 @@ class CategoryScreenState extends State<CategoryScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
                     child: _isSubmitting
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _editingCategoryId != null ? Icons.check_circle_outline : Icons.add_circle,
+                                _editingCategoryId != null
+                                    ? Icons.check_circle_outline
+                                    : Icons.add_circle,
                                 size: 16,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                _editingCategoryId != null ? 'Update Category' : 'Create Category',
+                                _editingCategoryId != null
+                                    ? 'Update Category'
+                                    : 'Create Category',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -898,12 +1005,15 @@ class CategoryScreenState extends State<CategoryScreen> {
             height: 38,
             decoration: BoxDecoration(
               gradient: isEdit
-                  ? const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)])
+                  ? const LinearGradient(
+                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    )
                   : AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary).withValues(alpha: 0.25),
+                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary)
+                      .withValues(alpha: 0.25),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -937,11 +1047,16 @@ class CategoryScreenState extends State<CategoryScreen> {
                     if (isEdit) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.warningBg,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: AppTheme.warning.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Text(
                           'ID #$_editingCategoryId',
@@ -960,7 +1075,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                   isEdit
                       ? 'Update category name, hierarchy, and image.'
                       : 'Define main categories or nested subcategories.',
-                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -977,12 +1095,18 @@ class CategoryScreenState extends State<CategoryScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_circle, size: 13, color: AppTheme.primary),
+                    const Icon(
+                      Icons.add_circle,
+                      size: 13,
+                      color: AppTheme.primary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'New',
@@ -1131,7 +1255,11 @@ class CategoryScreenState extends State<CategoryScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.visibility, size: 14, color: AppTheme.primary),
+                  const Icon(
+                    Icons.visibility,
+                    size: 14,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'Live Preview',
@@ -1146,10 +1274,7 @@ class CategoryScreenState extends State<CategoryScreen> {
             ),
             Text(
               'Catalog Card Appearance',
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                color: AppTheme.textMuted,
-              ),
+              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
             ),
           ],
         ),
@@ -1180,13 +1305,25 @@ class CategoryScreenState extends State<CategoryScreen> {
                     if (_selectedFileBytes != null)
                       Image.memory(_selectedFileBytes!, fit: BoxFit.cover)
                     else if (_existingFileUrl != null)
-                      Image.network(_existingFileUrl!, fit: BoxFit.cover, errorBuilder: (context, error, stackTrace) {
-                        return const Center(child: Icon(Icons.folder, size: 48, color: Colors.white54));
-                      })
+                      Image.network(
+                        _existingFileUrl!,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return const Center(
+                            child: Icon(
+                              Icons.folder,
+                              size: 48,
+                              color: Colors.white54,
+                            ),
+                          );
+                        },
+                      )
                     else
                       Center(
                         child: Icon(
-                          isSubcategory ? Icons.account_tree_rounded : Icons.folder_rounded,
+                          isSubcategory
+                              ? Icons.account_tree_rounded
+                              : Icons.folder_rounded,
                           size: 52,
                           color: Colors.white.withValues(alpha: 0.3),
                         ),
@@ -1213,10 +1350,15 @@ class CategoryScreenState extends State<CategoryScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 4,
+                            ),
                             decoration: BoxDecoration(
                               color: isSubcategory
-                                  ? const Color(0xFF7C3AED).withValues(alpha: 0.9)
+                                  ? const Color(
+                                      0xFF7C3AED,
+                                    ).withValues(alpha: 0.9)
                                   : AppTheme.primary.withValues(alpha: 0.9),
                               borderRadius: BorderRadius.circular(8),
                             ),
@@ -1224,13 +1366,17 @@ class CategoryScreenState extends State<CategoryScreen> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 Icon(
-                                  isSubcategory ? Icons.account_tree : Icons.folder_special,
+                                  isSubcategory
+                                      ? Icons.account_tree
+                                      : Icons.folder_special,
                                   size: 12,
                                   color: Colors.white,
                                 ),
                                 const SizedBox(width: 4),
                                 Text(
-                                  isSubcategory ? 'SUBCATEGORY' : 'MAIN CATEGORY',
+                                  isSubcategory
+                                      ? 'SUBCATEGORY'
+                                      : 'MAIN CATEGORY',
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w800,
@@ -1242,13 +1388,18 @@ class CategoryScreenState extends State<CategoryScreen> {
                             ),
                           ),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: Colors.black.withValues(alpha: 0.6),
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              _editingCategoryId != null ? '#$_editingCategoryId' : '#NEW',
+                              _editingCategoryId != null
+                                  ? '#$_editingCategoryId'
+                                  : '#NEW',
                               style: GoogleFonts.inter(
                                 fontSize: 11,
                                 fontWeight: FontWeight.w700,
@@ -1281,11 +1432,18 @@ class CategoryScreenState extends State<CategoryScreen> {
                     if (isSubcategory) ...[
                       Row(
                         children: [
-                          const Icon(Icons.subdirectory_arrow_right, size: 14, color: AppTheme.primary),
+                          const Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 14,
+                            color: AppTheme.primary,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Parent: ',
-                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textMuted,
+                            ),
                           ),
                           Text(
                             parentName,
@@ -1312,7 +1470,10 @@ class CategoryScreenState extends State<CategoryScreen> {
 
               // Card Footer
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(top: BorderSide(color: AppTheme.borderLight)),
@@ -1372,7 +1533,11 @@ class CategoryScreenState extends State<CategoryScreen> {
             children: [
               Row(
                 children: [
-                  const Icon(Icons.account_tree_rounded, size: 18, color: AppTheme.primary),
+                  const Icon(
+                    Icons.account_tree_rounded,
+                    size: 18,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'Hierarchy Organization',
@@ -1387,7 +1552,10 @@ class CategoryScreenState extends State<CategoryScreen> {
               const SizedBox(height: 6),
               Text(
                 'Organize your catalog by grouping products into Main Categories and detailed Subcategories for effortless browsing.',
-                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary),
+                style: GoogleFonts.inter(
+                  fontSize: 12,
+                  color: AppTheme.textSecondary,
+                ),
               ),
               const SizedBox(height: 12),
               Wrap(
@@ -1395,7 +1563,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                 runSpacing: 8,
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.primaryLight,
                       borderRadius: BorderRadius.circular(8),
@@ -1403,7 +1574,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.folder, size: 13, color: AppTheme.primary),
+                        const Icon(
+                          Icons.folder,
+                          size: 13,
+                          color: AppTheme.primary,
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           '${_parentCategories.length} Main Categories',
@@ -1417,7 +1592,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF3E8FF),
                       borderRadius: BorderRadius.circular(8),
@@ -1425,7 +1603,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const Icon(Icons.account_tree, size: 13, color: Color(0xFF7C3AED)),
+                        const Icon(
+                          Icons.account_tree,
+                          size: 13,
+                          color: Color(0xFF7C3AED),
+                        ),
                         const SizedBox(width: 5),
                         Text(
                           '${_subCategories.length} Subcategories',
@@ -1525,10 +1707,22 @@ class CategoryScreenState extends State<CategoryScreen> {
                     style: GoogleFonts.inter(fontSize: 12.5),
                     decoration: InputDecoration(
                       hintText: 'Search categories...',
-                      hintStyle: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.textMuted),
-                      prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textMuted),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        color: AppTheme.textMuted,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 16,
+                        color: AppTheme.textMuted,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 14),
@@ -1552,7 +1746,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 style: IconButton.styleFrom(
                   backgroundColor: AppTheme.bgSubtle,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1564,10 +1760,18 @@ class CategoryScreenState extends State<CategoryScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  textStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -1578,201 +1782,244 @@ class CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildViewToggleBar() {
-    return LayoutBuilder(builder: (context, constraints) {
-      final isNarrow = constraints.maxWidth < 600;
-      return Flex(
-        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-        crossAxisAlignment: isNarrow ? CrossAxisAlignment.start : CrossAxisAlignment.center,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // View Toggle Tabs (Expanded on mobile so they never overflow)
-          Container(
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: AppTheme.bgSurface,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppTheme.borderLight),
-            ),
-            child: Row(
-              mainAxisSize: isNarrow ? MainAxisSize.max : MainAxisSize.min,
-              children: [
-                // Main Categories Toggle
-                Expanded(
-                  flex: isNarrow ? 1 : 0,
-                  child: InkWell(
-                    onTap: () => setState(() => _categoryViewTab = 'main'),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: _categoryViewTab == 'main' ? AppTheme.primary : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.folder,
-                            size: 14,
-                            color: _categoryViewTab == 'main' ? Colors.white : AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              'Main Categories',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _categoryViewTab == 'main' ? Colors.white : AppTheme.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: _categoryViewTab == 'main'
-                                  ? Colors.white.withValues(alpha: 0.25)
-                                  : AppTheme.bgSubtle,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${_parentCategories.length}',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: _categoryViewTab == 'main'
-                                    ? Colors.white
-                                    : AppTheme.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(width: 4),
-
-                // Subcategories Toggle
-                Expanded(
-                  flex: isNarrow ? 1 : 0,
-                  child: InkWell(
-                    onTap: () => setState(() => _categoryViewTab = 'sub'),
-                    borderRadius: BorderRadius.circular(8),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-                      decoration: BoxDecoration(
-                        color: _categoryViewTab == 'sub' ? const Color(0xFF7C3AED) : Colors.transparent,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.account_tree,
-                            size: 14,
-                            color: _categoryViewTab == 'sub' ? Colors.white : AppTheme.textSecondary,
-                          ),
-                          const SizedBox(width: 5),
-                          Flexible(
-                            child: Text(
-                              'Subcategories',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: _categoryViewTab == 'sub' ? Colors.white : AppTheme.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ),
-                          const SizedBox(width: 5),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                            decoration: BoxDecoration(
-                              color: _categoryViewTab == 'sub'
-                                  ? Colors.white.withValues(alpha: 0.25)
-                                  : AppTheme.bgSubtle,
-                              borderRadius: BorderRadius.circular(10),
-                            ),
-                            child: Text(
-                              '${_subCategories.length}',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w700,
-                                color: _categoryViewTab == 'sub'
-                                    ? Colors.white
-                                    : AppTheme.textSecondary,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-          // In Subcategories View: Filter by Parent Dropdown
-          if (_categoryViewTab == 'sub' && _parentCategories.isNotEmpty) ...[
-            SizedBox(height: isNarrow ? 8 : 0),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isNarrow = constraints.maxWidth < 600;
+        return Flex(
+          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+          crossAxisAlignment: isNarrow
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // View Toggle Tabs (Expanded on mobile so they never overflow)
             Container(
-              width: isNarrow ? double.infinity : null,
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              padding: const EdgeInsets.all(4),
               decoration: BoxDecoration(
                 color: AppTheme.bgSurface,
-                borderRadius: BorderRadius.circular(10),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(color: AppTheme.borderLight),
               ),
               child: Row(
+                mainAxisSize: isNarrow ? MainAxisSize.max : MainAxisSize.min,
                 children: [
-                  const Icon(Icons.filter_list, size: 15, color: AppTheme.primary),
-                  const SizedBox(width: 6),
-                  Text(
-                    'Parent:',
-                    style: GoogleFonts.inter(
-                      fontSize: 11.5,
-                      fontWeight: FontWeight.w600,
-                      color: AppTheme.textSecondary,
+                  // Main Categories Toggle
+                  Expanded(
+                    flex: isNarrow ? 1 : 0,
+                    child: InkWell(
+                      onTap: () => setState(() => _categoryViewTab = 'main'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _categoryViewTab == 'main'
+                              ? AppTheme.primary
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.folder,
+                              size: 14,
+                              color: _categoryViewTab == 'main'
+                                  ? Colors.white
+                                  : AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                'Main Categories',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _categoryViewTab == 'main'
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _categoryViewTab == 'main'
+                                    ? Colors.white.withValues(alpha: 0.25)
+                                    : AppTheme.bgSubtle,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${_parentCategories.length}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: _categoryViewTab == 'main'
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
-                  const SizedBox(width: 6),
+                  const SizedBox(width: 4),
+
+                  // Subcategories Toggle
                   Expanded(
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedParentFilter,
-                        isExpanded: true,
-                        style: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.textPrimary),
-                        items: [
-                          DropdownMenuItem(
-                            value: 'all',
-                            child: Text('All Main Categories (${_subCategories.length})'),
-                          ),
-                          ..._parentCategories.map((p) {
-                            return DropdownMenuItem(
-                              value: p.id.toString(),
-                              child: Text('${p.name} (${_getSubCount(p.id)})'),
-                            );
-                          }),
-                        ],
-                        onChanged: (val) {
-                          if (val != null) setState(() => _selectedParentFilter = val);
-                        },
+                    flex: isNarrow ? 1 : 0,
+                    child: InkWell(
+                      onTap: () => setState(() => _categoryViewTab = 'sub'),
+                      borderRadius: BorderRadius.circular(8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 7,
+                        ),
+                        decoration: BoxDecoration(
+                          color: _categoryViewTab == 'sub'
+                              ? const Color(0xFF7C3AED)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.account_tree,
+                              size: 14,
+                              color: _categoryViewTab == 'sub'
+                                  ? Colors.white
+                                  : AppTheme.textSecondary,
+                            ),
+                            const SizedBox(width: 5),
+                            Flexible(
+                              child: Text(
+                                'Subcategories',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: _categoryViewTab == 'sub'
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                            const SizedBox(width: 5),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 5,
+                                vertical: 1,
+                              ),
+                              decoration: BoxDecoration(
+                                color: _categoryViewTab == 'sub'
+                                    ? Colors.white.withValues(alpha: 0.25)
+                                    : AppTheme.bgSubtle,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '${_subCategories.length}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w700,
+                                  color: _categoryViewTab == 'sub'
+                                      ? Colors.white
+                                      : AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ],
               ),
             ),
+
+            // In Subcategories View: Filter by Parent Dropdown
+            if (_categoryViewTab == 'sub' && _parentCategories.isNotEmpty) ...[
+              SizedBox(height: isNarrow ? 8 : 0),
+              Container(
+                width: isNarrow ? double.infinity : null,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 2,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.bgSurface,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: AppTheme.borderLight),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(
+                      Icons.filter_list,
+                      size: 15,
+                      color: AppTheme.primary,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      'Parent:',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Expanded(
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButton<String>(
+                          value: _selectedParentFilter,
+                          isExpanded: true,
+                          style: GoogleFonts.inter(
+                            fontSize: 11.5,
+                            color: AppTheme.textPrimary,
+                          ),
+                          items: [
+                            DropdownMenuItem(
+                              value: 'all',
+                              child: Text(
+                                'All Main Categories (${_subCategories.length})',
+                              ),
+                            ),
+                            ..._parentCategories.map((p) {
+                              return DropdownMenuItem(
+                                value: p.id.toString(),
+                                child: Text(
+                                  '${p.name} (${_getSubCount(p.id)})',
+                                ),
+                              );
+                            }),
+                          ],
+                          onChanged: (val) {
+                            if (val != null)
+                              setState(() => _selectedParentFilter = val);
+                          },
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ],
-        ],
-      );
-    });
+        );
+      },
+    );
   }
 
   Widget _buildEmptyState(bool isMain) {
@@ -1790,7 +2037,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                isMain ? Icons.folder_off_outlined : Icons.account_tree_outlined,
+                isMain
+                    ? Icons.folder_off_outlined
+                    : Icons.account_tree_outlined,
                 size: 32,
                 color: AppTheme.primary,
               ),
@@ -1809,18 +2058,28 @@ class CategoryScreenState extends State<CategoryScreen> {
               isMain
                   ? 'No main categories match your search or none have been created yet.'
                   : 'No subcategories match your selected parent category or search filter.',
-              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: _switchToRegister,
               icon: const Icon(Icons.add, size: 16),
-              label: Text(isMain ? 'Create First Main Category' : 'Create Subcategory'),
+              label: Text(
+                isMain ? 'Create First Main Category' : 'Create Subcategory',
+              ),
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],
@@ -1830,27 +2089,29 @@ class CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildCategoriesGrid(List<CategoryResponse> items, bool isMain) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final crossAxisCount = constraints.maxWidth > 1100
-          ? 3
-          : (constraints.maxWidth > 650 ? 2 : 1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 1100
+            ? 3
+            : (constraints.maxWidth > 650 ? 2 : 1);
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          mainAxisExtent: 220,
-        ),
-        itemCount: items.length,
-        itemBuilder: (context, index) {
-          final cat = items[index];
-          return _buildCategoryCard(cat, isMain);
-        },
-      );
-    });
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 220,
+          ),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            final cat = items[index];
+            return _buildCategoryCard(cat, isMain);
+          },
+        );
+      },
+    );
   }
 
   Widget _buildCategoryCard(CategoryResponse cat, bool isMain) {
@@ -1880,13 +2141,16 @@ class CategoryScreenState extends State<CategoryScreen> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (cat.categoryImage != null && cat.categoryImage!.isNotEmpty)
+                  if (cat.categoryImage != null &&
+                      cat.categoryImage!.isNotEmpty)
                     Image.network(
                       _categoryService.getFileUrl(cat.categoryImage),
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) => Center(
                         child: Icon(
-                          isMain ? Icons.folder_rounded : Icons.account_tree_rounded,
+                          isMain
+                              ? Icons.folder_rounded
+                              : Icons.account_tree_rounded,
                           size: 36,
                           color: Colors.white38,
                         ),
@@ -1895,7 +2159,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                   else
                     Center(
                       child: Icon(
-                        isMain ? Icons.folder_rounded : Icons.account_tree_rounded,
+                        isMain
+                            ? Icons.folder_rounded
+                            : Icons.account_tree_rounded,
                         size: 36,
                         color: Colors.white30,
                       ),
@@ -1918,9 +2184,14 @@ class CategoryScreenState extends State<CategoryScreen> {
                     top: 8,
                     left: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
-                        color: isMain ? AppTheme.primary : const Color(0xFF7C3AED),
+                        color: isMain
+                            ? AppTheme.primary
+                            : const Color(0xFF7C3AED),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
@@ -1937,7 +2208,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(6),
@@ -1976,7 +2250,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                     const SizedBox(height: 4),
                     if (isMain) ...[
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.primaryLight,
                           borderRadius: BorderRadius.circular(6),
@@ -1984,7 +2261,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.account_tree, size: 11, color: AppTheme.primary),
+                            const Icon(
+                              Icons.account_tree,
+                              size: 11,
+                              color: AppTheme.primary,
+                            ),
                             const SizedBox(width: 4),
                             Text(
                               '$subCount Subcategories',
@@ -2000,7 +2281,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                     ] else ...[
                       Row(
                         children: [
-                          const Icon(Icons.subdirectory_arrow_right, size: 12, color: AppTheme.textMuted),
+                          const Icon(
+                            Icons.subdirectory_arrow_right,
+                            size: 12,
+                            color: AppTheme.textMuted,
+                          ),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
@@ -2040,11 +2325,19 @@ class CategoryScreenState extends State<CategoryScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.visibility_outlined, size: 14, color: AppTheme.textSecondary),
+                            const Icon(
+                              Icons.visibility_outlined,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'View',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -2063,11 +2356,19 @@ class CategoryScreenState extends State<CategoryScreen> {
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.add_circle_outline, size: 14, color: AppTheme.primary),
+                              const Icon(
+                                Icons.add_circle_outline,
+                                size: 14,
+                                color: AppTheme.primary,
+                              ),
                               const SizedBox(width: 3),
                               Text(
                                 '+ Sub',
-                                style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w700, color: AppTheme.primary),
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w700,
+                                  color: AppTheme.primary,
+                                ),
                               ),
                             ],
                           ),
@@ -2086,11 +2387,19 @@ class CategoryScreenState extends State<CategoryScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.edit_outlined, size: 14, color: Color(0xFF2563EB)),
+                            const Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: Color(0xFF2563EB),
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'Edit',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2563EB),
+                              ),
                             ),
                           ],
                         ),
@@ -2104,7 +2413,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                     borderRadius: BorderRadius.circular(6),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Icon(Icons.delete_outline, size: 15, color: AppTheme.error),
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: 15,
+                        color: AppTheme.error,
+                      ),
                     ),
                   ),
                 ],
@@ -2120,7 +2433,9 @@ class CategoryScreenState extends State<CategoryScreen> {
   Widget _buildCategoryDetailModal(CategoryResponse cat) {
     final isSub = cat.parentId != null;
     final parentName = cat.parentName ?? _getParentName(cat.parentId);
-    final nestedSubs = _subCategories.where((s) => s.parentId == cat.id).toList();
+    final nestedSubs = _subCategories
+        .where((s) => s.parentId == cat.id)
+        .toList();
 
     return Container(
       color: Colors.black54,
@@ -2144,7 +2459,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                 padding: const EdgeInsets.all(20),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
-                  border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderLight),
+                  ),
                 ),
                 child: Row(
                   children: [
@@ -2156,13 +2473,21 @@ class CategoryScreenState extends State<CategoryScreen> {
                             children: [
                               Text(
                                 'Category Detail • ID #${cat.id}',
-                                style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                                style: GoogleFonts.inter(
+                                  fontSize: 12,
+                                  color: AppTheme.textMuted,
+                                ),
                               ),
                               const SizedBox(width: 8),
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
                                 decoration: BoxDecoration(
-                                  color: isSub ? const Color(0xFFF3E8FF) : AppTheme.primaryLight,
+                                  color: isSub
+                                      ? const Color(0xFFF3E8FF)
+                                      : AppTheme.primaryLight,
                                   borderRadius: BorderRadius.circular(6),
                                 ),
                                 child: Text(
@@ -2170,7 +2495,9 @@ class CategoryScreenState extends State<CategoryScreen> {
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     fontWeight: FontWeight.w700,
-                                    color: isSub ? const Color(0xFF7C3AED) : AppTheme.primary,
+                                    color: isSub
+                                        ? const Color(0xFF7C3AED)
+                                        : AppTheme.primary,
                                   ),
                                 ),
                               ),
@@ -2214,7 +2541,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                         children: [
                           _buildModalMetaItem('Category ID', '#${cat.id}'),
                           _buildModalMetaItem('Name', cat.name),
-                          _buildModalMetaItem('Type', isSub ? 'Subcategory' : 'Main Category'),
+                          _buildModalMetaItem(
+                            'Type',
+                            isSub ? 'Subcategory' : 'Main Category',
+                          ),
                         ],
                       ),
                     ),
@@ -2238,7 +2568,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                                 color: AppTheme.primaryLight,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: const Icon(Icons.folder, size: 20, color: AppTheme.primary),
+                              child: const Icon(
+                                Icons.folder,
+                                size: 20,
+                                color: AppTheme.primary,
+                              ),
                             ),
                             const SizedBox(width: 12),
                             Column(
@@ -2246,7 +2580,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                               children: [
                                 Text(
                                   'Parent Category',
-                                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: AppTheme.textMuted,
+                                  ),
                                 ),
                                 Text(
                                   '$parentName (ID #${cat.parentId})',
@@ -2271,7 +2608,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.account_tree_rounded, size: 16, color: AppTheme.primary),
+                              const Icon(
+                                Icons.account_tree_rounded,
+                                size: 16,
+                                color: AppTheme.primary,
+                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'Nested Subcategories (${nestedSubs.length})',
@@ -2289,14 +2630,21 @@ class CategoryScreenState extends State<CategoryScreen> {
                             },
                             borderRadius: BorderRadius.circular(8),
                             child: Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
                               decoration: BoxDecoration(
                                 color: AppTheme.primaryLight,
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Row(
                                 children: [
-                                  const Icon(Icons.add, size: 13, color: AppTheme.primary),
+                                  const Icon(
+                                    Icons.add,
+                                    size: 13,
+                                    color: AppTheme.primary,
+                                  ),
                                   const SizedBox(width: 3),
                                   Text(
                                     'Add Subcategory',
@@ -2323,7 +2671,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                           ),
                           child: Text(
                             'No subcategories created yet under ${cat.name}.',
-                            style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textMuted,
+                            ),
                           ),
                         )
                       else
@@ -2337,16 +2688,25 @@ class CategoryScreenState extends State<CategoryScreen> {
                               },
                               borderRadius: BorderRadius.circular(8),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 6,
+                                ),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFFF3E8FF),
                                   borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(color: const Color(0xFFE9D5FF)),
+                                  border: Border.all(
+                                    color: const Color(0xFFE9D5FF),
+                                  ),
                                 ),
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(Icons.label, size: 12, color: Color(0xFF7C3AED)),
+                                    const Icon(
+                                      Icons.label,
+                                      size: 12,
+                                      color: Color(0xFF7C3AED),
+                                    ),
                                     const SizedBox(width: 5),
                                     Text(
                                       sub.name,
@@ -2359,7 +2719,10 @@ class CategoryScreenState extends State<CategoryScreen> {
                                     const SizedBox(width: 5),
                                     Text(
                                       '#${sub.id}',
-                                      style: GoogleFonts.inter(fontSize: 10, color: Color(0xFF9333EA)),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        color: Color(0xFF9333EA),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -2371,7 +2734,8 @@ class CategoryScreenState extends State<CategoryScreen> {
                     ],
 
                     // Image Display
-                    if (cat.categoryImage != null && cat.categoryImage!.isNotEmpty) ...[
+                    if (cat.categoryImage != null &&
+                        cat.categoryImage!.isNotEmpty) ...[
                       Text(
                         'Category Banner / Image',
                         style: GoogleFonts.inter(
@@ -2392,9 +2756,14 @@ class CategoryScreenState extends State<CategoryScreen> {
                         child: Image.network(
                           _categoryService.getFileUrl(cat.categoryImage),
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) => const Center(
-                            child: Icon(Icons.broken_image, size: 40, color: AppTheme.textMuted),
-                          ),
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Center(
+                                child: Icon(
+                                  Icons.broken_image,
+                                  size: 40,
+                                  color: AppTheme.textMuted,
+                                ),
+                              ),
                         ),
                       ),
                     ],
@@ -2404,7 +2773,10 @@ class CategoryScreenState extends State<CategoryScreen> {
 
               // Modal Footer Actions
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 14,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(top: BorderSide(color: AppTheme.borderLight)),
@@ -2420,7 +2792,11 @@ class CategoryScreenState extends State<CategoryScreen> {
                             setState(() => _selectedCategory = null);
                             _promptDelete(target);
                           },
-                          icon: const Icon(Icons.delete_outline, size: 16, color: AppTheme.error),
+                          icon: const Icon(
+                            Icons.delete_outline,
+                            size: 16,
+                            color: AppTheme.error,
+                          ),
                           label: Text(
                             'Delete',
                             style: GoogleFonts.inter(
@@ -2431,8 +2807,13 @@ class CategoryScreenState extends State<CategoryScreen> {
                           ),
                           style: OutlinedButton.styleFrom(
                             side: const BorderSide(color: Color(0xFFFECACA)),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                         const SizedBox(width: 8),
@@ -2446,9 +2827,17 @@ class CategoryScreenState extends State<CategoryScreen> {
                             backgroundColor: AppTheme.primary,
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                            textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 10,
+                            ),
+                            textStyle: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           ),
                         ),
                       ],
@@ -2456,10 +2845,18 @@ class CategoryScreenState extends State<CategoryScreen> {
                     OutlinedButton(
                       onPressed: () => setState(() => _selectedCategory = null),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
+                        ),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      child: Text('Close', style: GoogleFonts.inter(fontSize: 12)),
+                      child: Text(
+                        'Close',
+                        style: GoogleFonts.inter(fontSize: 12),
+                      ),
                     ),
                   ],
                 ),
@@ -2474,7 +2871,10 @@ class CategoryScreenState extends State<CategoryScreen> {
   Widget _buildModalMetaItem(String label, String value) {
     return Column(
       children: [
-        Text(label, style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted)),
+        Text(
+          label,
+          style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
+        ),
         const SizedBox(height: 2),
         Text(
           value,

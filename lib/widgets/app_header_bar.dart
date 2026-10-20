@@ -36,7 +36,11 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                 color: AppTheme.errorBg,
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: const Icon(Icons.logout_rounded, color: AppTheme.error, size: 22),
+              child: const Icon(
+                Icons.logout_rounded,
+                color: AppTheme.error,
+                size: 22,
+              ),
             ),
             const SizedBox(width: 12),
             Text(
@@ -51,14 +55,21 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
         ),
         content: Text(
           'Are you sure you want to sign out from the enterprise session?',
-          style: GoogleFonts.inter(fontSize: 13.5, color: AppTheme.textSecondary, height: 1.4),
+          style: GoogleFonts.inter(
+            fontSize: 13.5,
+            color: AppTheme.textSecondary,
+            height: 1.4,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
             child: Text(
               'Cancel',
-              style: GoogleFonts.inter(color: AppTheme.textSecondary, fontWeight: FontWeight.w600),
+              style: GoogleFonts.inter(
+                color: AppTheme.textSecondary,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           ElevatedButton(
@@ -68,10 +79,12 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
               Navigator.pushAndRemoveUntil(
                 context,
                 PageRouteBuilder(
-                  pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
-                  transitionsBuilder: (context, animation, secondaryAnimation, child) {
-                    return FadeTransition(opacity: animation, child: child);
-                  },
+                  pageBuilder: (context, animation, secondaryAnimation) =>
+                      const LoginScreen(),
+                  transitionsBuilder:
+                      (context, animation, secondaryAnimation, child) {
+                        return FadeTransition(opacity: animation, child: child);
+                      },
                   transitionDuration: const Duration(milliseconds: 300),
                 ),
                 (route) => false,
@@ -162,11 +175,18 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                     },
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isOnline ? AppTheme.successBg : AppTheme.bgSubtle,
+                        color: isOnline
+                            ? AppTheme.successBg
+                            : AppTheme.bgSubtle,
                         border: Border.all(
-                          color: isOnline ? AppTheme.successBorder : AppTheme.borderMedium,
+                          color: isOnline
+                              ? AppTheme.successBorder
+                              : AppTheme.borderMedium,
                           width: 1,
                         ),
                         borderRadius: BorderRadius.circular(20),
@@ -179,14 +199,18 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                             height: 7,
                             decoration: BoxDecoration(
                               shape: BoxShape.circle,
-                              color: isOnline ? AppTheme.success : AppTheme.textMuted,
+                              color: isOnline
+                                  ? AppTheme.success
+                                  : AppTheme.textMuted,
                               boxShadow: isOnline
                                   ? [
                                       BoxShadow(
-                                        color: AppTheme.success.withValues(alpha: 0.5),
+                                        color: AppTheme.success.withValues(
+                                          alpha: 0.5,
+                                        ),
                                         blurRadius: 4,
                                         spreadRadius: 1,
-                                      )
+                                      ),
                                     ]
                                   : null,
                             ),
@@ -197,7 +221,9 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
-                              color: isOnline ? const Color(0xFF065F46) : AppTheme.textSecondary,
+                              color: isOnline
+                                  ? const Color(0xFF065F46)
+                                  : AppTheme.textSecondary,
                             ),
                           ),
                         ],
@@ -211,7 +237,11 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
 
               // Sign Out Button
               IconButton(
-                icon: const Icon(Icons.logout_rounded, size: 20, color: AppTheme.textSecondary),
+                icon: const Icon(
+                  Icons.logout_rounded,
+                  size: 20,
+                  color: AppTheme.textSecondary,
+                ),
                 tooltip: 'Sign Out',
                 padding: const EdgeInsets.all(6),
                 constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
@@ -224,4 +254,3 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
     );
   }
 }
-

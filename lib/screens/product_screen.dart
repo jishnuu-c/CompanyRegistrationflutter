@@ -123,16 +123,18 @@ class ProductScreenState extends State<ProductScreen> {
     final parents = _parentCategories;
     return _categories.where((c) => c.parentId != null).map((sub) {
       final parent = parents.cast<CategoryResponse?>().firstWhere(
-            (p) => p?.id == sub.parentId,
-            orElse: () => null,
-          );
+        (p) => p?.id == sub.parentId,
+        orElse: () => null,
+      );
       return sub.copyWith(parentName: parent?.name ?? 'None');
     }).toList();
   }
 
   List<CategoryResponse> get _availableFormSubCategories {
     if (_selectedCategoryId == null) return [];
-    return _subCategories.where((s) => s.parentId == _selectedCategoryId).toList();
+    return _subCategories
+        .where((s) => s.parentId == _selectedCategoryId)
+        .toList();
   }
 
   List<CategoryResponse> get _filterSubCategoriesList {
@@ -145,27 +147,27 @@ class ProductScreenState extends State<ProductScreen> {
   String _getCategoryName(int? id) {
     if (id == null) return '';
     final cat = _categories.cast<CategoryResponse?>().firstWhere(
-          (c) => c?.id == id,
-          orElse: () => null,
-        );
+      (c) => c?.id == id,
+      orElse: () => null,
+    );
     return cat?.name ?? 'Category #$id';
   }
 
   String _getSubCategoryName(int? id) {
     if (id == null) return '';
     final sub = _subCategories.cast<CategoryResponse?>().firstWhere(
-          (s) => s?.id == id,
-          orElse: () => null,
-        );
+      (s) => s?.id == id,
+      orElse: () => null,
+    );
     return sub?.name ?? 'Subcategory #$id';
   }
 
   String _getBrandName(int? id) {
     if (id == null) return '';
     final brand = _brands.cast<BrandResponse?>().firstWhere(
-          (b) => b?.id == id,
-          orElse: () => null,
-        );
+      (b) => b?.id == id,
+      orElse: () => null,
+    );
     return brand?.brandName ?? 'Brand #$id';
   }
 
@@ -261,7 +263,8 @@ class ProductScreenState extends State<ProductScreen> {
         _feedback = FeedbackData(
           type: 'error',
           title: 'Validation Error',
-          message: 'Please fill in all required fields (Product Name, Category, and Brand).',
+          message:
+              'Please fill in all required fields (Product Name, Category, and Brand).',
         );
       });
       return;
@@ -319,7 +322,8 @@ class ProductScreenState extends State<ProductScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Product Updated Successfully!',
-            message: 'Product "${response.name}" (ID #${response.id}) has been updated.',
+            message:
+                'Product "${response.name}" (ID #${response.id}) has been updated.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -337,7 +341,8 @@ class ProductScreenState extends State<ProductScreen> {
           _feedback = FeedbackData(
             type: 'success',
             title: 'Product Registered Successfully!',
-            message: 'Product "${response.name}" has been registered with ID #${response.id}.',
+            message:
+                'Product "${response.name}" has been registered with ID #${response.id}.',
           );
           _resetFormFields();
           _activeTab = 'directory';
@@ -349,7 +354,9 @@ class ProductScreenState extends State<ProductScreen> {
         _isSubmitting = false;
         _feedback = FeedbackData(
           type: 'error',
-          title: _editingProductId != null ? 'Update Failed' : 'Registration Failed',
+          title: _editingProductId != null
+              ? 'Update Failed'
+              : 'Registration Failed',
           message: e.toString().replaceAll('Exception: ', ''),
         );
       });
@@ -370,7 +377,8 @@ class ProductScreenState extends State<ProductScreen> {
               _feedback = FeedbackData(
                 type: 'success',
                 title: 'Product Deleted',
-                message: 'Product "${product.name}" has been permanently deleted.',
+                message:
+                    'Product "${product.name}" has been permanently deleted.',
               );
               if (_selectedProduct?.id == product.id) {
                 _selectedProduct = null;
@@ -390,7 +398,8 @@ class ProductScreenState extends State<ProductScreen> {
     final query = _searchQuery.toLowerCase().trim();
     return _products.where((p) {
       // Search match
-      final matchesQuery = query.isEmpty ||
+      final matchesQuery =
+          query.isEmpty ||
           p.name.toLowerCase().contains(query) ||
           p.id.toString().contains(query) ||
           (p.brandName ?? '').toLowerCase().contains(query) ||
@@ -400,12 +409,14 @@ class ProductScreenState extends State<ProductScreen> {
       if (!matchesQuery) return false;
 
       // Category filter
-      if (_filterCategory != 'all' && p.categoryId.toString() != _filterCategory) {
+      if (_filterCategory != 'all' &&
+          p.categoryId.toString() != _filterCategory) {
         return false;
       }
 
       // Subcategory filter
-      if (_filterSubCategory != 'all' && p.subCategoryId?.toString() != _filterSubCategory) {
+      if (_filterSubCategory != 'all' &&
+          p.subCategoryId?.toString() != _filterSubCategory) {
         return false;
       }
 
@@ -440,7 +451,9 @@ class ProductScreenState extends State<ProductScreen> {
                 ),
               Expanded(
                 child: _activeTab == 'register'
-                    ? (isDesktop ? _buildDesktopRegisterView() : _buildMobileRegisterView())
+                    ? (isDesktop
+                          ? _buildDesktopRegisterView()
+                          : _buildMobileRegisterView())
                     : _buildDirectoryView(),
               ),
             ],
@@ -474,7 +487,10 @@ class ProductScreenState extends State<ProductScreen> {
               onTap: _switchToRegister,
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
                   color: _activeTab == 'register' && _editingProductId == null
                       ? AppTheme.primaryLight
@@ -492,7 +508,8 @@ class ProductScreenState extends State<ProductScreen> {
                     Icon(
                       Icons.add_circle,
                       size: 16,
-                      color: _activeTab == 'register' && _editingProductId == null
+                      color:
+                          _activeTab == 'register' && _editingProductId == null
                           ? AppTheme.primary
                           : AppTheme.textSecondary,
                     ),
@@ -502,7 +519,9 @@ class ProductScreenState extends State<ProductScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'register' && _editingProductId == null
+                        color:
+                            _activeTab == 'register' &&
+                                _editingProductId == null
                             ? AppTheme.primary
                             : AppTheme.textSecondary,
                       ),
@@ -516,11 +535,16 @@ class ProductScreenState extends State<ProductScreen> {
             // Edit Product Pill
             if (_editingProductId != null) ...[
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppTheme.warningBg,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                  border: Border.all(
+                    color: AppTheme.warning.withValues(alpha: 0.4),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -530,7 +554,11 @@ class ProductScreenState extends State<ProductScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.edit, size: 14, color: AppTheme.warning),
+                          const Icon(
+                            Icons.edit,
+                            size: 14,
+                            color: AppTheme.warning,
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             'Edit #$_editingProductId',
@@ -547,7 +575,11 @@ class ProductScreenState extends State<ProductScreen> {
                     InkWell(
                       onTap: _switchToRegister,
                       borderRadius: BorderRadius.circular(10),
-                      child: const Icon(Icons.close, size: 14, color: Color(0xFFB45309)),
+                      child: const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Color(0xFFB45309),
+                      ),
                     ),
                   ],
                 ),
@@ -560,9 +592,14 @@ class ProductScreenState extends State<ProductScreen> {
               onTap: () => setState(() => _activeTab = 'directory'),
               borderRadius: BorderRadius.circular(10),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 8,
+                ),
                 decoration: BoxDecoration(
-                  color: _activeTab == 'directory' ? AppTheme.primaryLight : Colors.transparent,
+                  color: _activeTab == 'directory'
+                      ? AppTheme.primaryLight
+                      : Colors.transparent,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
                     color: _activeTab == 'directory'
@@ -576,7 +613,9 @@ class ProductScreenState extends State<ProductScreen> {
                     Icon(
                       Icons.grid_view_rounded,
                       size: 16,
-                      color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                      color: _activeTab == 'directory'
+                          ? AppTheme.primary
+                          : AppTheme.textSecondary,
                     ),
                     const SizedBox(width: 6),
                     Text(
@@ -584,12 +623,17 @@ class ProductScreenState extends State<ProductScreen> {
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
-                        color: _activeTab == 'directory' ? AppTheme.primary : AppTheme.textSecondary,
+                        color: _activeTab == 'directory'
+                            ? AppTheme.primary
+                            : AppTheme.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
                       decoration: BoxDecoration(
                         color: _activeTab == 'directory'
                             ? AppTheme.primary
@@ -654,25 +698,36 @@ class ProductScreenState extends State<ProductScreen> {
               onTap: () => setState(() => _showLivePreview = !_showLivePreview),
               borderRadius: BorderRadius.circular(12),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
                 decoration: BoxDecoration(
-                  color: _showLivePreview ? AppTheme.primaryLight : AppTheme.bgSurface,
+                  color: _showLivePreview
+                      ? AppTheme.primaryLight
+                      : AppTheme.bgSurface,
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(
-                    color: _showLivePreview ? AppTheme.primary : AppTheme.borderLight,
+                    color: _showLivePreview
+                        ? AppTheme.primary
+                        : AppTheme.borderLight,
                   ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      _showLivePreview ? Icons.visibility_off : Icons.visibility,
+                      _showLivePreview
+                          ? Icons.visibility_off
+                          : Icons.visibility,
                       size: 18,
                       color: AppTheme.primary,
                     ),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
-                        _showLivePreview ? 'Hide Live Preview' : 'Show Live Card Preview',
+                        _showLivePreview
+                            ? 'Hide Live Preview'
+                            : 'Show Live Card Preview',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,
@@ -730,7 +785,8 @@ class ProductScreenState extends State<ProductScreen> {
               _buildFormCard(
                 stepNum: '01',
                 title: 'Core Specifications',
-                subtitle: 'Product title, taxonomy hierarchy assignment, and details',
+                subtitle:
+                    'Product title, taxonomy hierarchy assignment, and details',
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -748,8 +804,13 @@ class ProductScreenState extends State<ProductScreen> {
                       controller: _nameController,
                       style: GoogleFonts.inter(fontSize: 14),
                       decoration: InputDecoration(
-                        hintText: 'e.g. MacBook Pro M3, Air Max 90, Galaxy S24 Ultra...',
-                        prefixIcon: const Icon(Icons.inventory_2_outlined, size: 18, color: AppTheme.textMuted),
+                        hintText:
+                            'e.g. MacBook Pro M3, Air Max 90, Galaxy S24 Ultra...',
+                        prefixIcon: const Icon(
+                          Icons.inventory_2_outlined,
+                          size: 18,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                       onChanged: (_) => setState(() {}),
                       validator: (value) {
@@ -762,162 +823,227 @@ class ProductScreenState extends State<ProductScreen> {
                     const SizedBox(height: 16),
 
                     // Main Category & Subcategory Row
-                    LayoutBuilder(builder: (context, constraints) {
-                      final isNarrow = constraints.maxWidth < 600;
-                      return Flex(
-                        direction: isNarrow ? Axis.vertical : Axis.horizontal,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Main Category Selector
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Main Category *',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: AppTheme.bgSurface,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppTheme.borderLight),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<int?>(
-                                      isExpanded: true,
-                                      value: _selectedCategoryId,
-                                      icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
-                                      hint: Row(
-                                        children: [
-                                          const Icon(Icons.folder_open, size: 18, color: AppTheme.textMuted),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            (_isLoadingPrereqs ? 'Loading Categories...' : '-- Select Main Category --'),
-                                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted),
-                                          ),
-                                        ],
-                                      ),
-                                      items: _parentCategories.map((cat) {
-                                        return DropdownMenuItem<int?>(
-                                          value: cat.id,
-                                          child: Row(
-                                            children: [
-                                              const Icon(Icons.folder, size: 16, color: AppTheme.primary),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                '${cat.name} (ID #${cat.id})',
-                                                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }).toList(),
-                                      onChanged: (val) {
-                                        setState(() {
-                                          _selectedCategoryId = val;
-                                          // Check if current subcategory is still valid under new parent
-                                          if (_selectedSubCategoryId != null) {
-                                            final isValid = _availableFormSubCategories
-                                                .any((s) => s.id == _selectedSubCategoryId);
-                                            if (!isValid) _selectedSubCategoryId = null;
-                                          }
-                                        });
-                                      },
+                    LayoutBuilder(
+                      builder: (context, constraints) {
+                        final isNarrow = constraints.maxWidth < 600;
+                        return Flex(
+                          direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Main Category Selector
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Main Category *',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
                                     ),
                                   ),
-                                ),
-                              ],
-                            ),
-                          ),
-                          SizedBox(width: isNarrow ? 0 : 14, height: isNarrow ? 14 : 0),
-
-                          // Subcategory Selector
-                          Expanded(
-                            flex: isNarrow ? 0 : 1,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Subcategory (Optional)',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                const SizedBox(height: 6),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    color: _selectedCategoryId == null ? AppTheme.bgSubtle : AppTheme.bgSurface,
-                                    borderRadius: BorderRadius.circular(12),
-                                    border: Border.all(color: AppTheme.borderLight),
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<int?>(
-                                      isExpanded: true,
-                                      value: _selectedSubCategoryId,
-                                      icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
-                                      hint: Row(
-                                        children: [
-                                          const Icon(Icons.account_tree_outlined, size: 18, color: AppTheme.textMuted),
-                                          const SizedBox(width: 8),
-                                          Text(
-                                            _selectedCategoryId == null
-                                                ? 'Select Main Category first'
-                                                : 'None (Main Category Only)',
-                                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted),
-                                          ),
-                                        ],
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: AppTheme.bgSurface,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppTheme.borderLight,
                                       ),
-                                      items: [
-                                        DropdownMenuItem<int?>(
-                                          value: null,
-                                          child: Text(
-                                            'None (Main Category Only)',
-                                            style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted),
-                                          ),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<int?>(
+                                        isExpanded: true,
+                                        value: _selectedCategoryId,
+                                        icon: const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          color: AppTheme.textSecondary,
                                         ),
-                                        ..._availableFormSubCategories.map((sub) {
+                                        hint: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.folder_open,
+                                              size: 18,
+                                              color: AppTheme.textMuted,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              (_isLoadingPrereqs
+                                                  ? 'Loading Categories...'
+                                                  : '-- Select Main Category --'),
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: AppTheme.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        items: _parentCategories.map((cat) {
                                           return DropdownMenuItem<int?>(
-                                            value: sub.id,
+                                            value: cat.id,
                                             child: Row(
                                               children: [
-                                                const Icon(Icons.label, size: 15, color: Color(0xFF7C3AED)),
+                                                const Icon(
+                                                  Icons.folder,
+                                                  size: 16,
+                                                  color: AppTheme.primary,
+                                                ),
                                                 const SizedBox(width: 8),
                                                 Text(
-                                                  '${sub.name} (ID #${sub.id})',
-                                                  style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
+                                                  '${cat.name} (ID #${cat.id})',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 13,
+                                                    color: AppTheme.textPrimary,
+                                                  ),
                                                 ),
                                               ],
                                             ),
                                           );
-                                        }),
-                                      ],
-                                      onChanged: _selectedCategoryId == null
-                                          ? null
-                                          : (val) {
-                                              setState(() {
-                                                _selectedSubCategoryId = val;
-                                              });
-                                            },
+                                        }).toList(),
+                                        onChanged: (val) {
+                                          setState(() {
+                                            _selectedCategoryId = val;
+                                            // Check if current subcategory is still valid under new parent
+                                            if (_selectedSubCategoryId !=
+                                                null) {
+                                              final isValid =
+                                                  _availableFormSubCategories.any(
+                                                    (s) =>
+                                                        s.id ==
+                                                        _selectedSubCategoryId,
+                                                  );
+                                              if (!isValid)
+                                                _selectedSubCategoryId = null;
+                                            }
+                                          });
+                                        },
+                                      ),
                                     ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      );
-                    }),
+                            SizedBox(
+                              width: isNarrow ? 0 : 14,
+                              height: isNarrow ? 14 : 0,
+                            ),
+
+                            // Subcategory Selector
+                            Expanded(
+                              flex: isNarrow ? 0 : 1,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Subcategory (Optional)',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textPrimary,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 6),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 14,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: _selectedCategoryId == null
+                                          ? AppTheme.bgSubtle
+                                          : AppTheme.bgSurface,
+                                      borderRadius: BorderRadius.circular(12),
+                                      border: Border.all(
+                                        color: AppTheme.borderLight,
+                                      ),
+                                    ),
+                                    child: DropdownButtonHideUnderline(
+                                      child: DropdownButton<int?>(
+                                        isExpanded: true,
+                                        value: _selectedSubCategoryId,
+                                        icon: const Icon(
+                                          Icons.keyboard_arrow_down,
+                                          color: AppTheme.textSecondary,
+                                        ),
+                                        hint: Row(
+                                          children: [
+                                            const Icon(
+                                              Icons.account_tree_outlined,
+                                              size: 18,
+                                              color: AppTheme.textMuted,
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Text(
+                                              _selectedCategoryId == null
+                                                  ? 'Select Main Category first'
+                                                  : 'None (Main Category Only)',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: AppTheme.textMuted,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        items: [
+                                          DropdownMenuItem<int?>(
+                                            value: null,
+                                            child: Text(
+                                              'None (Main Category Only)',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: AppTheme.textMuted,
+                                              ),
+                                            ),
+                                          ),
+                                          ..._availableFormSubCategories.map((
+                                            sub,
+                                          ) {
+                                            return DropdownMenuItem<int?>(
+                                              value: sub.id,
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.label,
+                                                    size: 15,
+                                                    color: Color(0xFF7C3AED),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    '${sub.name} (ID #${sub.id})',
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 13,
+                                                      color:
+                                                          AppTheme.textPrimary,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            );
+                                          }),
+                                        ],
+                                        onChanged: _selectedCategoryId == null
+                                            ? null
+                                            : (val) {
+                                                setState(() {
+                                                  _selectedSubCategoryId = val;
+                                                });
+                                              },
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                     const SizedBox(height: 16),
 
                     // Brand Selector
@@ -931,7 +1057,10 @@ class ProductScreenState extends State<ProductScreen> {
                     ),
                     const SizedBox(height: 6),
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 14,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.bgSurface,
                         borderRadius: BorderRadius.circular(12),
@@ -941,14 +1070,24 @@ class ProductScreenState extends State<ProductScreen> {
                         child: DropdownButton<int?>(
                           isExpanded: true,
                           value: _selectedBrandId,
-                          icon: const Icon(Icons.keyboard_arrow_down, color: AppTheme.textSecondary),
+                          icon: const Icon(
+                            Icons.keyboard_arrow_down,
+                            color: AppTheme.textSecondary,
+                          ),
                           hint: Row(
                             children: [
-                              const Icon(Icons.verified_outlined, size: 18, color: AppTheme.textMuted),
+                              const Icon(
+                                Icons.verified_outlined,
+                                size: 18,
+                                color: AppTheme.textMuted,
+                              ),
                               const SizedBox(width: 8),
                               Text(
                                 '-- Select Brand --',
-                                style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textMuted),
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: AppTheme.textMuted,
+                                ),
                               ),
                             ],
                           ),
@@ -957,7 +1096,8 @@ class ProductScreenState extends State<ProductScreen> {
                               value: b.id,
                               child: Row(
                                 children: [
-                                  if (b.brandLogo != null && b.brandLogo!.isNotEmpty)
+                                  if (b.brandLogo != null &&
+                                      b.brandLogo!.isNotEmpty)
                                     ClipRRect(
                                       borderRadius: BorderRadius.circular(4),
                                       child: Image.network(
@@ -965,7 +1105,13 @@ class ProductScreenState extends State<ProductScreen> {
                                         width: 20,
                                         height: 20,
                                         fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) => const Icon(Icons.verified, size: 16, color: AppTheme.primary),
+                                        errorBuilder:
+                                            (context, error, stackTrace) =>
+                                                const Icon(
+                                                  Icons.verified,
+                                                  size: 16,
+                                                  color: AppTheme.primary,
+                                                ),
                                       ),
                                     )
                                   else
@@ -979,23 +1125,35 @@ class ProductScreenState extends State<ProductScreen> {
                                       alignment: Alignment.center,
                                       child: Text(
                                         b.initials,
-                                        style: GoogleFonts.inter(fontSize: 9, fontWeight: FontWeight.w700, color: AppTheme.primary),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 9,
+                                          fontWeight: FontWeight.w700,
+                                          color: AppTheme.primary,
+                                        ),
                                       ),
                                     ),
                                   const SizedBox(width: 10),
                                   Text(
                                     b.brandName,
-                                    style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textPrimary),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: AppTheme.textPrimary,
+                                    ),
                                   ),
                                   if (b.isFeatured) ...[
                                     const SizedBox(width: 6),
-                                    const Icon(Icons.star, size: 13, color: Color(0xFFF59E0B)),
+                                    const Icon(
+                                      Icons.star,
+                                      size: 13,
+                                      color: Color(0xFFF59E0B),
+                                    ),
                                   ],
                                 ],
                               ),
                             );
                           }).toList(),
-                          onChanged: (val) => setState(() => _selectedBrandId = val),
+                          onChanged: (val) =>
+                              setState(() => _selectedBrandId = val),
                         ),
                       ),
                     ),
@@ -1005,10 +1163,14 @@ class ProductScreenState extends State<ProductScreen> {
                     Container(
                       padding: const EdgeInsets.all(14),
                       decoration: BoxDecoration(
-                        color: _isFeatured ? const Color(0xFFFFFBEB) : AppTheme.bgSubtle,
+                        color: _isFeatured
+                            ? const Color(0xFFFFFBEB)
+                            : AppTheme.bgSubtle,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: _isFeatured ? const Color(0xFFFDE68A) : AppTheme.borderLight,
+                          color: _isFeatured
+                              ? const Color(0xFFFDE68A)
+                              : AppTheme.borderLight,
                         ),
                       ),
                       child: Row(
@@ -1017,12 +1179,16 @@ class ProductScreenState extends State<ProductScreen> {
                             width: 36,
                             height: 36,
                             decoration: BoxDecoration(
-                              color: _isFeatured ? const Color(0xFFFEF3C7) : AppTheme.bgSurface,
+                              color: _isFeatured
+                                  ? const Color(0xFFFEF3C7)
+                                  : AppTheme.bgSurface,
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
                               Icons.star_rounded,
-                              color: _isFeatured ? const Color(0xFFD97706) : AppTheme.textMuted,
+                              color: _isFeatured
+                                  ? const Color(0xFFD97706)
+                                  : AppTheme.textMuted,
                               size: 20,
                             ),
                           ),
@@ -1036,14 +1202,18 @@ class ProductScreenState extends State<ProductScreen> {
                                   style: GoogleFonts.plusJakartaSans(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w700,
-                                    color: _isFeatured ? const Color(0xFF92400E) : AppTheme.textPrimary,
+                                    color: _isFeatured
+                                        ? const Color(0xFF92400E)
+                                        : AppTheme.textPrimary,
                                   ),
                                 ),
                                 Text(
                                   'Promote this product with a gold showcase star in directories and company portfolios.',
                                   style: GoogleFonts.inter(
                                     fontSize: 11,
-                                    color: _isFeatured ? const Color(0xFFB45309) : AppTheme.textSecondary,
+                                    color: _isFeatured
+                                        ? const Color(0xFFB45309)
+                                        : AppTheme.textSecondary,
                                   ),
                                 ),
                               ],
@@ -1052,7 +1222,8 @@ class ProductScreenState extends State<ProductScreen> {
                           Switch(
                             value: _isFeatured,
                             activeThumbColor: const Color(0xFFD97706),
-                            onChanged: (val) => setState(() => _isFeatured = val),
+                            onChanged: (val) =>
+                                setState(() => _isFeatured = val),
                           ),
                         ],
                       ),
@@ -1074,7 +1245,8 @@ class ProductScreenState extends State<ProductScreen> {
                       maxLines: 3,
                       style: GoogleFonts.inter(fontSize: 13),
                       decoration: const InputDecoration(
-                        hintText: 'Enter technical specifications, highlights, features, or product summary...',
+                        hintText:
+                            'Enter technical specifications, highlights, features, or product summary...',
                         alignLabelWithHint: true,
                       ),
                       onChanged: (_) => setState(() {}),
@@ -1088,11 +1260,18 @@ class ProductScreenState extends State<ProductScreen> {
               _buildFormCard(
                 stepNum: '02',
                 title: 'Product Showcase Image',
-                subtitle: 'Upload a product photograph or graphic thumbnail (JPG, PNG, WEBP, GIF)',
+                subtitle:
+                    'Upload a product photograph or graphic thumbnail (JPG, PNG, WEBP, GIF)',
                 child: FileUploadBox(
                   title: 'Drop your product photo or asset here',
                   hint: 'or browse files from your device',
-                  allowedExtensions: const ['jpg', 'jpeg', 'png', 'webp', 'gif'],
+                  allowedExtensions: const [
+                    'jpg',
+                    'jpeg',
+                    'png',
+                    'webp',
+                    'gif',
+                  ],
                   fileName: _selectedFileName,
                   fileSize: _selectedFileSize,
                   existingFileUrl: _existingFileUrl,
@@ -1127,21 +1306,30 @@ class ProductScreenState extends State<ProductScreen> {
                   OutlinedButton(
                     onPressed: _isSubmitting ? null : _resetForm,
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       side: const BorderSide(color: AppTheme.borderMedium),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
                         Icon(
-                          _editingProductId != null ? Icons.cancel_outlined : Icons.restart_alt,
+                          _editingProductId != null
+                              ? Icons.cancel_outlined
+                              : Icons.restart_alt,
                           size: 16,
                           color: AppTheme.textSecondary,
                         ),
                         const SizedBox(width: 8),
                         Text(
-                          _editingProductId != null ? 'Cancel Edit' : 'Reset Form',
+                          _editingProductId != null
+                              ? 'Cancel Edit'
+                              : 'Reset Form',
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w600,
                             color: AppTheme.textSecondary,
@@ -1155,26 +1343,38 @@ class ProductScreenState extends State<ProductScreen> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppTheme.primary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 12,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       elevation: 0,
                     ),
                     child: _isSubmitting
                         ? const SizedBox(
                             width: 18,
                             height: 18,
-                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
                           )
                         : Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               Icon(
-                                _editingProductId != null ? Icons.check_circle_outline : Icons.add_circle,
+                                _editingProductId != null
+                                    ? Icons.check_circle_outline
+                                    : Icons.add_circle,
                                 size: 16,
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                _editingProductId != null ? 'Update Product Details' : 'Complete Product Registration',
+                                _editingProductId != null
+                                    ? 'Update Product Details'
+                                    : 'Complete Product Registration',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w700,
                                   fontSize: 14,
@@ -1209,12 +1409,15 @@ class ProductScreenState extends State<ProductScreen> {
             height: 38,
             decoration: BoxDecoration(
               gradient: isEdit
-                  ? const LinearGradient(colors: [Color(0xFFF59E0B), Color(0xFFD97706)])
+                  ? const LinearGradient(
+                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
+                    )
                   : AppTheme.primaryGradient,
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
                 BoxShadow(
-                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary).withValues(alpha: 0.25),
+                  color: (isEdit ? const Color(0xFFF59E0B) : AppTheme.primary)
+                      .withValues(alpha: 0.25),
                   blurRadius: 6,
                   offset: const Offset(0, 2),
                 ),
@@ -1235,7 +1438,9 @@ class ProductScreenState extends State<ProductScreen> {
                   children: [
                     Flexible(
                       child: Text(
-                        isEdit ? 'Update Product Record' : 'Product Registration',
+                        isEdit
+                            ? 'Update Product Record'
+                            : 'Product Registration',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 14.5,
                           fontWeight: FontWeight.w700,
@@ -1248,11 +1453,16 @@ class ProductScreenState extends State<ProductScreen> {
                     if (isEdit) ...[
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 1.5,
+                        ),
                         decoration: BoxDecoration(
                           color: AppTheme.warningBg,
                           borderRadius: BorderRadius.circular(6),
-                          border: Border.all(color: AppTheme.warning.withValues(alpha: 0.4)),
+                          border: Border.all(
+                            color: AppTheme.warning.withValues(alpha: 0.4),
+                          ),
                         ),
                         child: Text(
                           'ID #$_editingProductId',
@@ -1271,7 +1481,10 @@ class ProductScreenState extends State<ProductScreen> {
                   isEdit
                       ? 'Modify product specifications, category, brand, or image.'
                       : 'Register enterprise product linked with Category and Brand.',
-                  style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                  style: GoogleFonts.inter(
+                    fontSize: 11,
+                    color: AppTheme.textSecondary,
+                  ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -1288,12 +1501,18 @@ class ProductScreenState extends State<ProductScreen> {
                 decoration: BoxDecoration(
                   color: AppTheme.primaryLight,
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AppTheme.primary.withValues(alpha: 0.3)),
+                  border: Border.all(
+                    color: AppTheme.primary.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.add_circle, size: 13, color: AppTheme.primary),
+                    const Icon(
+                      Icons.add_circle,
+                      size: 13,
+                      color: AppTheme.primary,
+                    ),
                     const SizedBox(width: 4),
                     Text(
                       'New',
@@ -1383,7 +1602,10 @@ class ProductScreenState extends State<ProductScreen> {
                 const SizedBox(height: 4),
                 Text(
                   'Products require both a Main Category and a Brand before they can be registered in the catalog.',
-                  style: GoogleFonts.inter(fontSize: 12, color: const Color(0xFFB91C1C)),
+                  style: GoogleFonts.inter(
+                    fontSize: 12,
+                    color: const Color(0xFFB91C1C),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 Wrap(
@@ -1399,8 +1621,14 @@ class ProductScreenState extends State<ProductScreen> {
                           backgroundColor: Colors.white,
                           foregroundColor: AppTheme.primary,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          textStyle: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                     if (_brands.isEmpty)
@@ -1412,8 +1640,14 @@ class ProductScreenState extends State<ProductScreen> {
                           backgroundColor: Colors.white,
                           foregroundColor: AppTheme.primary,
                           elevation: 0,
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                          textStyle: GoogleFonts.inter(fontSize: 12, fontWeight: FontWeight.w600),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 8,
+                          ),
+                          textStyle: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                          ),
                         ),
                       ),
                   ],
@@ -1477,7 +1711,10 @@ class ProductScreenState extends State<ProductScreen> {
                     ),
                     Text(
                       subtitle,
-                      style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        color: AppTheme.textMuted,
+                      ),
                     ),
                   ],
                 ),
@@ -1516,7 +1753,11 @@ class ProductScreenState extends State<ProductScreen> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.visibility, size: 14, color: AppTheme.primary),
+                  const Icon(
+                    Icons.visibility,
+                    size: 14,
+                    color: AppTheme.primary,
+                  ),
                   const SizedBox(width: 4),
                   Text(
                     'Live Preview',
@@ -1555,7 +1796,9 @@ class ProductScreenState extends State<ProductScreen> {
                 width: double.infinity,
                 decoration: const BoxDecoration(
                   color: Color(0xFFF8FAFC),
-                  border: Border(bottom: BorderSide(color: AppTheme.borderLight)),
+                  border: Border(
+                    bottom: BorderSide(color: AppTheme.borderLight),
+                  ),
                 ),
                 child: Stack(
                   fit: StackFit.expand,
@@ -1563,14 +1806,27 @@ class ProductScreenState extends State<ProductScreen> {
                     if (_selectedFileBytes != null)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Image.memory(_selectedFileBytes!, fit: BoxFit.contain),
+                        child: Image.memory(
+                          _selectedFileBytes!,
+                          fit: BoxFit.contain,
+                        ),
                       )
                     else if (_existingFileUrl != null)
                       Padding(
                         padding: const EdgeInsets.all(8.0),
-                        child: Image.network(_existingFileUrl!, fit: BoxFit.contain, errorBuilder: (context, error, stackTrace) {
-                          return const Center(child: Icon(Icons.inventory_2_outlined, size: 48, color: AppTheme.textMuted));
-                        }),
+                        child: Image.network(
+                          _existingFileUrl!,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Center(
+                              child: Icon(
+                                Icons.inventory_2_outlined,
+                                size: 48,
+                                color: AppTheme.textMuted,
+                              ),
+                            );
+                          },
+                        ),
                       )
                     else
                       Center(
@@ -1585,7 +1841,11 @@ class ProductScreenState extends State<ProductScreen> {
                             const SizedBox(height: 4),
                             Text(
                               'Product Image Preview',
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted, fontWeight: FontWeight.w500),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textMuted,
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ],
                         ),
@@ -1596,7 +1856,10 @@ class ProductScreenState extends State<ProductScreen> {
                         top: 12,
                         left: 12,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFFD97706),
                             borderRadius: BorderRadius.circular(8),
@@ -1604,7 +1867,11 @@ class ProductScreenState extends State<ProductScreen> {
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: [
-                              const Icon(Icons.star, size: 12, color: Colors.white),
+                              const Icon(
+                                Icons.star,
+                                size: 12,
+                                color: Colors.white,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Featured',
@@ -1623,13 +1890,18 @@ class ProductScreenState extends State<ProductScreen> {
                       top: 12,
                       right: 12,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 3,
+                        ),
                         decoration: BoxDecoration(
                           color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
-                          _editingProductId != null ? '#$_editingProductId' : '#NEW',
+                          _editingProductId != null
+                              ? '#$_editingProductId'
+                              : '#NEW',
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             fontWeight: FontWeight.w700,
@@ -1653,7 +1925,10 @@ class ProductScreenState extends State<ProductScreen> {
                       children: [
                         if (brandName.isNotEmpty) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryLight,
                               borderRadius: BorderRadius.circular(6),
@@ -1661,7 +1936,11 @@ class ProductScreenState extends State<ProductScreen> {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(Icons.verified, size: 11, color: AppTheme.primary),
+                                const Icon(
+                                  Icons.verified,
+                                  size: 11,
+                                  color: AppTheme.primary,
+                                ),
                                 const SizedBox(width: 4),
                                 Text(
                                   brandName,
@@ -1678,7 +1957,10 @@ class ProductScreenState extends State<ProductScreen> {
                         ],
                         if (subCatName.isNotEmpty)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3E8FF),
                               borderRadius: BorderRadius.circular(6),
@@ -1711,14 +1993,34 @@ class ProductScreenState extends State<ProductScreen> {
                     if (catName.isNotEmpty)
                       Row(
                         children: [
-                          const Icon(Icons.folder_open, size: 13, color: AppTheme.textMuted),
+                          const Icon(
+                            Icons.folder_open,
+                            size: 13,
+                            color: AppTheme.textMuted,
+                          ),
                           const SizedBox(width: 4),
-                          Text(catName, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                          Text(
+                            catName,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
                           if (subCatName.isNotEmpty) ...[
                             const SizedBox(width: 4),
-                            const Icon(Icons.chevron_right, size: 14, color: AppTheme.textMuted),
+                            const Icon(
+                              Icons.chevron_right,
+                              size: 14,
+                              color: AppTheme.textMuted,
+                            ),
                             const SizedBox(width: 4),
-                            Text(subCatName, style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary)),
+                            Text(
+                              subCatName,
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
                           ],
                         ],
                       ),
@@ -1727,7 +2029,11 @@ class ProductScreenState extends State<ProductScreen> {
                       const SizedBox(height: 8),
                       Text(
                         desc,
-                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textSecondary, height: 1.4),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textSecondary,
+                          height: 1.4,
+                        ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -1738,7 +2044,10 @@ class ProductScreenState extends State<ProductScreen> {
 
               // Footer
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 10,
+                ),
                 decoration: const BoxDecoration(
                   color: AppTheme.bgSubtle,
                   border: Border(top: BorderSide(color: AppTheme.borderLight)),
@@ -1757,7 +2066,11 @@ class ProductScreenState extends State<ProductScreen> {
                     ),
                     Row(
                       children: [
-                        const Icon(Icons.shield_outlined, size: 13, color: AppTheme.success),
+                        const Icon(
+                          Icons.shield_outlined,
+                          size: 13,
+                          color: AppTheme.success,
+                        ),
                         const SizedBox(width: 4),
                         Text(
                           'CATALOG READY',
@@ -1836,7 +2149,10 @@ class ProductScreenState extends State<ProductScreen> {
           const SizedBox(height: 2),
           Text(
             'Manage, inspect, filter, edit, and organize product catalog records.',
-            style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              color: AppTheme.textSecondary,
+            ),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
@@ -1851,10 +2167,22 @@ class ProductScreenState extends State<ProductScreen> {
                     style: GoogleFonts.inter(fontSize: 12.5),
                     decoration: InputDecoration(
                       hintText: 'Search products...',
-                      hintStyle: GoogleFonts.inter(fontSize: 11.5, color: AppTheme.textMuted),
-                      prefixIcon: const Icon(Icons.search, size: 16, color: AppTheme.textMuted),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 10, vertical: 0),
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                      hintStyle: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        color: AppTheme.textMuted,
+                      ),
+                      prefixIcon: const Icon(
+                        Icons.search,
+                        size: 16,
+                        color: AppTheme.textMuted,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 0,
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
                               icon: const Icon(Icons.clear, size: 14),
@@ -1877,7 +2205,9 @@ class ProductScreenState extends State<ProductScreen> {
                 constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
                 style: IconButton.styleFrom(
                   backgroundColor: AppTheme.bgSubtle,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
                 ),
               ),
               const SizedBox(width: 8),
@@ -1888,10 +2218,18 @@ class ProductScreenState extends State<ProductScreen> {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppTheme.primary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 8,
+                  ),
                   visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                  textStyle: GoogleFonts.plusJakartaSans(fontSize: 11.5, fontWeight: FontWeight.w600),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  textStyle: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -1920,8 +2258,16 @@ class ProductScreenState extends State<ProductScreen> {
             label: 'Main Category:',
             value: _filterCategory,
             items: [
-              const DropdownMenuItem(value: 'all', child: Text('All Main Categories')),
-              ..._parentCategories.map((c) => DropdownMenuItem(value: c.id.toString(), child: Text(c.name))),
+              const DropdownMenuItem(
+                value: 'all',
+                child: Text('All Main Categories'),
+              ),
+              ..._parentCategories.map(
+                (c) => DropdownMenuItem(
+                  value: c.id.toString(),
+                  child: Text(c.name),
+                ),
+              ),
             ],
             onChanged: (val) {
               if (val != null) {
@@ -1939,8 +2285,16 @@ class ProductScreenState extends State<ProductScreen> {
             label: 'Subcategory:',
             value: _filterSubCategory,
             items: [
-              const DropdownMenuItem(value: 'all', child: Text('All Subcategories')),
-              ..._filterSubCategoriesList.map((s) => DropdownMenuItem(value: s.id.toString(), child: Text(s.name))),
+              const DropdownMenuItem(
+                value: 'all',
+                child: Text('All Subcategories'),
+              ),
+              ..._filterSubCategoriesList.map(
+                (s) => DropdownMenuItem(
+                  value: s.id.toString(),
+                  child: Text(s.name),
+                ),
+              ),
             ],
             onChanged: (val) {
               if (val != null) setState(() => _filterSubCategory = val);
@@ -1954,7 +2308,12 @@ class ProductScreenState extends State<ProductScreen> {
             value: _filterBrand,
             items: [
               const DropdownMenuItem(value: 'all', child: Text('All Brands')),
-              ..._brands.map((b) => DropdownMenuItem(value: b.id.toString(), child: Text(b.brandName))),
+              ..._brands.map(
+                (b) => DropdownMenuItem(
+                  value: b.id.toString(),
+                  child: Text(b.brandName),
+                ),
+              ),
             ],
             onChanged: (val) {
               if (val != null) setState(() => _filterBrand = val);
@@ -1996,12 +2355,23 @@ class ProductScreenState extends State<ProductScreen> {
         children: [
           Icon(icon, size: 14, color: AppTheme.primary),
           const SizedBox(width: 6),
-          Text(label, style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary)),
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: AppTheme.textSecondary,
+            ),
+          ),
           const SizedBox(width: 6),
           DropdownButtonHideUnderline(
             child: DropdownButton<String>(
               value: value,
-              style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textPrimary, fontWeight: FontWeight.w500),
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                color: AppTheme.textPrimary,
+                fontWeight: FontWeight.w500,
+              ),
               items: items,
               onChanged: onChanged,
             ),
@@ -2047,17 +2417,28 @@ class ProductScreenState extends State<ProductScreen> {
                 color: AppTheme.primaryLight,
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.inventory_2_outlined, size: 32, color: AppTheme.primary),
+              child: const Icon(
+                Icons.inventory_2_outlined,
+                size: 32,
+                color: AppTheme.primary,
+              ),
             ),
             const SizedBox(height: 16),
             Text(
               'No Products Found',
-              style: GoogleFonts.plusJakartaSans(fontSize: 18, fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                color: AppTheme.textPrimary,
+              ),
             ),
             const SizedBox(height: 6),
             Text(
               'No product records match your selected filters or search query.',
-              style: GoogleFonts.inter(fontSize: 13, color: AppTheme.textSecondary),
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                color: AppTheme.textSecondary,
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton.icon(
@@ -2067,8 +2448,13 @@ class ProductScreenState extends State<ProductScreen> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
               ),
             ),
           ],
@@ -2078,27 +2464,29 @@ class ProductScreenState extends State<ProductScreen> {
   }
 
   Widget _buildProductsGrid(List<ProductResponse> products) {
-    return LayoutBuilder(builder: (context, constraints) {
-      final crossAxisCount = constraints.maxWidth > 1100
-          ? 3
-          : (constraints.maxWidth > 650 ? 2 : 1);
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth > 1100
+            ? 3
+            : (constraints.maxWidth > 650 ? 2 : 1);
 
-      return GridView.builder(
-        shrinkWrap: true,
-        physics: const NeverScrollableScrollPhysics(),
-        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: crossAxisCount,
-          crossAxisSpacing: 16,
-          mainAxisSpacing: 16,
-          mainAxisExtent: 295,
-        ),
-        itemCount: products.length,
-        itemBuilder: (context, index) {
-          final prod = products[index];
-          return _buildProductCard(prod);
-        },
-      );
-    });
+        return GridView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: crossAxisCount,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            mainAxisExtent: 295,
+          ),
+          itemCount: products.length,
+          itemBuilder: (context, index) {
+            final prod = products[index];
+            return _buildProductCard(prod);
+          },
+        );
+      },
+    );
   }
 
   Widget _buildProductCard(ProductResponse prod) {
@@ -2133,9 +2521,14 @@ class ProductScreenState extends State<ProductScreen> {
                       child: Image.network(
                         _productService.getFileUrl(prod.image),
                         fit: BoxFit.contain,
-                        errorBuilder: (context, error, stackTrace) => const Center(
-                          child: Icon(Icons.inventory_2_outlined, size: 38, color: AppTheme.textMuted),
-                        ),
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Center(
+                              child: Icon(
+                                Icons.inventory_2_outlined,
+                                size: 38,
+                                color: AppTheme.textMuted,
+                              ),
+                            ),
                       ),
                     )
                   else
@@ -2166,7 +2559,10 @@ class ProductScreenState extends State<ProductScreen> {
                       top: 8,
                       left: 8,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2.5,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFD97706),
                           borderRadius: BorderRadius.circular(6),
@@ -2181,7 +2577,11 @@ class ProductScreenState extends State<ProductScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            const Icon(Icons.star, size: 10, color: Colors.white),
+                            const Icon(
+                              Icons.star,
+                              size: 10,
+                              color: Colors.white,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'Featured',
@@ -2200,7 +2600,10 @@ class ProductScreenState extends State<ProductScreen> {
                     top: 8,
                     right: 8,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2.5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2.5,
+                      ),
                       decoration: BoxDecoration(
                         color: const Color(0xFF1E293B),
                         borderRadius: BorderRadius.circular(6),
@@ -2237,7 +2640,10 @@ class ProductScreenState extends State<ProductScreen> {
                       children: [
                         if (prod.brandName != null) ...[
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: AppTheme.primaryLight,
                               borderRadius: BorderRadius.circular(4),
@@ -2255,7 +2661,10 @@ class ProductScreenState extends State<ProductScreen> {
                         ],
                         if (prod.subCategoryName != null)
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: const Color(0xFFF3E8FF),
                               borderRadius: BorderRadius.circular(4),
@@ -2286,20 +2695,34 @@ class ProductScreenState extends State<ProductScreen> {
                     // Hierarchy path breadcrumb
                     Row(
                       children: [
-                        const Icon(Icons.folder_open, size: 11, color: AppTheme.textMuted),
+                        const Icon(
+                          Icons.folder_open,
+                          size: 11,
+                          color: AppTheme.textMuted,
+                        ),
                         const SizedBox(width: 3),
                         Text(
                           prod.categoryName ?? 'Category',
-                          style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: AppTheme.textSecondary,
+                          ),
                         ),
                         if (prod.subCategoryName != null) ...[
                           const SizedBox(width: 3),
-                          const Icon(Icons.chevron_right, size: 12, color: AppTheme.textMuted),
+                          const Icon(
+                            Icons.chevron_right,
+                            size: 12,
+                            color: AppTheme.textMuted,
+                          ),
                           const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               prod.subCategoryName!,
-                              style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
@@ -2329,11 +2752,19 @@ class ProductScreenState extends State<ProductScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.visibility_outlined, size: 14, color: AppTheme.textSecondary),
+                            const Icon(
+                              Icons.visibility_outlined,
+                              size: 14,
+                              color: AppTheme.textSecondary,
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'View',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textSecondary),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textSecondary,
+                              ),
                             ),
                           ],
                         ),
@@ -2349,11 +2780,19 @@ class ProductScreenState extends State<ProductScreen> {
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.edit_outlined, size: 14, color: Color(0xFF2563EB)),
+                            const Icon(
+                              Icons.edit_outlined,
+                              size: 14,
+                              color: Color(0xFF2563EB),
+                            ),
                             const SizedBox(width: 3),
                             Text(
                               'Edit',
-                              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF2563EB)),
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF2563EB),
+                              ),
                             ),
                           ],
                         ),
@@ -2365,7 +2804,11 @@ class ProductScreenState extends State<ProductScreen> {
                     borderRadius: BorderRadius.circular(6),
                     child: const Padding(
                       padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Icon(Icons.delete_outline, size: 15, color: AppTheme.error),
+                      child: Icon(
+                        Icons.delete_outline,
+                        size: 15,
+                        color: AppTheme.error,
+                      ),
                     ),
                   ),
                 ],
@@ -2412,7 +2855,10 @@ class ProductScreenState extends State<ProductScreen> {
               children: [
                 // 1. Fixed Header
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   color: Colors.white,
                   child: Row(
                     children: [
@@ -2423,7 +2869,10 @@ class ProductScreenState extends State<ProductScreen> {
                         decoration: BoxDecoration(
                           color: const Color(0xFFE6FFFA),
                           borderRadius: BorderRadius.circular(10),
-                          border: Border.all(color: const Color(0xFF99F6E4), width: 1.2),
+                          border: Border.all(
+                            color: const Color(0xFF99F6E4),
+                            width: 1.2,
+                          ),
                         ),
                         child: const Center(
                           child: Icon(
@@ -2468,17 +2917,29 @@ class ProductScreenState extends State<ProductScreen> {
 
                       // Close Button
                       IconButton(
-                        onPressed: () => setState(() => _selectedProduct = null),
-                        icon: const Icon(Icons.close_rounded, size: 20, color: Color(0xFF94A3B8)),
+                        onPressed: () =>
+                            setState(() => _selectedProduct = null),
+                        icon: const Icon(
+                          Icons.close_rounded,
+                          size: 20,
+                          color: Color(0xFF94A3B8),
+                        ),
                         visualDensity: VisualDensity.compact,
                         padding: EdgeInsets.zero,
-                        constraints: const BoxConstraints(minWidth: 32, minHeight: 32),
+                        constraints: const BoxConstraints(
+                          minWidth: 32,
+                          minHeight: 32,
+                        ),
                         splashRadius: 18,
                       ),
                     ],
                   ),
                 ),
-                const Divider(height: 1, thickness: 1, color: Color(0xFFE2E8F0)),
+                const Divider(
+                  height: 1,
+                  thickness: 1,
+                  color: Color(0xFFE2E8F0),
+                ),
 
                 // 2. Scrollable Body Content
                 Flexible(
@@ -2498,15 +2959,23 @@ class ProductScreenState extends State<ProductScreen> {
                             border: Border.all(color: const Color(0xFFE2E8F0)),
                           ),
                           clipBehavior: Clip.antiAlias,
-                          child: prod.image != null && prod.image!.trim().isNotEmpty
+                          child:
+                              prod.image != null &&
+                                  prod.image!.trim().isNotEmpty
                               ? Padding(
                                   padding: const EdgeInsets.all(10),
                                   child: Image.network(
                                     _productService.getFileUrl(prod.image),
                                     fit: BoxFit.contain,
-                                    errorBuilder: (context, error, stackTrace) => const Center(
-                                      child: Icon(Icons.inventory_2_outlined, size: 42, color: Color(0xFF94A3B8)),
-                                    ),
+                                    errorBuilder:
+                                        (context, error, stackTrace) =>
+                                            const Center(
+                                              child: Icon(
+                                                Icons.inventory_2_outlined,
+                                                size: 42,
+                                                color: Color(0xFF94A3B8),
+                                              ),
+                                            ),
                                   ),
                                 )
                               : Center(
@@ -2516,7 +2985,9 @@ class ProductScreenState extends State<ProductScreen> {
                                       Icon(
                                         Icons.inventory_2_outlined,
                                         size: 40,
-                                        color: const Color(0xFF94A3B8).withValues(alpha: 0.5),
+                                        color: const Color(
+                                          0xFF94A3B8,
+                                        ).withValues(alpha: 0.5),
                                       ),
                                       const SizedBox(height: 4),
                                       Text(
@@ -2579,16 +3050,25 @@ class ProductScreenState extends State<ProductScreen> {
                               _buildDetailRow(
                                 label: 'Main Category:',
                                 valueWidget: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFECFDF5),
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: const Color(0xFFA7F3D0)),
+                                    border: Border.all(
+                                      color: const Color(0xFFA7F3D0),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.folder_rounded, size: 12, color: Color(0xFF059669)),
+                                      const Icon(
+                                        Icons.folder_rounded,
+                                        size: 12,
+                                        color: Color(0xFF059669),
+                                      ),
                                       const SizedBox(width: 4),
                                       Flexible(
                                         child: Text(
@@ -2608,21 +3088,32 @@ class ProductScreenState extends State<ProductScreen> {
                               ),
 
                               // Subcategory Badge (if available)
-                              if (prod.subCategoryName != null && prod.subCategoryName!.isNotEmpty) ...[
+                              if (prod.subCategoryName != null &&
+                                  prod.subCategoryName!.isNotEmpty) ...[
                                 const SizedBox(height: 9),
                                 _buildDetailRow(
                                   label: 'Subcategory:',
                                   valueWidget: Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 3,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: const Color(0xFFF3E8FF),
                                       borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(color: const Color(0xFFDDD6FE)),
+                                      border: Border.all(
+                                        color: const Color(0xFFDDD6FE),
+                                      ),
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.subdirectory_arrow_right_rounded, size: 12, color: Color(0xFF7C3AED)),
+                                        const Icon(
+                                          Icons
+                                              .subdirectory_arrow_right_rounded,
+                                          size: 12,
+                                          color: Color(0xFF7C3AED),
+                                        ),
                                         const SizedBox(width: 4),
                                         Flexible(
                                           child: Text(
@@ -2647,16 +3138,25 @@ class ProductScreenState extends State<ProductScreen> {
                               _buildDetailRow(
                                 label: 'Brand:',
                                 valueWidget: Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 8,
+                                    vertical: 3,
+                                  ),
                                   decoration: BoxDecoration(
                                     color: const Color(0xFFF3E8FF),
                                     borderRadius: BorderRadius.circular(20),
-                                    border: Border.all(color: const Color(0xFFDDD6FE)),
+                                    border: Border.all(
+                                      color: const Color(0xFFDDD6FE),
+                                    ),
                                   ),
                                   child: Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      const Icon(Icons.verified_rounded, size: 12, color: Color(0xFF7C3AED)),
+                                      const Icon(
+                                        Icons.verified_rounded,
+                                        size: 12,
+                                        color: Color(0xFF7C3AED),
+                                      ),
                                       const SizedBox(width: 4),
                                       Flexible(
                                         child: Text(
@@ -2681,16 +3181,27 @@ class ProductScreenState extends State<ProductScreen> {
                                 label: 'Promotion Status:',
                                 valueWidget: prod.isFeatured
                                     ? Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFFEF3C7),
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: const Color(0xFFFDE68A)),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFFDE68A),
+                                          ),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(Icons.star_rounded, size: 12, color: Color(0xFFD97706)),
+                                            const Icon(
+                                              Icons.star_rounded,
+                                              size: 12,
+                                              color: Color(0xFFD97706),
+                                            ),
                                             const SizedBox(width: 3),
                                             Text(
                                               'Featured Product',
@@ -2704,11 +3215,18 @@ class ProductScreenState extends State<ProductScreen> {
                                         ),
                                       )
                                     : Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 3,
+                                        ),
                                         decoration: BoxDecoration(
                                           color: const Color(0xFFF1F5F9),
-                                          borderRadius: BorderRadius.circular(20),
-                                          border: Border.all(color: const Color(0xFFE2E8F0)),
+                                          borderRadius: BorderRadius.circular(
+                                            20,
+                                          ),
+                                          border: Border.all(
+                                            color: const Color(0xFFE2E8F0),
+                                          ),
                                         ),
                                         child: Text(
                                           'Standard Catalog',
@@ -2737,7 +3255,8 @@ class ProductScreenState extends State<ProductScreen> {
                               ),
                               const SizedBox(height: 3),
                               Text(
-                                prod.description != null && prod.description!.trim().isNotEmpty
+                                prod.description != null &&
+                                        prod.description!.trim().isNotEmpty
                                     ? prod.description!
                                     : 'No description provided.',
                                 style: GoogleFonts.inter(
@@ -2756,7 +3275,10 @@ class ProductScreenState extends State<ProductScreen> {
 
                 // 3. Fixed Footer Actions Bar (Fitted and Scaled to Prevent Horizontal Overflow)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: const BoxDecoration(
                     color: Colors.white,
                     border: Border(top: BorderSide(color: Color(0xFFE2E8F0))),
@@ -2773,7 +3295,11 @@ class ProductScreenState extends State<ProductScreen> {
                           onPressed: () {
                             _startEdit(prod);
                           },
-                          icon: const Icon(Icons.edit_note_rounded, size: 17, color: Colors.white),
+                          icon: const Icon(
+                            Icons.edit_note_rounded,
+                            size: 17,
+                            color: Colors.white,
+                          ),
                           label: Text(
                             'Edit Product',
                             style: GoogleFonts.inter(
@@ -2786,8 +3312,13 @@ class ProductScreenState extends State<ProductScreen> {
                             backgroundColor: const Color(0xFF0D9488),
                             foregroundColor: Colors.white,
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             visualDensity: VisualDensity.compact,
                           ),
                         ),
@@ -2800,7 +3331,11 @@ class ProductScreenState extends State<ProductScreen> {
                             setState(() => _selectedProduct = null);
                             _promptDelete(target);
                           },
-                          icon: const Icon(Icons.delete_outline_rounded, size: 15, color: Color(0xFFEF4444)),
+                          icon: const Icon(
+                            Icons.delete_outline_rounded,
+                            size: 15,
+                            color: Color(0xFFEF4444),
+                          ),
                           label: Text(
                             'Delete',
                             style: GoogleFonts.inter(
@@ -2813,7 +3348,10 @@ class ProductScreenState extends State<ProductScreen> {
                             backgroundColor: const Color(0xFFFEE2E2),
                             foregroundColor: const Color(0xFFEF4444),
                             elevation: 0,
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 8,
+                            ),
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(8),
                               side: const BorderSide(color: Color(0xFFFECACA)),
@@ -2825,13 +3363,19 @@ class ProductScreenState extends State<ProductScreen> {
 
                         // Close Button (White outlined)
                         OutlinedButton(
-                          onPressed: () => setState(() => _selectedProduct = null),
+                          onPressed: () =>
+                              setState(() => _selectedProduct = null),
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.white,
                             foregroundColor: const Color(0xFF475569),
                             side: const BorderSide(color: Color(0xFFCBD5E1)),
-                            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 14,
+                              vertical: 8,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                             visualDensity: VisualDensity.compact,
                           ),
                           child: Text(
@@ -2855,10 +3399,7 @@ class ProductScreenState extends State<ProductScreen> {
     );
   }
 
-  Widget _buildDetailRow({
-    required String label,
-    required Widget valueWidget,
-  }) {
+  Widget _buildDetailRow({required String label, required Widget valueWidget}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -2873,10 +3414,7 @@ class ProductScreenState extends State<ProductScreen> {
         ),
         const SizedBox(width: 8),
         Flexible(
-          child: Align(
-            alignment: Alignment.centerRight,
-            child: valueWidget,
-          ),
+          child: Align(alignment: Alignment.centerRight, child: valueWidget),
         ),
       ],
     );

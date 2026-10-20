@@ -15,7 +15,8 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProviderStateMixin {
+class _RegisterScreenState extends State<RegisterScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _usernameController = TextEditingController();
@@ -55,13 +56,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       curve: Curves.easeOut,
     );
 
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.04),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(
-      parent: _animController,
-      curve: Curves.easeOutCubic,
-    ));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.04), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animController, curve: Curves.easeOutCubic),
+        );
 
     _animController.forward();
 
@@ -94,7 +92,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     Navigator.pushAndRemoveUntil(
       context,
       PageRouteBuilder(
-        pageBuilder: (context, animation, secondaryAnimation) => const MainShellScreen(),
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            const MainShellScreen(),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(opacity: animation, child: child);
         },
@@ -111,7 +110,8 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       Navigator.pushReplacement(
         context,
         PageRouteBuilder(
-          pageBuilder: (context, animation, secondaryAnimation) => const LoginScreen(),
+          pageBuilder: (context, animation, secondaryAnimation) =>
+              const LoginScreen(),
           transitionsBuilder: (context, animation, secondaryAnimation, child) {
             return FadeTransition(opacity: animation, child: child);
           },
@@ -165,12 +165,19 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
         SnackBar(
           content: Row(
             children: [
-              const Icon(Icons.check_circle_rounded, color: Colors.white, size: 20),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.white,
+                size: 20,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
                   'Account created successfully! Welcome, ${response.fullName.isNotEmpty ? response.fullName : response.username}!',
-                  style: GoogleFonts.plusJakartaSans(fontSize: 13, fontWeight: FontWeight.w600),
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w600,
+                  ),
                 ),
               ),
             ],
@@ -178,7 +185,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
           backgroundColor: const Color(0xFF10B981),
           behavior: SnackBarBehavior.floating,
           duration: const Duration(seconds: 2),
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
         ),
       );
     } catch (e) {
@@ -311,10 +320,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
         boxShadow: [
           BoxShadow(
             color: const Color(0xFF0F172A).withValues(alpha: 0.05),
@@ -366,14 +372,14 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
             if (_errorMessage != null) ...[
               Container(
                 margin: const EdgeInsets.only(bottom: 16),
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 decoration: BoxDecoration(
                   color: const Color(0xFFFEF2F2),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: const Color(0xFFFECACA),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0xFFFECACA), width: 1),
                 ),
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -480,7 +486,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 if (value == null || value.trim().isEmpty) {
                   return 'A valid email address is required';
                 }
-                if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value.trim())) {
+                if (!RegExp(
+                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                ).hasMatch(value.trim())) {
                   return 'Please enter a valid email format';
                 }
                 return null;
@@ -506,11 +514,15 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 prefixIcon: Icons.lock_rounded,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isPasswordVisible ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    _isPasswordVisible
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
                     color: const Color(0xFF94A3B8),
                     size: 20,
                   ),
-                  tooltip: _isPasswordVisible ? 'Hide password' : 'Show password',
+                  tooltip: _isPasswordVisible
+                      ? 'Hide password'
+                      : 'Show password',
                   onPressed: () {
                     setState(() {
                       _isPasswordVisible = !_isPasswordVisible;
@@ -549,11 +561,15 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                 prefixIcon: Icons.shield_outlined,
                 suffixIcon: IconButton(
                   icon: Icon(
-                    _isConfirmPasswordVisible ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+                    _isConfirmPasswordVisible
+                        ? Icons.visibility_off_rounded
+                        : Icons.visibility_rounded,
                     color: const Color(0xFF94A3B8),
                     size: 20,
                   ),
-                  tooltip: _isConfirmPasswordVisible ? 'Hide password' : 'Show password',
+                  tooltip: _isConfirmPasswordVisible
+                      ? 'Hide password'
+                      : 'Show password',
                   onPressed: () {
                     setState(() {
                       _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
@@ -640,31 +656,19 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFCBD5E1),
-          width: 1,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFCBD5E1), width: 1),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFF6366F1),
-          width: 1.8,
-        ),
+        borderSide: const BorderSide(color: Color(0xFF6366F1), width: 1.8),
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFEF4444),
-          width: 1.2,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.2),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(
-          color: Color(0xFFEF4444),
-          width: 1.8,
-        ),
+        borderSide: const BorderSide(color: Color(0xFFEF4444), width: 1.8),
       ),
     );
   }
@@ -788,12 +792,7 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     return Container(
       padding: const EdgeInsets.only(top: 14),
       decoration: const BoxDecoration(
-        border: Border(
-          top: BorderSide(
-            color: Color(0xFFF1F5F9),
-            width: 1,
-          ),
-        ),
+        border: Border(top: BorderSide(color: Color(0xFFF1F5F9), width: 1)),
       ),
       child: Center(
         child: Wrap(
@@ -816,7 +815,10 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
     );
   }
 
-  Widget _buildSecurityBadgeItem({required IconData icon, required String text}) {
+  Widget _buildSecurityBadgeItem({
+    required IconData icon,
+    required String text,
+  }) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
@@ -853,14 +855,14 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
               },
               borderRadius: BorderRadius.circular(20),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: const Color(0xFFE2E8F0),
-                    width: 1,
-                  ),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF0F172A).withValues(alpha: 0.03),
@@ -879,7 +881,9 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                         shape: BoxShape.circle,
                         color: isChecking
                             ? const Color(0xFFF59E0B)
-                            : (isOnline ? const Color(0xFF10B981) : const Color(0xFFEF4444)),
+                            : (isOnline
+                                  ? const Color(0xFF10B981)
+                                  : const Color(0xFFEF4444)),
                       ),
                     ),
                     const SizedBox(width: 6),
@@ -887,16 +891,22 @@ class _RegisterScreenState extends State<RegisterScreen> with SingleTickerProvid
                       isChecking
                           ? 'Checking Server...'
                           : (isOnline
-                              ? 'Server: ${_apiConfig.host.replaceFirst('http://', '')} (Online)'
-                              : 'Server: Offline (Tap to configure)'),
+                                ? 'Server: ${_apiConfig.host.replaceFirst('http://', '')} (Online)'
+                                : 'Server: Offline (Tap to configure)'),
                       style: GoogleFonts.plusJakartaSans(
                         fontSize: 11.5,
                         fontWeight: FontWeight.w600,
-                        color: isOnline ? const Color(0xFF334155) : const Color(0xFF64748B),
+                        color: isOnline
+                            ? const Color(0xFF334155)
+                            : const Color(0xFF64748B),
                       ),
                     ),
                     const SizedBox(width: 5),
-                    const Icon(Icons.settings_outlined, size: 13, color: Color(0xFF94A3B8)),
+                    const Icon(
+                      Icons.settings_outlined,
+                      size: 13,
+                      color: Color(0xFF94A3B8),
+                    ),
                   ],
                 ),
               ),

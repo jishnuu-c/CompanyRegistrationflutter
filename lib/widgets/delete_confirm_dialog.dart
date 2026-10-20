@@ -96,12 +96,20 @@ class _DeleteConfirmDialogState extends State<DeleteConfirmDialog> {
                   height: 1.45,
                 ),
                 children: [
-                  const TextSpan(text: 'Are you sure you want to permanently delete '),
+                  const TextSpan(
+                    text: 'Are you sure you want to permanently delete ',
+                  ),
                   TextSpan(
                     text: '"${widget.itemName}"',
-                    style: const TextStyle(fontWeight: FontWeight.w700, color: AppTheme.textPrimary),
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
+                    ),
                   ),
-                  TextSpan(text: ' (ID #${widget.itemId})? This action cannot be undone.'),
+                  TextSpan(
+                    text:
+                        ' (ID #${widget.itemId})? This action cannot be undone.',
+                  ),
                 ],
               ),
             ),
@@ -130,10 +138,14 @@ class _DeleteConfirmDialogState extends State<DeleteConfirmDialog> {
               children: [
                 Expanded(
                   child: OutlinedButton(
-                    onPressed: _isDeleting ? null : () => Navigator.of(context).pop(false),
+                    onPressed: _isDeleting
+                        ? null
+                        : () => Navigator.of(context).pop(false),
                     style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     child: Text(
                       'Cancel',
@@ -149,7 +161,9 @@ class _DeleteConfirmDialogState extends State<DeleteConfirmDialog> {
                       backgroundColor: AppTheme.error,
                       foregroundColor: Colors.white,
                       padding: const EdgeInsets.symmetric(vertical: 12),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
                     ),
                     child: _isDeleting
                         ? const SizedBox(
@@ -163,11 +177,16 @@ class _DeleteConfirmDialogState extends State<DeleteConfirmDialog> {
                         : Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              const Icon(Icons.delete_forever_rounded, size: 18),
+                              const Icon(
+                                Icons.delete_forever_rounded,
+                                size: 18,
+                              ),
                               const SizedBox(width: 4),
                               Text(
                                 'Yes, Delete',
-                                style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                                style: GoogleFonts.inter(
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ],
                           ),

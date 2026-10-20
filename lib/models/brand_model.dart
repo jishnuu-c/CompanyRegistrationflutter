@@ -2,10 +2,7 @@ class BrandRequest {
   final String brandName;
   final bool isFeatured;
 
-  BrandRequest({
-    required this.brandName,
-    this.isFeatured = false,
-  });
+  BrandRequest({required this.brandName, this.isFeatured = false});
 
   Map<String, dynamic> toJson() {
     return {
@@ -38,9 +35,15 @@ class BrandResponse {
 
   factory BrandResponse.fromJson(Map<String, dynamic> json) {
     return BrandResponse(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       brandName: json['brandName'] ?? json['brand_name'] ?? json['name'] ?? '',
-      brandLogo: json['brandLogo'] ?? json['brand_logo'] ?? json['logo'] ?? json['image'],
+      brandLogo:
+          json['brandLogo'] ??
+          json['brand_logo'] ??
+          json['logo'] ??
+          json['image'],
       isFeatured: json['isFeatured'] ?? json['featured'] ?? false,
     );
   }

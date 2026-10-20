@@ -6,11 +6,7 @@ class StatusBadgeChip extends StatelessWidget {
   final String status;
   final bool isMini;
 
-  const StatusBadgeChip({
-    super.key,
-    required this.status,
-    this.isMini = false,
-  });
+  const StatusBadgeChip({super.key, required this.status, this.isMini = false});
 
   @override
   Widget build(BuildContext context) {
@@ -69,10 +65,7 @@ class StatusBadgeChip extends StatelessWidget {
           Container(
             width: isMini ? 5 : 7,
             height: isMini ? 5 : 7,
-            decoration: BoxDecoration(
-              color: dotColor,
-              shape: BoxShape.circle,
-            ),
+            decoration: BoxDecoration(color: dotColor, shape: BoxShape.circle),
           ),
           const SizedBox(width: 5),
           Text(

@@ -18,7 +18,8 @@ class ProductRequest {
   Map<String, dynamic> toJson() {
     return {
       'name': name,
-      if (description != null && description!.isNotEmpty) 'description': description,
+      if (description != null && description!.isNotEmpty)
+        'description': description,
       'isFeatured': isFeatured,
       'featured': isFeatured,
       'brandId': brandId,
@@ -32,8 +33,12 @@ class ProductRequest {
       name: json['name'] ?? '',
       description: json['description'],
       isFeatured: json['isFeatured'] ?? json['featured'] ?? false,
-      brandId: json['brandId'] is int ? json['brandId'] : int.tryParse(json['brandId']?.toString() ?? '0') ?? 0,
-      categoryId: json['categoryId'] is int ? json['categoryId'] : int.tryParse(json['categoryId']?.toString() ?? '0') ?? 0,
+      brandId: json['brandId'] is int
+          ? json['brandId']
+          : int.tryParse(json['brandId']?.toString() ?? '0') ?? 0,
+      categoryId: json['categoryId'] is int
+          ? json['categoryId']
+          : int.tryParse(json['categoryId']?.toString() ?? '0') ?? 0,
       subCategoryId: json['subCategoryId'] is int
           ? json['subCategoryId']
           : int.tryParse(json['subCategoryId']?.toString() ?? ''),
@@ -74,7 +79,9 @@ class ProductResponse {
 
   factory ProductResponse.fromJson(Map<String, dynamic> json) {
     return ProductResponse(
-      id: json['id'] is int ? json['id'] : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
+      id: json['id'] is int
+          ? json['id']
+          : int.tryParse(json['id']?.toString() ?? '0') ?? 0,
       name: json['name'] ?? '',
       description: json['description'],
       image: json['image'] ?? json['product_image'],
@@ -82,21 +89,27 @@ class ProductResponse {
       brandId: json['brandId'] is int
           ? json['brandId']
           : (json['brand'] != null && json['brand']['id'] != null
-              ? (json['brand']['id'] as int)
-              : int.tryParse(json['brandId']?.toString() ?? '0') ?? 0),
-      brandName: json['brandName'] ?? (json['brand'] != null ? json['brand']['brandName'] : null),
+                ? (json['brand']['id'] as int)
+                : int.tryParse(json['brandId']?.toString() ?? '0') ?? 0),
+      brandName:
+          json['brandName'] ??
+          (json['brand'] != null ? json['brand']['brandName'] : null),
       categoryId: json['categoryId'] is int
           ? json['categoryId']
           : (json['category'] != null && json['category']['id'] != null
-              ? (json['category']['id'] as int)
-              : int.tryParse(json['categoryId']?.toString() ?? '0') ?? 0),
-      categoryName: json['categoryName'] ?? (json['category'] != null ? json['category']['name'] : null),
+                ? (json['category']['id'] as int)
+                : int.tryParse(json['categoryId']?.toString() ?? '0') ?? 0),
+      categoryName:
+          json['categoryName'] ??
+          (json['category'] != null ? json['category']['name'] : null),
       subCategoryId: json['subCategoryId'] is int
           ? json['subCategoryId']
           : (json['subCategory'] != null && json['subCategory']['id'] != null
-              ? (json['subCategory']['id'] as int)
-              : int.tryParse(json['subCategoryId']?.toString() ?? '')),
-      subCategoryName: json['subCategoryName'] ?? (json['subCategory'] != null ? json['subCategory']['name'] : null),
+                ? (json['subCategory']['id'] as int)
+                : int.tryParse(json['subCategoryId']?.toString() ?? '')),
+      subCategoryName:
+          json['subCategoryName'] ??
+          (json['subCategory'] != null ? json['subCategory']['name'] : null),
       createdAt: json['createdAt']?.toString(),
       updatedAt: json['updatedAt']?.toString(),
     );

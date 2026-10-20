@@ -13,7 +13,8 @@ class FileUploadBox extends StatelessWidget {
   final String? fileName;
   final int? fileSize;
   final String? existingFileUrl;
-  final Function(Uint8List bytes, String name, int size, String? path) onFileSelected;
+  final Function(Uint8List bytes, String name, int size, String? path)
+  onFileSelected;
   final VoidCallback onFileRemoved;
   final VoidCallback? onOcrScan;
 
@@ -32,12 +33,16 @@ class FileUploadBox extends StatelessWidget {
   });
 
   bool get hasSelectedFile => fileBytes != null;
-  bool get hasExistingFile => existingFileUrl != null && existingFileUrl!.isNotEmpty;
+  bool get hasExistingFile =>
+      existingFileUrl != null && existingFileUrl!.isNotEmpty;
   bool get hasFile => hasSelectedFile || hasExistingFile;
 
   bool get isPdf {
-    if (fileName != null && fileName!.toLowerCase().endsWith('.pdf')) return true;
-    if (existingFileUrl != null && existingFileUrl!.toLowerCase().endsWith('.pdf')) return true;
+    if (fileName != null && fileName!.toLowerCase().endsWith('.pdf'))
+      return true;
+    if (existingFileUrl != null &&
+        existingFileUrl!.toLowerCase().endsWith('.pdf'))
+      return true;
     return false;
   }
 
@@ -47,7 +52,8 @@ class FileUploadBox extends StatelessWidget {
       title: title,
       subtitle: hint,
       allowedExtensions: allowedExtensions,
-      allowDocuments: allowedExtensions.contains('pdf') || allowedExtensions.contains('*'),
+      allowDocuments:
+          allowedExtensions.contains('pdf') || allowedExtensions.contains('*'),
     );
 
     if (picked != null) {
@@ -84,7 +90,9 @@ class FileUploadBox extends StatelessWidget {
               ),
               boxShadow: hasFile ? AppTheme.shadowSm : null,
             ),
-            child: hasFile ? _buildFilePreview(context, isMobile) : _buildEmptyState(context, isMobile),
+            child: hasFile
+                ? _buildFilePreview(context, isMobile)
+                : _buildEmptyState(context, isMobile),
           ),
         ),
       ],
@@ -122,7 +130,10 @@ class FileUploadBox extends StatelessWidget {
         RichText(
           textAlign: TextAlign.center,
           text: TextSpan(
-            style: GoogleFonts.inter(fontSize: isMobile ? 11.5 : 12, color: AppTheme.textMuted),
+            style: GoogleFonts.inter(
+              fontSize: isMobile ? 11.5 : 12,
+              color: AppTheme.textMuted,
+            ),
             children: const [
               TextSpan(text: 'or '),
               TextSpan(
@@ -143,9 +154,14 @@ class FileUploadBox extends StatelessWidget {
           runSpacing: 4,
           alignment: WrapAlignment.center,
           children: [
-            ...allowedExtensions.take(4).map(
+            ...allowedExtensions
+                .take(4)
+                .map(
                   (ext) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 2,
+                    ),
                     decoration: BoxDecoration(
                       color: AppTheme.bgSubtle,
                       borderRadius: BorderRadius.circular(4),
@@ -182,7 +198,11 @@ class FileUploadBox extends StatelessWidget {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             onPressed: onOcrScan,
-            icon: const Icon(Icons.document_scanner_rounded, size: 15, color: Color(0xFF4F46E5)),
+            icon: const Icon(
+              Icons.document_scanner_rounded,
+              size: 15,
+              color: Color(0xFF4F46E5),
+            ),
             label: Text(
               'Scan Card with OCR to Auto-Fill Form',
               textAlign: TextAlign.center,
@@ -196,7 +216,9 @@ class FileUploadBox extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               side: const BorderSide(color: Color(0xFF818CF8), width: 1.2),
               backgroundColor: const Color(0xFFEEF2FF),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
           ),
         ],
@@ -223,7 +245,11 @@ class FileUploadBox extends StatelessWidget {
               ? Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(Icons.picture_as_pdf_rounded, color: AppTheme.error, size: isMobile ? 24 : 28),
+                    Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: AppTheme.error,
+                      size: isMobile ? 24 : 28,
+                    ),
                     Text(
                       'PDF',
                       style: GoogleFonts.inter(
@@ -235,14 +261,17 @@ class FileUploadBox extends StatelessWidget {
                   ],
                 )
               : fileBytes != null
-                  ? Image.memory(fileBytes!, fit: BoxFit.cover)
-                  : resolvedUrl.isNotEmpty
-                      ? Image.network(
-                          resolvedUrl,
-                          fit: BoxFit.cover,
-                          errorBuilder: (_, _, _) => const Icon(Icons.image_outlined, color: AppTheme.textMuted),
-                        )
-                      : const Icon(Icons.image_outlined, color: AppTheme.textMuted),
+              ? Image.memory(fileBytes!, fit: BoxFit.cover)
+              : resolvedUrl.isNotEmpty
+              ? Image.network(
+                  resolvedUrl,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const Icon(
+                    Icons.image_outlined,
+                    color: AppTheme.textMuted,
+                  ),
+                )
+              : const Icon(Icons.image_outlined, color: AppTheme.textMuted),
         ),
         SizedBox(width: isMobile ? 10 : 12),
 
@@ -253,7 +282,10 @@ class FileUploadBox extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                fileName ?? (existingFileUrl != null ? existingFileUrl!.split('/').last : 'Attached File'),
+                fileName ??
+                    (existingFileUrl != null
+                        ? existingFileUrl!.split('/').last
+                        : 'Attached File'),
                 style: GoogleFonts.inter(
                   fontSize: isMobile ? 12.5 : 13,
                   fontWeight: FontWeight.w600,
@@ -276,20 +308,26 @@ class FileUploadBox extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Icon(
-                    hasSelectedFile ? Icons.check_circle_rounded : Icons.cloud_done_rounded,
+                    hasSelectedFile
+                        ? Icons.check_circle_rounded
+                        : Icons.cloud_done_rounded,
                     size: 13,
                     color: AppTheme.success,
                   ),
                   const SizedBox(width: 4),
                   Flexible(
                     child: Text(
-                      hasSelectedFile ? 'Ready to upload' : 'Currently saved on file',
+                      hasSelectedFile
+                          ? 'Ready to upload'
+                          : 'Currently saved on file',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: GoogleFonts.inter(
                         fontSize: isMobile ? 10.5 : 11,
                         fontWeight: FontWeight.w600,
-                        color: hasSelectedFile ? AppTheme.success : const Color(0xFF0369A1),
+                        color: hasSelectedFile
+                            ? AppTheme.success
+                            : const Color(0xFF0369A1),
                       ),
                     ),
                   ),
@@ -305,8 +343,14 @@ class FileUploadBox extends StatelessWidget {
             onPressed: onOcrScan,
             constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
             padding: const EdgeInsets.all(5),
-            icon: const Icon(Icons.document_scanner_rounded, color: Color(0xFF6366F1), size: 19),
-            tooltip: isPdf ? 'Auto-fill form by scanning this PDF document' : 'Auto-fill form using this visiting card',
+            icon: const Icon(
+              Icons.document_scanner_rounded,
+              color: Color(0xFF6366F1),
+              size: 19,
+            ),
+            tooltip: isPdf
+                ? 'Auto-fill form by scanning this PDF document'
+                : 'Auto-fill form using this visiting card',
           ),
 
         // Remove button
@@ -314,7 +358,11 @@ class FileUploadBox extends StatelessWidget {
           onPressed: onFileRemoved,
           constraints: const BoxConstraints(minWidth: 34, minHeight: 34),
           padding: const EdgeInsets.all(5),
-          icon: const Icon(Icons.delete_outline_rounded, color: AppTheme.error, size: 20),
+          icon: const Icon(
+            Icons.delete_outline_rounded,
+            color: AppTheme.error,
+            size: 20,
+          ),
           tooltip: 'Remove file',
         ),
       ],

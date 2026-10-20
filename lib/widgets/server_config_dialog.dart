@@ -75,7 +75,11 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
                     color: AppTheme.primaryLight,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: const Icon(Icons.dns_rounded, color: AppTheme.primary, size: 22),
+                  child: const Icon(
+                    Icons.dns_rounded,
+                    color: AppTheme.primary,
+                    size: 22,
+                  ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -92,7 +96,10 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
                       ),
                       Text(
                         'Spring Boot REST API endpoint',
-                        style: GoogleFonts.inter(fontSize: 12, color: AppTheme.textMuted),
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -131,14 +138,21 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
             // Quick Presets
             Text(
               'Quick Presets:',
-              style: GoogleFonts.inter(fontSize: 11, fontWeight: FontWeight.w600, color: AppTheme.textMuted),
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                fontWeight: FontWeight.w600,
+                color: AppTheme.textMuted,
+              ),
             ),
             const SizedBox(height: 6),
             Wrap(
               spacing: 6,
               runSpacing: 6,
               children: [
-                _buildPresetChip('Android Emulator (10.0.2.2)', 'http://10.0.2.2:8080'),
+                _buildPresetChip(
+                  'Android Emulator (10.0.2.2)',
+                  'http://10.0.2.2:8080',
+                ),
                 _buildPresetChip('Localhost (8080)', 'http://localhost:8080'),
               ],
             ),
@@ -151,12 +165,18 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
                 decoration: BoxDecoration(
                   color: _isSuccess ? AppTheme.successBg : AppTheme.errorBg,
                   borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: _isSuccess ? AppTheme.successBorder : AppTheme.errorBorder),
+                  border: Border.all(
+                    color: _isSuccess
+                        ? AppTheme.successBorder
+                        : AppTheme.errorBorder,
+                  ),
                 ),
                 child: Row(
                   children: [
                     Icon(
-                      _isSuccess ? Icons.check_circle_rounded : Icons.error_rounded,
+                      _isSuccess
+                          ? Icons.check_circle_rounded
+                          : Icons.error_rounded,
                       size: 18,
                       color: _isSuccess ? AppTheme.success : AppTheme.error,
                     ),
@@ -167,7 +187,9 @@ class _ServerConfigDialogState extends State<ServerConfigDialog> {
                         style: GoogleFonts.inter(
                           fontSize: 12,
                           fontWeight: FontWeight.w500,
-                          color: _isSuccess ? const Color(0xFF065F46) : const Color(0xFF991B1B),
+                          color: _isSuccess
+                              ? const Color(0xFF065F46)
+                              : const Color(0xFF991B1B),
                         ),
                       ),
                     ),

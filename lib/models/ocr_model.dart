@@ -41,7 +41,8 @@ class BusinessCardScanResult {
         (contactDesignation != null && contactDesignation!.trim().isNotEmpty) ||
         (email != null && email!.trim().isNotEmpty) ||
         (contactEmail != null && contactEmail!.trim().isNotEmpty) ||
-        (contactMobileNumber != null && contactMobileNumber!.trim().isNotEmpty) ||
+        (contactMobileNumber != null &&
+            contactMobileNumber!.trim().isNotEmpty) ||
         (landline != null && landline!.trim().isNotEmpty) ||
         (website != null && website!.trim().isNotEmpty) ||
         (address != null && address!.trim().isNotEmpty) ||

@@ -61,6 +61,8 @@
 	</array>
 	<key>NSCameraUsageDescription</key>
 	<string>This app requires camera access to scan business cards and capture company documents.</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Authenticate securely using Face ID to access your CorpRegistry portal.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>This app requires photo library access to select business card and company document images.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>

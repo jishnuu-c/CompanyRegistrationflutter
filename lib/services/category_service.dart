@@ -12,33 +12,43 @@ class CategoryService {
   String get _apiUrl => '${_config.apiUrl}/categories';
 
   Future<List<CategoryResponse>> getAllCategories() async {
-    final response = await http.get(
-      Uri.parse('$_apiUrl/get-all'),
-      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
-    ).timeout(const Duration(seconds: 10));
+    final response = await http
+        .get(
+          Uri.parse('$_apiUrl/get-all'),
+          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       if (decoded is List) {
-        return decoded.map((e) => CategoryResponse.fromJson(e as Map<String, dynamic>)).toList();
+        return decoded
+            .map((e) => CategoryResponse.fromJson(e as Map<String, dynamic>))
+            .toList();
       }
       return [];
     } else {
-      throw Exception('Failed to load categories (status: ${response.statusCode})');
+      throw Exception(
+        'Failed to load categories (status: ${response.statusCode})',
+      );
     }
   }
 
   Future<CategoryResponse> getCategoryById(int id) async {
-    final response = await http.get(
-      Uri.parse('$_apiUrl/$id'),
-      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
-    ).timeout(const Duration(seconds: 10));
+    final response = await http
+        .get(
+          Uri.parse('$_apiUrl/$id'),
+          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return CategoryResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      throw Exception('Failed to load category #$id (status: ${response.statusCode})');
+      throw Exception(
+        'Failed to load category #$id (status: ${response.statusCode})',
+      );
     }
   }
 
@@ -50,32 +60,38 @@ class CategoryService {
   }) async {
     final uri = Uri.parse('$_apiUrl/create');
     final request = http.MultipartRequest('POST', uri);
-    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
+    request.headers.addAll(
+      _auth.getAuthHeaders({'Accept': 'application/json'}),
+    );
 
     final jsonStr = jsonEncode(categoryData.toJson());
-    request.files.add(http.MultipartFile.fromString(
-      'categoryRequestDto',
-      jsonStr,
-      contentType: http.MediaType('application', 'json'),
-    ));
-    request.files.add(http.MultipartFile.fromString(
-      'data',
-      jsonStr,
-      contentType: http.MediaType('application', 'json'),
-    ));
+    request.files.add(
+      http.MultipartFile.fromString(
+        'categoryRequestDto',
+        jsonStr,
+        contentType: http.MediaType('application', 'json'),
+      ),
+    );
+    request.files.add(
+      http.MultipartFile.fromString(
+        'data',
+        jsonStr,
+        contentType: http.MediaType('application', 'json'),
+      ),
+    );
 
     if (fileBytes != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: fileName ?? 'category_image.png',
-      ));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName ?? 'category_image.png',
+        ),
+      );
     } else if (filePath != null && !kIsWeb) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        filePath,
-        filename: fileName,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('file', filePath, filename: fileName),
+      );
     }
 
     final streamed = await request.send().timeout(const Duration(seconds: 15));
@@ -99,32 +115,38 @@ class CategoryService {
   }) async {
     final uri = Uri.parse('$_apiUrl/update/$id');
     final request = http.MultipartRequest('PUT', uri);
-    request.headers.addAll(_auth.getAuthHeaders({'Accept': 'application/json'}));
+    request.headers.addAll(
+      _auth.getAuthHeaders({'Accept': 'application/json'}),
+    );
 
     final jsonStr = jsonEncode(categoryData.toJson());
-    request.files.add(http.MultipartFile.fromString(
-      'categoryRequestDto',
-      jsonStr,
-      contentType: http.MediaType('application', 'json'),
-    ));
-    request.files.add(http.MultipartFile.fromString(
-      'data',
-      jsonStr,
-      contentType: http.MediaType('application', 'json'),
-    ));
+    request.files.add(
+      http.MultipartFile.fromString(
+        'categoryRequestDto',
+        jsonStr,
+        contentType: http.MediaType('application', 'json'),
+      ),
+    );
+    request.files.add(
+      http.MultipartFile.fromString(
+        'data',
+        jsonStr,
+        contentType: http.MediaType('application', 'json'),
+      ),
+    );
 
     if (fileBytes != null) {
-      request.files.add(http.MultipartFile.fromBytes(
-        'file',
-        fileBytes,
-        filename: fileName ?? 'category_image.png',
-      ));
+      request.files.add(
+        http.MultipartFile.fromBytes(
+          'file',
+          fileBytes,
+          filename: fileName ?? 'category_image.png',
+        ),
+      );
     } else if (filePath != null && !kIsWeb) {
-      request.files.add(await http.MultipartFile.fromPath(
-        'file',
-        filePath,
-        filename: fileName,
-      ));
+      request.files.add(
+        await http.MultipartFile.fromPath('file', filePath, filename: fileName),
+      );
     }
 
     final streamed = await request.send().timeout(const Duration(seconds: 15));
@@ -140,10 +162,12 @@ class CategoryService {
   }
 
   Future<void> deleteCategory(int id) async {
-    final response = await http.delete(
-      Uri.parse('$_apiUrl/delete/$id'),
-      headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
-    ).timeout(const Duration(seconds: 10));
+    final response = await http
+        .delete(
+          Uri.parse('$_apiUrl/delete/$id'),
+          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+        )
+        .timeout(const Duration(seconds: 10));
 
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;

@@ -10,10 +10,7 @@ class PdfRenderResult {
   final Uint8List imageBytes;
   final String extractedText;
 
-  PdfRenderResult({
-    required this.imageBytes,
-    required this.extractedText,
-  });
+  PdfRenderResult({required this.imageBytes, required this.extractedText});
 }
 
 class OcrScanOutcome {
@@ -29,7 +26,8 @@ class OcrScanOutcome {
 }
 
 class OcrService {
-  static const String _defaultApiKey = 'AIzaSyBXKybocdaq9vts91d6DFhShlJrR6O-Vh4';
+  static const String _defaultApiKey =
+      'AIzaSyBXKybocdaq9vts91d6DFhShlJrR6O-Vh4';
   static const String _defaultReferer = 'http://localhost:4200/';
   final BusinessCardParserService _parser = BusinessCardParserService();
 
@@ -41,7 +39,10 @@ class OcrService {
     }
     if (bytes != null && bytes.length >= 4) {
       // PDF magic bytes %PDF (0x25, 0x50, 0x44, 0x46)
-      if (bytes[0] == 0x25 && bytes[1] == 0x50 && bytes[2] == 0x44 && bytes[3] == 0x46) {
+      if (bytes[0] == 0x25 &&
+          bytes[1] == 0x50 &&
+          bytes[2] == 0x44 &&
+          bytes[3] == 0x46) {
         return true;
       }
     }
@@ -50,16 +51,25 @@ class OcrService {
 
   /// Renders Page 1 of a PDF onto high-resolution raster image (150 DPI),
   /// extracts digital text directly via Syncfusion, matching Angular's PDF.js workflow.
-  Future<PdfRenderResult> renderPdfPageToImage(Uint8List pdfBytes, {int pageNumber = 1}) async {
+  Future<PdfRenderResult> renderPdfPageToImage(
+    Uint8List pdfBytes, {
+    int pageNumber = 1,
+  }) async {
     // 1. Digital text extraction directly from PDF
     String extractedText = '';
     try {
       final document = PdfDocument(inputBytes: pdfBytes);
       try {
         if (document.pages.count > 0) {
-          final targetIndex = (pageNumber - 1).clamp(0, document.pages.count - 1);
+          final targetIndex = (pageNumber - 1).clamp(
+            0,
+            document.pages.count - 1,
+          );
           extractedText = PdfTextExtractor(document)
-              .extractText(startPageIndex: targetIndex, endPageIndex: targetIndex)
+              .extractText(
+                startPageIndex: targetIndex,
+                endPageIndex: targetIndex,
+              )
               .trim();
         }
       } finally {
@@ -73,15 +83,17 @@ class OcrService {
     Uint8List? rasterImageBytes;
     try {
       final targetIndex = pageNumber - 1;
-      final rasterStream = Printing.raster(
-        pdfBytes,
-        pages: [targetIndex],
-        dpi: 150,
-      ).timeout(const Duration(seconds: 2), onTimeout: (sink) {
-        sink.close();
-      }).handleError((err) {
-        debugPrint('Printing raster stream note: $err');
-      });
+      final rasterStream =
+          Printing.raster(pdfBytes, pages: [targetIndex], dpi: 150)
+              .timeout(
+                const Duration(seconds: 2),
+                onTimeout: (sink) {
+                  sink.close();
+                },
+              )
+              .handleError((err) {
+                debugPrint('Printing raster stream note: $err');
+              });
       await for (final page in rasterStream) {
         rasterImageBytes = await page.toPng();
         break;
@@ -119,7 +131,8 @@ class OcrService {
           final parsed = _parser.parse(renderResult.extractedText);
           if (parsed.confidenceScore >= 35 ||
               (parsed.email != null && parsed.email!.isNotEmpty) ||
-              (parsed.contactMobileNumber != null && parsed.contactMobileNumber!.isNotEmpty) ||
+              (parsed.contactMobileNumber != null &&
+                  parsed.contactMobileNumber!.isNotEmpty) ||
               (parsed.companyName != null && parsed.companyName!.isNotEmpty)) {
             return OcrScanOutcome(
               result: parsed,
@@ -138,7 +151,9 @@ class OcrService {
               isPdf: true,
             );
           }
-          throw Exception('Business card scanning service is currently not configured.');
+          throw Exception(
+            'Business card scanning service is currently not configured.',
+          );
         }
 
         if (renderResult.imageBytes.isEmpty) {
@@ -155,15 +170,19 @@ class OcrService {
       } catch (e) {
         debugPrint('PDF OCR processing error: $e');
         final msg = e.toString().replaceAll('Exception:', '').trim();
-        throw Exception(msg.isNotEmpty
-            ? msg
-            : 'Unable to scan PDF document. Please verify the file is not corrupted.');
+        throw Exception(
+          msg.isNotEmpty
+              ? msg
+              : 'Unable to scan PDF document. Please verify the file is not corrupted.',
+        );
       }
     }
 
     // Branch 2: Standard Image Files (JPG, PNG, WEBP)
     if (apiKey.isEmpty) {
-      throw Exception('Business card scanning service is currently not configured.');
+      throw Exception(
+        'Business card scanning service is currently not configured.',
+      );
     }
 
     try {
@@ -178,57 +197,61 @@ class OcrService {
       final errMsg = e.toString();
       if (errMsg.toLowerCase().contains('no readable text')) {
         throw Exception(
-            'No readable text detected on this image. Please upload a clear, focused photo of a business card.');
+          'No readable text detected on this image. Please upload a clear, focused photo of a business card.',
+        );
       }
       debugPrint('Image OCR service error: $e');
-      throw Exception('Unable to scan business card at this moment. Please enter details manually.');
+      throw Exception(
+        'Unable to scan business card at this moment. Please enter details manually.',
+      );
     }
   }
 
   /// Backward compatibility helper
-  Future<BusinessCardScanResult> scanBusinessCard(Uint8List imageBytes, [String fileName = 'card.jpg']) async {
+  Future<BusinessCardScanResult> scanBusinessCard(
+    Uint8List imageBytes, [
+    String fileName = 'card.jpg',
+  ]) async {
     final outcome = await scanCard(bytes: imageBytes, fileName: fileName);
     return outcome.result;
   }
 
   Future<BusinessCardScanResult> _callGoogleVisionApi(String base64Data) async {
-    final url = Uri.parse('https://vision.googleapis.com/v1/images:annotate?key=$apiKey');
+    final url = Uri.parse(
+      'https://vision.googleapis.com/v1/images:annotate?key=$apiKey',
+    );
 
     final payload = {
       'requests': [
         {
-          'image': {
-            'content': base64Data,
-          },
+          'image': {'content': base64Data},
           'features': [
-            {
-              'type': 'DOCUMENT_TEXT_DETECTION',
-              'maxResults': 1,
-            }
-          ]
-        }
-      ]
+            {'type': 'DOCUMENT_TEXT_DETECTION', 'maxResults': 1},
+          ],
+        },
+      ],
     };
 
     final response = await http.post(
       url,
-      headers: {
-        'Content-Type': 'application/json',
-        'Referer': _defaultReferer,
-      },
+      headers: {'Content-Type': 'application/json', 'Referer': _defaultReferer},
       body: jsonEncode(payload),
     );
 
     if (response.statusCode != 200) {
       try {
         final errJson = jsonDecode(response.body);
-        final msg = errJson['error']?['message'] ?? 'Vision API error (${response.statusCode})';
+        final msg =
+            errJson['error']?['message'] ??
+            'Vision API error (${response.statusCode})';
         throw Exception(msg);
       } catch (e) {
         if (e is Exception && !e.toString().contains('FormatException')) {
           rethrow;
         }
-        throw Exception('Failed to communicate with OCR service (HTTP ${response.statusCode})');
+        throw Exception(
+          'Failed to communicate with OCR service (HTTP ${response.statusCode})',
+        );
       }
     }
 
@@ -240,15 +263,21 @@ class OcrService {
 
     final responseItem = responses.first as Map<String, dynamic>;
     if (responseItem.containsKey('error')) {
-      final errMsg = responseItem['error']?['message'] ?? 'Vision API returned an error';
+      final errMsg =
+          responseItem['error']?['message'] ?? 'Vision API returned an error';
       throw Exception(errMsg);
     }
 
     String rawText = '';
-    if (responseItem['fullTextAnnotation'] != null && responseItem['fullTextAnnotation']['text'] != null) {
+    if (responseItem['fullTextAnnotation'] != null &&
+        responseItem['fullTextAnnotation']['text'] != null) {
       rawText = responseItem['fullTextAnnotation']['text'] as String;
-    } else if (responseItem['textAnnotations'] != null && (responseItem['textAnnotations'] as List).isNotEmpty) {
-      rawText = (responseItem['textAnnotations'] as List).first['description'] as String? ?? '';
+    } else if (responseItem['textAnnotations'] != null &&
+        (responseItem['textAnnotations'] as List).isNotEmpty) {
+      rawText =
+          (responseItem['textAnnotations'] as List).first['description']
+              as String? ??
+          '';
     }
 
     if (rawText.trim().isEmpty) {
@@ -258,4 +287,3 @@ class OcrService {
     return _parser.parse(rawText);
   }
 }
-

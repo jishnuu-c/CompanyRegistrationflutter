@@ -62,16 +62,8 @@ class AppTheme {
 
   // Box Shadows
   static const List<BoxShadow> shadowSm = [
-    BoxShadow(
-      color: Color(0x0E0F172A),
-      offset: Offset(0, 1),
-      blurRadius: 3,
-    ),
-    BoxShadow(
-      color: Color(0x0E0F172A),
-      offset: Offset(0, 1),
-      blurRadius: 2,
-    ),
+    BoxShadow(color: Color(0x0E0F172A), offset: Offset(0, 1), blurRadius: 3),
+    BoxShadow(color: Color(0x0E0F172A), offset: Offset(0, 1), blurRadius: 2),
   ];
 
   static const List<BoxShadow> shadowMd = [
@@ -105,11 +97,7 @@ class AppTheme {
   ];
 
   static const List<BoxShadow> shadowGlow = [
-    BoxShadow(
-      color: Color(0x334F46E5),
-      offset: Offset(0, 0),
-      blurRadius: 20,
-    ),
+    BoxShadow(color: Color(0x334F46E5), offset: Offset(0, 0), blurRadius: 20),
   ];
 
   // ThemeData
@@ -184,10 +172,7 @@ class AppTheme {
           color: textSecondary,
           height: 1.5,
         ),
-        bodySmall: GoogleFonts.inter(
-          fontSize: 12,
-          color: textMuted,
-        ),
+        bodySmall: GoogleFonts.inter(fontSize: 12, color: textMuted),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: bgSurface,
@@ -214,11 +199,11 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: bgSurface,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-        hintStyle: GoogleFonts.inter(
-          color: textMuted,
-          fontSize: 14,
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 14,
         ),
+        hintStyle: GoogleFonts.inter(color: textMuted, fontSize: 14),
         labelStyle: GoogleFonts.inter(
           color: textSecondary,
           fontSize: 14,
