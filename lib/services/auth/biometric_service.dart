@@ -43,9 +43,13 @@ class BiometricService {
 
   final LocalAuthentication _localAuth = LocalAuthentication();
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
+  static const MethodChannel _detectChannel = MethodChannel(
+    'com.example.company_reg_flutter/biometric_detect',
+  );
 
   static const String _keyBiometricEnabled = 'biometric_auth_enabled';
   static const String _keyBiometricUsername = 'biometric_bound_username';
+  static const String _keyBiometricType = 'biometric_bound_type';
 
   BiometricService._internal();
 
@@ -56,17 +60,71 @@ class BiometricService {
       final canCheck = await _localAuth.canCheckBiometrics;
       final available = await _localAuth.getAvailableBiometrics();
 
-      final hasFingerprint =
-          available.contains(BiometricType.fingerprint) ||
+      final explicitFingerprint = available.contains(BiometricType.fingerprint);
+      final explicitFace = available.contains(BiometricType.face);
+      final explicitIris = available.contains(BiometricType.iris);
+      final hasGenericBiometric =
           available.contains(BiometricType.strong) ||
           available.contains(BiometricType.weak);
 
-      final hasFace = available.contains(BiometricType.face);
-      final hasIris = available.contains(BiometricType.iris);
+      bool hasFingerprint = explicitFingerprint;
+      bool hasFace = explicitFace;
+      bool hasIris = explicitIris;
+
+      // On Android, check actual physical hardware presence and enrolled status
+      if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
+        try {
+          final res = await _detectChannel.invokeMapMethod<String, dynamic>(
+            'getBiometricHardwareInfo',
+          );
+          if (res != null) {
+            final hasFpFeature = res['hasFingerprintFeature'] == true;
+            final isFpHwDetected = res['isFingerprintHardwareDetected'] == true;
+            final hasEnrolledFp = res['hasEnrolledFingerprints'] == true;
+            final hasFaceFeature = res['hasFaceFeature'] == true;
+
+            // If device has no fingerprint hardware or no enrolled fingerprints,
+            // never classify it as fingerprint
+            if (!hasFpFeature || !isFpHwDetected || !hasEnrolledFp) {
+              hasFingerprint = false;
+            } else if (explicitFingerprint || hasGenericBiometric) {
+              hasFingerprint = true;
+            }
+
+            if (hasFaceFeature) {
+              hasFace = true;
+            }
+          }
+        } catch (e) {
+          debugPrint('[BiometricService] Hardware info query error: $e');
+        }
+      }
+
+      // If generic biometrics (e.g. Android 2D Face Unlock) are available,
+      // but fingerprint is not present or not enrolled, it is face authentication
+      if (hasGenericBiometric && !hasFingerprint && !hasIris) {
+        hasFace = true;
+      }
+
+      // If available biometrics exist on device, but neither fingerprint nor face was explicitly set
+      if (available.isNotEmpty && !hasFingerprint && !hasFace && !hasIris) {
+        hasFace = true;
+      }
 
       final isEnrolled = available.isNotEmpty;
       final isEnabled = await isBiometricLoginEnabled();
       final boundUser = isEnabled ? await getBoundUsername() : null;
+      final savedType = isEnabled ? await getBoundBiometricType() : null;
+
+      // Determine configured biometric type (either from saved enrollment or detected hardware)
+      String? configuredType = savedType;
+      if (configuredType == null && (hasFace || hasFingerprint)) {
+        if (hasFace && !hasFingerprint) {
+          configuredType = 'face';
+        } else if (hasFingerprint && !hasFace) {
+          configuredType = 'fingerprint';
+        }
+      }
 
       return BiometricCapabilities(
         isSupported: isSupported,
@@ -77,6 +135,7 @@ class BiometricService {
         isEnrolled: isEnrolled,
         isEnabledByUser: isEnabled && boundUser != null && boundUser.isNotEmpty,
         boundUsername: boundUser,
+        configuredBiometricType: configuredType,
       );
     } catch (e) {
       debugPrint('[BiometricService] getCapabilities error: $e');
@@ -103,7 +162,7 @@ class BiometricService {
 
       if (!canCheck || available.isEmpty) {
         return BiometricAuthResult.failure(
-          'No biometrics are enrolled on this device. Please set up fingerprint or Face ID in device settings.',
+          'No biometrics are enrolled on this device. Please set up Face ID or fingerprint in device settings.',
           'NotEnrolled',
         );
       }
@@ -127,7 +186,7 @@ class BiometricService {
 
       if (code.contains('notenrolled') || code.contains('not_enrolled')) {
         return BiometricAuthResult.failure(
-          'No biometrics enrolled. Please register your fingerprint or Face ID in device settings.',
+          'No biometrics enrolled. Please register your Face ID or fingerprint in device settings.',
           'NotEnrolled',
         );
       } else if (code.contains('lockedout') || code.contains('locked_out')) {
@@ -213,10 +272,27 @@ class BiometricService {
     }
   }
 
+  /// Get the saved configured biometric type ('face' or 'fingerprint')
+  Future<String?> getBoundBiometricType() async {
+    try {
+      final enabledValue = await _storage.read(key: _keyBiometricEnabled);
+      if (enabledValue != 'true') {
+        return null;
+      }
+      return await _storage.read(key: _keyBiometricType);
+    } catch (e) {
+      debugPrint('[BiometricService] Error retrieving biometric type: $e');
+      return null;
+    }
+  }
+
   /// Enable biometric login for a specific authenticated user after explicit consent.
-  /// Atomic: writes username first, then the enabled flag. If any write fails,
-  /// rolls back both keys and throws a descriptive exception.
-  Future<void> enableBiometricLogin(String username) async {
+  /// Atomic: writes username, biometric type, and enabled flag. If any write fails,
+  /// rolls back all keys and throws a descriptive exception.
+  Future<void> enableBiometricLogin(
+    String username, {
+    String? biometricType,
+  }) async {
     final cleanUsername = username.trim();
     if (cleanUsername.isEmpty) {
       throw ArgumentError(
@@ -227,13 +303,21 @@ class BiometricService {
     try {
       // 1. Write the bound username first
       await _storage.write(key: _keyBiometricUsername, value: cleanUsername);
-      // 2. Write the enabled flag
+      // 2. Write the detected/configured biometric type if provided
+      if (biometricType != null && biometricType.trim().isNotEmpty) {
+        await _storage.write(
+          key: _keyBiometricType,
+          value: biometricType.trim(),
+        );
+      }
+      // 3. Write the enabled flag
       await _storage.write(key: _keyBiometricEnabled, value: 'true');
     } catch (e) {
-      // Rollback both keys on failure to prevent partial enrollment state
+      // Rollback all keys on failure to prevent partial enrollment state
       try {
         await _storage.delete(key: _keyBiometricEnabled);
         await _storage.delete(key: _keyBiometricUsername);
+        await _storage.delete(key: _keyBiometricType);
       } catch (_) {}
       debugPrint('[BiometricService] Failed to enable biometric login: $e');
       throw Exception('Failed to securely save biometric enrollment: $e');
@@ -245,6 +329,7 @@ class BiometricService {
     try {
       await _storage.delete(key: _keyBiometricEnabled);
       await _storage.delete(key: _keyBiometricUsername);
+      await _storage.delete(key: _keyBiometricType);
     } catch (e) {
       debugPrint('[BiometricService] Error disabling biometric login: $e');
     }

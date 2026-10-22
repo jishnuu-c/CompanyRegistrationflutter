@@ -170,9 +170,14 @@ class AuthService extends ChangeNotifier {
       }
     }
 
-    final result = await _biometricService.authenticate(
-      reason: 'Authenticate to access CorpRegistry portal as $boundUser',
-    );
+    final caps = await _biometricService.getCapabilities();
+    final promptReason = caps.isFaceOnly
+        ? 'Verify your face to access CorpRegistry portal as $boundUser'
+        : (caps.isFingerprintOnly
+              ? 'Scan your fingerprint to access CorpRegistry portal as $boundUser'
+              : 'Authenticate to access CorpRegistry portal as $boundUser');
+
+    final result = await _biometricService.authenticate(reason: promptReason);
 
     if (!result.success) {
       if (result.isCancelled) {
@@ -193,7 +198,10 @@ class AuthService extends ChangeNotifier {
   }
 
   /// Enable biometric login for a specific user after explicit consent
-  Future<void> enableBiometricsForUser(String username) async {
+  Future<void> enableBiometricsForUser(
+    String username, {
+    String? biometricType,
+  }) async {
     final cleanUsername = username.trim();
     if (cleanUsername.isEmpty) {
       throw ArgumentError(
@@ -211,7 +219,10 @@ class AuthService extends ChangeNotifier {
 
     // Securely persist to local secure storage atomically
     try {
-      await _biometricService.enableBiometricLogin(cleanUsername);
+      await _biometricService.enableBiometricLogin(
+        cleanUsername,
+        biometricType: biometricType,
+      );
     } catch (e) {
       // Rollback provider credential if local storage failed to prevent partial state
       try {

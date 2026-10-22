@@ -193,56 +193,7 @@ class _MainShellScreenState extends State<MainShellScreen> {
           title: _currentModuleTitle,
           icon: _currentModuleIcon,
         ),
-        body: Column(
-          children: [
-            // Top Module Switcher Bar (Matching Angular layout)
-            Container(
-              decoration: const BoxDecoration(
-                color: Color(0xFFF8FAFC),
-                border: Border(
-                  bottom: BorderSide(color: Color(0xFFE2E8F0), width: 1),
-                ),
-              ),
-              child: SingleChildScrollView(
-                scrollDirection: Axis.horizontal,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 8,
-                ),
-                child: Row(
-                  children: [
-                    _buildTopModuleChip(
-                      index: 0,
-                      label: 'Companies',
-                      icon: Icons.apartment_rounded,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildTopModuleChip(
-                      index: 1,
-                      label: 'Categories',
-                      icon: Icons.label_rounded,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildTopModuleChip(
-                      index: 2,
-                      label: 'Brands',
-                      icon: Icons.verified_rounded,
-                    ),
-                    const SizedBox(width: 8),
-                    _buildTopModuleChip(
-                      index: 3,
-                      label: 'Products',
-                      icon: Icons.inventory_2_rounded,
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Expanded(
-              child: IndexedStack(index: _currentIndex, children: screens),
-            ),
-          ],
-        ),
+        body: IndexedStack(index: _currentIndex, children: screens),
         bottomNavigationBar: Container(
           decoration: const BoxDecoration(
             color: AppTheme.bgSurface,
@@ -331,65 +282,5 @@ class _MainShellScreenState extends State<MainShellScreen> {
     );
   }
 
-  Widget _buildTopModuleChip({
-    required int index,
-    required String label,
-    required IconData icon,
-  }) {
-    final isSelected = _currentIndex == index;
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () => _switchTab(index),
-        borderRadius: BorderRadius.circular(20),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 180),
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-          decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: isSelected
-                  ? const Color(0xFF6366F1)
-                  : const Color(0xFFE2E8F0),
-              width: isSelected ? 1.5 : 1,
-            ),
-            boxShadow: isSelected
-                ? [
-                    BoxShadow(
-                      color: const Color(0xFF6366F1).withValues(alpha: 0.12),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ]
-                : null,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                icon,
-                size: 15,
-                color: isSelected
-                    ? const Color(0xFF4F46E5)
-                    : const Color(0xFF64748B),
-              ),
-              const SizedBox(width: 6),
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 12.5,
-                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                  color: isSelected
-                      ? const Color(0xFF4F46E5)
-                      : const Color(0xFF475569),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 }

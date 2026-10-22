@@ -148,6 +148,7 @@ class BiometricCapabilities {
   final bool isEnrolled;
   final bool isEnabledByUser;
   final String? boundUsername;
+  final String? configuredBiometricType;
 
   const BiometricCapabilities({
     this.isSupported = false,
@@ -158,14 +159,40 @@ class BiometricCapabilities {
     this.isEnrolled = false,
     this.isEnabledByUser = false,
     this.boundUsername,
+    this.configuredBiometricType,
   });
 
   bool get canAuthenticate => isSupported && canCheckBiometrics && isEnrolled;
 
+  bool get isFaceOnly {
+    if (configuredBiometricType == 'face') return true;
+    if (configuredBiometricType == 'fingerprint') return false;
+    return hasFace && !hasFingerprint;
+  }
+
+  bool get isFingerprintOnly {
+    if (configuredBiometricType == 'fingerprint') return true;
+    if (configuredBiometricType == 'face') return false;
+    return hasFingerprint && !hasFace;
+  }
+
   String get displayName {
-    if (hasFace && !hasFingerprint) return 'Face ID';
-    if (hasFingerprint && !hasFace) return 'Fingerprint';
+    if (isFaceOnly) return 'Face ID';
+    if (isFingerprintOnly) return 'Fingerprint';
     if (hasFace && hasFingerprint) return 'Biometrics (Face/Fingerprint)';
+    if (hasIris) return 'Iris Scan';
     return 'Biometrics';
+  }
+
+  String get quickAccessLabel {
+    if (isFaceOnly) return 'Sign In with Face ID';
+    if (isFingerprintOnly) return 'Sign In with Fingerprint';
+    return 'Sign In with Biometrics';
+  }
+
+  String get successMessage {
+    if (isFaceOnly) return 'Face ID login successful';
+    if (isFingerprintOnly) return 'Fingerprint login successful';
+    return 'Biometric login successful';
   }
 }

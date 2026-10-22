@@ -227,18 +227,20 @@ void main() {
       provider = DemoAuthProvider();
     });
 
-    test('authenticateWithBiometrics succeeds for valid demo user (SuperAdmin)',
-        () async {
-      final response = await provider.authenticateWithBiometrics(
-        username: 'SuperAdmin',
-      );
+    test(
+      'authenticateWithBiometrics succeeds for valid demo user (SuperAdmin)',
+      () async {
+        final response = await provider.authenticateWithBiometrics(
+          username: 'SuperAdmin',
+        );
 
-      expect(response.username, equals('SuperAdmin'));
-      expect(response.isDemoSession, isTrue);
-      expect(response.token, startsWith('DEMO_SESSION_SuperAdmin_'));
-      expect(response.role, equals('ROLE_ADMIN'));
-      expect(response.tokenType, equals('DemoBearer'));
-    });
+        expect(response.username, equals('SuperAdmin'));
+        expect(response.isDemoSession, isTrue);
+        expect(response.token, startsWith('DEMO_SESSION_SuperAdmin_'));
+        expect(response.role, equals('ROLE_ADMIN'));
+        expect(response.tokenType, equals('DemoBearer'));
+      },
+    );
 
     test('authenticateWithBiometrics succeeds for DemoUser', () async {
       final response = await provider.authenticateWithBiometrics(
@@ -252,38 +254,43 @@ void main() {
     });
 
     test(
-        'authenticateWithBiometrics rejects non-existent demo username with descriptive error',
-        () async {
-      expect(
-        () => provider.authenticateWithBiometrics(
-          username: 'UnknownUser999',
-        ),
-        throwsA(
-          predicate((e) =>
-              e.toString().contains('not found in demo registry') ||
-              e.toString().contains('UnknownUser999')),
-        ),
-      );
-    });
+      'authenticateWithBiometrics rejects non-existent demo username with descriptive error',
+      () async {
+        expect(
+          () => provider.authenticateWithBiometrics(username: 'UnknownUser999'),
+          throwsA(
+            predicate(
+              (e) =>
+                  e.toString().contains('not found in demo registry') ||
+                  e.toString().contains('UnknownUser999'),
+            ),
+          ),
+        );
+      },
+    );
 
-    test('registerBiometricCredential binds valid demo user and validates registration',
-        () async {
-      await provider.registerBiometricCredential(
-        username: 'SuperAdmin',
-        sessionToken: 'DEMO_SESSION_TOKEN',
-      );
+    test(
+      'registerBiometricCredential binds valid demo user and validates registration',
+      () async {
+        await provider.registerBiometricCredential(
+          username: 'SuperAdmin',
+          sessionToken: 'DEMO_SESSION_TOKEN',
+        );
 
-      // Authenticating without explicit username uses bound credential
-      final response = await provider.authenticateWithBiometrics(username: '');
-      expect(response.username, equals('SuperAdmin'));
+        // Authenticating without explicit username uses bound credential
+        final response = await provider.authenticateWithBiometrics(
+          username: '',
+        );
+        expect(response.username, equals('SuperAdmin'));
 
-      // Revoking resets bound user
-      await provider.revokeBiometricCredential();
-      expect(
-        () => provider.authenticateWithBiometrics(username: ''),
-        throwsA(isA<Exception>()),
-      );
-    });
+        // Revoking resets bound user
+        await provider.revokeBiometricCredential();
+        expect(
+          () => provider.authenticateWithBiometrics(username: ''),
+          throwsA(isA<Exception>()),
+        );
+      },
+    );
 
     test('registerBiometricCredential rejects invalid demo user', () async {
       expect(
@@ -292,8 +299,9 @@ void main() {
           sessionToken: 'DEMO_TOKEN',
         ),
         throwsA(
-          predicate((e) =>
-              e.toString().contains('does not exist in demo registry')),
+          predicate(
+            (e) => e.toString().contains('does not exist in demo registry'),
+          ),
         ),
       );
     });
@@ -307,52 +315,123 @@ void main() {
       biometricService = BiometricService();
     });
 
-    test('enableBiometricLogin securely writes username and enabled flag',
-        () async {
-      await biometricService.enableBiometricLogin('SuperAdmin');
+    test(
+      'enableBiometricLogin securely writes username, enabled flag, and biometricType',
+      () async {
+        await biometricService.enableBiometricLogin(
+          'SuperAdmin',
+          biometricType: 'face',
+        );
 
-      final isEnabled = await biometricService.isBiometricLoginEnabled();
-      final boundUser = await biometricService.getBoundUsername();
+        final isEnabled = await biometricService.isBiometricLoginEnabled();
+        final boundUser = await biometricService.getBoundUsername();
+        final boundType = await biometricService.getBoundBiometricType();
 
-      expect(isEnabled, isTrue);
-      expect(boundUser, equals('SuperAdmin'));
-    });
-
-    test('disableBiometricLogin removes both username and enabled flag',
-        () async {
-      await biometricService.enableBiometricLogin('SuperAdmin');
-      await biometricService.disableBiometricLogin();
-
-      final isEnabled = await biometricService.isBiometricLoginEnabled();
-      final boundUser = await biometricService.getBoundUsername();
-
-      expect(isEnabled, isFalse);
-      expect(boundUser, isNull);
-    });
+        expect(isEnabled, isTrue);
+        expect(boundUser, equals('SuperAdmin'));
+        expect(boundType, equals('face'));
+      },
+    );
 
     test(
-        'isBiometricLoginEnabled cleans up and returns false on partial/corrupt storage state',
-        () async {
-      // Simulate partial state: enabled flag is 'true' but no bound username exists
-      FlutterSecureStorage.setMockInitialValues({
-        'biometric_auth_enabled': 'true',
-      });
+      'disableBiometricLogin removes username, enabled flag, and biometricType',
+      () async {
+        await biometricService.enableBiometricLogin(
+          'SuperAdmin',
+          biometricType: 'face',
+        );
+        await biometricService.disableBiometricLogin();
 
-      final isEnabled = await biometricService.isBiometricLoginEnabled();
-      expect(isEnabled, isFalse);
+        final isEnabled = await biometricService.isBiometricLoginEnabled();
+        final boundUser = await biometricService.getBoundUsername();
+        final boundType = await biometricService.getBoundBiometricType();
 
-      final boundUser = await biometricService.getBoundUsername();
-      expect(boundUser, isNull);
-    });
+        expect(isEnabled, isFalse);
+        expect(boundUser, isNull);
+        expect(boundType, isNull);
+      },
+    );
 
-    test('AuthService isBoundDemoUserValid identifies valid vs invalid demo accounts', () {
-      final auth = AuthService();
-      expect(auth.isBoundDemoUserValid('SuperAdmin'), isTrue);
-      expect(auth.isBoundDemoUserValid('DemoUser'), isTrue);
-      expect(auth.isBoundDemoUserValid('admin@corpregistry.com'), isTrue);
-      expect(auth.isBoundDemoUserValid('NonExistentUser'), isFalse);
-      expect(auth.isBoundDemoUserValid(null), isFalse);
-      expect(auth.isBoundDemoUserValid(''), isFalse);
-    });
+    test(
+      'isBiometricLoginEnabled cleans up and returns false on partial/corrupt storage state',
+      () async {
+        // Simulate partial state: enabled flag is 'true' but no bound username exists
+        FlutterSecureStorage.setMockInitialValues({
+          'biometric_auth_enabled': 'true',
+        });
+
+        final isEnabled = await biometricService.isBiometricLoginEnabled();
+        expect(isEnabled, isFalse);
+
+        final boundUser = await biometricService.getBoundUsername();
+        expect(boundUser, isNull);
+      },
+    );
+
+    test(
+      'AuthService isBoundDemoUserValid identifies valid vs invalid demo accounts',
+      () {
+        final auth = AuthService();
+        expect(auth.isBoundDemoUserValid('SuperAdmin'), isTrue);
+        expect(auth.isBoundDemoUserValid('DemoUser'), isTrue);
+        expect(auth.isBoundDemoUserValid('admin@corpregistry.com'), isTrue);
+        expect(auth.isBoundDemoUserValid('NonExistentUser'), isFalse);
+        expect(auth.isBoundDemoUserValid(null), isFalse);
+        expect(auth.isBoundDemoUserValid(''), isFalse);
+      },
+    );
+
+    test(
+      'BiometricCapabilities dynamically resolves Face ID vs Fingerprint labels',
+      () {
+        // Face-only capabilities
+        const faceCaps = BiometricCapabilities(
+          isSupported: true,
+          canCheckBiometrics: true,
+          isEnrolled: true,
+          hasFace: true,
+          hasFingerprint: false,
+        );
+        expect(faceCaps.isFaceOnly, isTrue);
+        expect(faceCaps.isFingerprintOnly, isFalse);
+        expect(faceCaps.displayName, equals('Face ID'));
+        expect(faceCaps.quickAccessLabel, equals('Sign In with Face ID'));
+        expect(faceCaps.successMessage, equals('Face ID login successful'));
+
+        // Fingerprint-only capabilities
+        const fpCaps = BiometricCapabilities(
+          isSupported: true,
+          canCheckBiometrics: true,
+          isEnrolled: true,
+          hasFace: false,
+          hasFingerprint: true,
+        );
+        expect(fpCaps.isFaceOnly, isFalse);
+        expect(fpCaps.isFingerprintOnly, isTrue);
+        expect(fpCaps.displayName, equals('Fingerprint'));
+        expect(fpCaps.quickAccessLabel, equals('Sign In with Fingerprint'));
+        expect(fpCaps.successMessage, equals('Fingerprint login successful'));
+
+        // Configured override (e.g. device has weak/generic biometric bound as face)
+        const configuredFaceCaps = BiometricCapabilities(
+          isSupported: true,
+          canCheckBiometrics: true,
+          isEnrolled: true,
+          hasFace: false,
+          hasFingerprint: true,
+          configuredBiometricType: 'face',
+        );
+        expect(configuredFaceCaps.isFaceOnly, isTrue);
+        expect(configuredFaceCaps.displayName, equals('Face ID'));
+        expect(
+          configuredFaceCaps.quickAccessLabel,
+          equals('Sign In with Face ID'),
+        );
+        expect(
+          configuredFaceCaps.successMessage,
+          equals('Face ID login successful'),
+        );
+      },
+    );
   });
 }

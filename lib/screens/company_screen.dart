@@ -25,6 +25,7 @@ import '../widgets/business_card_ocr_banner.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/business_card_ocr_dialog.dart';
 import '../widgets/fast_autofill_banner.dart';
+import '../widgets/country_dropdown.dart';
 
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
@@ -212,86 +213,13 @@ class CompanyScreenState extends State<CompanyScreen> {
   final _landlineController = TextEditingController();
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
-  final _countryController = TextEditingController(text: 'USA - United States');
-
-  static const List<String> _countryList = [
-    'USA - United States',
-    'CAN - Canada',
-    'GBR - United Kingdom',
-    'AUS - Australia',
-    'IND - India',
-    'DEU - Germany',
-    'FRA - France',
-    'ARE - United Arab Emirates',
-    'SAU - Saudi Arabia',
-    'QAT - Qatar',
-    'KWT - Kuwait',
-    'BHR - Bahrain',
-    'OMN - Oman',
-    'SGP - Singapore',
-    'MYS - Malaysia',
-    'JPN - Japan',
-    'CHN - China',
-    'KOR - South Korea',
-    'NLD - Netherlands',
-    'CHE - Switzerland',
-    'ITA - Italy',
-    'ESP - Spain',
-    'SWE - Sweden',
-    'NOR - Norway',
-    'DNK - Denmark',
-    'FIN - Finland',
-    'IRL - Ireland',
-    'BEL - Belgium',
-    'AUT - Austria',
-    'POL - Poland',
-    'TUR - Turkey',
-    'BRA - Brazil',
-    'MEX - Mexico',
-    'ZAF - South Africa',
-    'NZL - New Zealand',
-    'EGY - Egypt',
-    'JOR - Jordan',
-    'LBN - Lebanon',
-    'IDN - Indonesia',
-    'THA - Thailand',
-    'VNM - Vietnam',
-    'PHL - Philippines',
-    'PAK - Pakistan',
-    'BGD - Bangladesh',
-    'NGA - Nigeria',
-    'KEN - Kenya',
-    'ARG - Argentina',
-    'CHL - Chile',
-    'COL - Colombia',
-  ];
+  final _countryController = TextEditingController();
 
   String _normalizeCountry(String? raw) {
-    if (raw == null || raw.trim().isEmpty) return 'USA - United States';
-    final trimmed = raw.trim();
-    for (final opt in _countryList) {
-      if (opt.toLowerCase() == trimmed.toLowerCase()) return opt;
-      final parts = opt.split(' - ');
-      if (parts.length == 2) {
-        if (parts[0].toLowerCase() == trimmed.toLowerCase() ||
-            parts[1].toLowerCase() == trimmed.toLowerCase()) {
-          return opt;
-        }
-      }
-    }
-    final lower = trimmed.toLowerCase();
-    if (lower == 'us' ||
-        lower == 'usa' ||
-        lower == 'united states of america') {
-      return 'USA - United States';
-    }
-    if (lower == 'uk' || lower == 'great britain' || lower == 'britain') {
-      return 'GBR - United Kingdom';
-    }
-    if (lower == 'uae') {
-      return 'ARE - United Arab Emirates';
-    }
-    return trimmed;
+    if (raw == null || raw.trim().isEmpty) return '';
+    final found = SearchableCountryDropdown.findCountry(raw);
+    if (found != null) return found.formatted;
+    return raw.trim();
   }
 
   final _websiteController = TextEditingController();
@@ -1113,7 +1041,7 @@ class CompanyScreenState extends State<CompanyScreen> {
     _landlineController.clear();
     _addressController.clear();
     _cityController.clear();
-    _countryController.text = 'USA - United States';
+    _countryController.clear();
     _websiteController.clear();
     _descriptionController.clear();
     _status = 'ACTIVE';
@@ -4135,89 +4063,13 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   Widget _buildCountryDropdownField() {
-    final normalized = _normalizeCountry(_countryController.text);
-    final items = [
-      ..._countryList,
-      if (!_countryList.contains(normalized)) normalized,
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Country',
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        DropdownButtonFormField<String>(
-          value: normalized,
-          isExpanded: true,
-          icon: const Icon(
-            Icons.keyboard_arrow_down_rounded,
-            size: 20,
-            color: AppTheme.textMuted,
-          ),
-          dropdownColor: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          elevation: 4,
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            color: AppTheme.textPrimary,
-            fontWeight: FontWeight.w500,
-          ),
-          decoration: InputDecoration(
-            isDense: true,
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: AppTheme.borderMedium,
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: AppTheme.borderLight,
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
-            ),
-          ),
-          items: items.map((c) {
-            return DropdownMenuItem<String>(
-              value: c,
-              child: Text(
-                c,
-                style: GoogleFonts.inter(
-                  fontSize: 13,
-                  color: AppTheme.textPrimary,
-                ),
-                overflow: TextOverflow.ellipsis,
-              ),
-            );
-          }).toList(),
-          onChanged: (val) {
-            if (val != null) {
-              setState(() {
-                _countryController.text = val;
-              });
-            }
-          },
-        ),
-      ],
+    return SearchableCountryDropdown(
+      value: _countryController.text,
+      onChanged: (val) {
+        setState(() {
+          _countryController.text = val ?? '';
+        });
+      },
     );
   }
 

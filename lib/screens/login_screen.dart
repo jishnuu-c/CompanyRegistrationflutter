@@ -362,19 +362,22 @@ class _LoginScreenState extends State<LoginScreen>
     }
 
     if (!_biometricCaps.isEnrolled) {
+      final bioName = _biometricCaps.displayName;
       setState(() {
         _errorMessage =
-            'No biometrics enrolled. Please set up fingerprint or Face ID in device settings.';
+            'No biometrics enrolled. Please set up $bioName in device settings.';
       });
       return;
     }
 
     final boundUser = _biometricCaps.boundUsername;
-    final isLinked = _biometricCaps.isEnabledByUser &&
+    final isLinked =
+        _biometricCaps.isEnabledByUser &&
         boundUser != null &&
         boundUser.trim().isNotEmpty;
 
-    final isDemoValid = !_authService.isDemoMode ||
+    final isDemoValid =
+        !_authService.isDemoMode ||
         (boundUser != null && _authService.isBoundDemoUserValid(boundUser));
 
     if (!isLinked || !isDemoValid) {
@@ -394,19 +397,25 @@ class _LoginScreenState extends State<LoginScreen>
       HapticFeedback.mediumImpact();
       _navigateToDashboard();
 
+      final isFace = _biometricCaps.isFaceOnly;
+      final methodTitle = isFace
+          ? 'Face ID'
+          : (_biometricCaps.isFingerprintOnly ? 'Fingerprint' : 'Biometric');
+      final successMsg =
+          '$methodTitle login successful for ${response.fullName.isNotEmpty ? response.fullName : response.username}!';
+      final successIcon = isFace
+          ? Icons.face_rounded
+          : Icons.fingerprint_rounded;
+
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Row(
             children: [
-              const Icon(
-                Icons.verified_user_rounded,
-                color: Colors.white,
-                size: 20,
-              ),
+              Icon(successIcon, color: Colors.white, size: 20),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  'Biometric authentication verified for ${response.fullName.isNotEmpty ? response.fullName : response.username}!',
+                  successMsg,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -441,7 +450,7 @@ class _LoginScreenState extends State<LoginScreen>
         title: Row(
           children: [
             Icon(
-              _biometricCaps.hasFace && !_biometricCaps.hasFingerprint
+              _biometricCaps.isFaceOnly
                   ? Icons.face_rounded
                   : Icons.fingerprint_rounded,
               color: const Color(0xFF4F46E5),
@@ -515,7 +524,7 @@ class _LoginScreenState extends State<LoginScreen>
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: Icon(
-                  caps.hasFace && !caps.hasFingerprint
+                  caps.isFaceOnly
                       ? Icons.face_rounded
                       : Icons.fingerprint_rounded,
                   color: const Color(0xFF4F46E5),
@@ -610,27 +619,38 @@ class _LoginScreenState extends State<LoginScreen>
 
       if (shouldEnable == true && mounted) {
         try {
+          final promptReason = caps.isFaceOnly
+              ? 'Verify your face to enable quick login for $username'
+              : (caps.isFingerprintOnly
+                    ? 'Verify your fingerprint to enable quick login for $username'
+                    : 'Verify your biometric identity to enable quick login for $username');
+
           final bioPrompt = await BiometricService().authenticate(
-            reason:
-                'Verify your biometric identity to enable quick login for $username',
+            reason: promptReason,
           );
           if (bioPrompt.success) {
-            await _authService.enableBiometricsForUser(username);
+            await _authService.enableBiometricsForUser(
+              username,
+              biometricType: caps.isFaceOnly
+                  ? 'face'
+                  : (caps.isFingerprintOnly ? 'fingerprint' : null),
+            );
             _biometricCaps = await _authService.checkBiometrics();
             if (mounted) {
+              final activeName = _biometricCaps.displayName;
+              final activeIcon = _biometricCaps.isFaceOnly
+                  ? Icons.face_rounded
+                  : Icons.fingerprint_rounded;
+
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
                   content: Row(
                     children: [
-                      const Icon(
-                        Icons.check_circle_outline_rounded,
-                        color: Colors.white,
-                        size: 20,
-                      ),
+                      Icon(activeIcon, color: Colors.white, size: 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          '${caps.displayName} successfully linked for "$username".',
+                          '$activeName successfully linked for "$username".',
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 13,
                             fontWeight: FontWeight.w600,
@@ -649,7 +669,8 @@ class _LoginScreenState extends State<LoginScreen>
               );
             }
           } else if (!bioPrompt.isCancelled && mounted) {
-            final errorMsg = bioPrompt.errorMessage ??
+            final errorMsg =
+                bioPrompt.errorMessage ??
                 'Biometric verification failed. Enrollment skipped.';
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -1649,11 +1670,15 @@ class _LoginScreenState extends State<LoginScreen>
       return const SizedBox.shrink();
     }
 
-    final isFace = _biometricCaps.hasFace && !_biometricCaps.hasFingerprint;
-    final label = isFace ? 'Sign In with Face ID' : 'Sign In with Fingerprint';
+    final isFace = _biometricCaps.isFaceOnly;
+    final label = _biometricCaps.quickAccessLabel;
     final icon = isFace ? Icons.face_rounded : Icons.fingerprint_rounded;
     final isEnabled = _biometricCaps.isEnabledByUser;
     final boundUser = _biometricCaps.boundUsername;
+
+    final buttonText = isEnabled && boundUser != null && boundUser.isNotEmpty
+        ? '$label ($boundUser)'
+        : label;
 
     return Column(
       children: [
@@ -1700,9 +1725,7 @@ class _LoginScreenState extends State<LoginScreen>
                 const SizedBox(width: 8),
                 Flexible(
                   child: Text(
-                    isEnabled && boundUser != null
-                        ? '$label ($boundUser)'
-                        : label,
+                    buttonText,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                     style: GoogleFonts.plusJakartaSans(
@@ -2138,8 +2161,12 @@ class _LoginScreenState extends State<LoginScreen>
           runSpacing: 8,
           children: [
             _buildSecurityBadgeItem(
-              icon: Icons.fingerprint_rounded,
-              text: 'Biometric Keystore',
+              icon: _biometricCaps.isFaceOnly
+                  ? Icons.face_rounded
+                  : Icons.fingerprint_rounded,
+              text: _biometricCaps.isFaceOnly
+                  ? 'Face ID Keystore'
+                  : 'Biometric Keystore',
             ),
             _buildSecurityBadgeItem(
               icon: Icons.verified_user_rounded,
