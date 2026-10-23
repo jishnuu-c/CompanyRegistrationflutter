@@ -39,6 +39,9 @@ class SearchableCountryDropdown extends StatefulWidget {
   /// Full list of countries, defaults to matching Angular items exactly
   final List<CountryOption>? countries;
 
+  /// Whether country was automatically selected based on city input (matches Angular isAutoCountrySelected)
+  final bool isAutoCountrySelected;
+
   const SearchableCountryDropdown({
     super.key,
     required this.value,
@@ -49,6 +52,7 @@ class SearchableCountryDropdown extends StatefulWidget {
     this.isRequired = true,
     this.validator,
     this.countries,
+    this.isAutoCountrySelected = false,
   });
 
   /// Default country options matching the Angular application
@@ -691,6 +695,26 @@ class _SearchableCountryDropdownState extends State<SearchableCountryDropdown>
                     ),
                     const SizedBox(width: 8),
 
+                    if (selectedCountry != null) ...[
+                      MouseRegion(
+                        cursor: SystemMouseCursors.click,
+                        child: GestureDetector(
+                          onTap: () {
+                            widget.onChanged('');
+                            setState(() {});
+                          },
+                          child: const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 4),
+                            child: Icon(
+                              Icons.close_rounded,
+                              size: 16,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+
                     // Chevron Indicator (Points UP when open, DOWN when closed)
                     Icon(
                       _isOpen
@@ -707,6 +731,50 @@ class _SearchableCountryDropdownState extends State<SearchableCountryDropdown>
             ),
           ),
         ),
+
+        // Auto-selected country badge matching Angular exactly
+        if (widget.isAutoCountrySelected) ...[
+          const SizedBox(height: 6),
+          Tooltip(
+            message: 'Automatically set to Saudi Arabia based on typed city',
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 10,
+                vertical: 4.5,
+              ),
+              decoration: BoxDecoration(
+                color: const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(
+                  color: const Color(0xFFA7F3D0),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.location_on,
+                    size: 13,
+                    color: Color(0xFF059669),
+                  ),
+                  const SizedBox(width: 5),
+                  Flexible(
+                    child: Text(
+                      'Auto-selected Saudi Arabia based on city',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF065F46),
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
 
         if (_errorText != null) ...[
           const SizedBox(height: 4),

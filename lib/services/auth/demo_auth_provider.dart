@@ -34,19 +34,21 @@ class DemoAuthProvider implements AuthProvider {
   // Demo user database
   final List<Map<String, dynamic>> _demoUsers = [
     {
+      'id': 1,
       'username': 'SuperAdmin',
       'email': 'admin@corpregistry.com',
       'password': 'companyAdmin',
       'fullName': 'System Administrator',
-      'role': 'ROLE_ADMIN',
+      'role': 'SUPER_ADMIN',
       'phone': '9876543210',
     },
     {
+      'id': 2,
       'username': 'DemoUser',
       'email': 'user@corpregistry.com',
       'password': 'userPass123',
       'fullName': 'Enterprise Officer',
-      'role': 'ROLE_USER',
+      'role': 'COMPANY_USER',
       'phone': '9876543211',
     },
   ];
@@ -147,6 +149,7 @@ class DemoAuthProvider implements AuthProvider {
 
     final token = _generateDemoToken(matched['username'] as String);
     return AuthResponse(
+      id: matched['id'] as int?,
       token: token,
       tokenType: 'DemoBearer',
       username: matched['username'] as String,
@@ -177,12 +180,14 @@ class DemoAuthProvider implements AuthProvider {
       throw Exception('Username or email already exists in demo registry.');
     }
 
+    final newId = _demoUsers.length + 1;
     final newUser = {
+      'id': newId,
       'username': username,
       'email': email,
       'password': request.password,
       'fullName': request.fullName.trim(),
-      'role': 'ROLE_USER',
+      'role': 'COMPANY_USER',
       'phone': '9990001111',
     };
     _demoUsers.add(newUser);
@@ -190,12 +195,13 @@ class DemoAuthProvider implements AuthProvider {
 
     final token = _generateDemoToken(username);
     return AuthResponse(
+      id: newId,
       token: token,
       tokenType: 'DemoBearer',
       username: username,
       email: email,
       fullName: request.fullName.trim(),
-      role: 'ROLE_USER',
+      role: 'COMPANY_USER',
       expiresIn: 86400,
       isDemoSession: true,
     );
@@ -308,10 +314,11 @@ class DemoAuthProvider implements AuthProvider {
           ? key.split('@').first
           : 'User_${key.substring(max(0, key.length - 4))}';
       matchedUser = {
+        'id': _demoUsers.length + 1,
         'username': fallbackUsername,
         'email': isEmail ? key : '$fallbackUsername@demo.corpregistry.com',
         'fullName': 'Verified Demo User',
-        'role': 'ROLE_ADMIN',
+        'role': 'COMPANY_USER',
         'phone': isEmail ? '9876543210' : key,
       };
       _demoUsers.add(matchedUser);
@@ -322,6 +329,7 @@ class DemoAuthProvider implements AuthProvider {
     final token = _generateDemoToken(username);
 
     return AuthResponse(
+      id: matchedUser['id'] as int?,
       token: token,
       tokenType: 'DemoBearer',
       username: username,
@@ -344,6 +352,7 @@ class DemoAuthProvider implements AuthProvider {
       orElse: () => _demoUsers.first,
     );
     return UserProfile(
+      id: user['id'] as int?,
       username: user['username'] as String,
       email: user['email'] as String,
       fullName: user['fullName'] as String,
@@ -445,6 +454,7 @@ class DemoAuthProvider implements AuthProvider {
     final token = _generateDemoToken(realUsername);
 
     return AuthResponse(
+      id: matched['id'] as int?,
       token: token,
       tokenType: 'DemoBearer',
       username: realUsername,

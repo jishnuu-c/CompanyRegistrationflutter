@@ -17,6 +17,7 @@ class CompanyRequest {
   final String? contactMobileNumber;
   final List<int> brandIds;
   final List<int> productIds;
+  final int? userId;
 
   CompanyRequest({
     required this.companyName,
@@ -34,6 +35,7 @@ class CompanyRequest {
     this.contactMobileNumber,
     this.brandIds = const [],
     this.productIds = const [],
+    this.userId,
   });
 
   Map<String, dynamic> toJson() {
@@ -53,6 +55,7 @@ class CompanyRequest {
       'contactMobileNumber': contactMobileNumber ?? '',
       'brandIds': brandIds,
       'productIds': productIds,
+      if (userId != null) 'userId': userId,
     };
   }
 
@@ -87,6 +90,9 @@ class CompanyRequest {
               ),
             )
           : const [],
+      userId: json['userId'] is int
+          ? json['userId'] as int
+          : int.tryParse(json['userId']?.toString() ?? ''),
     );
   }
 }
@@ -114,6 +120,9 @@ class CompanyResponse {
   final List<BrandResponse> brands;
   final List<int> productIds;
   final List<ProductResponse> products;
+  final int? userId;
+  final String? userEmail;
+  final String? userFullName;
 
   CompanyResponse({
     required this.id,
@@ -138,6 +147,9 @@ class CompanyResponse {
     this.brands = const [],
     this.productIds = const [],
     this.products = const [],
+    this.userId,
+    this.userEmail,
+    this.userFullName,
   });
 
   List<String> get allCards {
@@ -248,6 +260,13 @@ class CompanyResponse {
       brands: parsedBrands,
       productIds: parsedProductIds,
       products: parsedProducts,
+      userId: json['userId'] is int
+          ? json['userId'] as int
+          : int.tryParse(json['userId']?.toString() ?? ''),
+      userEmail:
+          (json['userEmail'] ?? json['user_email'])?.toString(),
+      userFullName:
+          (json['userFullName'] ?? json['user_full_name'])?.toString(),
     );
   }
 
@@ -274,6 +293,9 @@ class CompanyResponse {
       'brands': brands.map((b) => b.toJson()).toList(),
       'productIds': productIds,
       'products': products.map((p) => p.toJson()).toList(),
+      if (userId != null) 'userId': userId,
+      if (userEmail != null) 'userEmail': userEmail,
+      if (userFullName != null) 'userFullName': userFullName,
     };
   }
 }

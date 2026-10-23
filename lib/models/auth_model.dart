@@ -32,6 +32,7 @@ class RegisterRequest {
 }
 
 class AuthResponse {
+  final int? id;
   final String token;
   final String tokenType;
   final String username;
@@ -43,6 +44,7 @@ class AuthResponse {
   final bool isDemoSession;
 
   AuthResponse({
+    this.id,
     required this.token,
     this.tokenType = 'Bearer',
     required this.username,
@@ -53,8 +55,16 @@ class AuthResponse {
     this.isDemoSession = false,
   });
 
+  bool get isSuperAdmin =>
+      role == 'SUPER_ADMIN' || role == 'ROLE_SUPER_ADMIN';
+  bool get isCompanyUser =>
+      role == 'COMPANY_USER' || role == 'ROLE_COMPANY_USER';
+
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? ''),
       token: json['token'] as String? ?? '',
       tokenType: json['tokenType'] as String? ?? 'Bearer',
       username: json['username'] as String? ?? '',
@@ -67,6 +77,7 @@ class AuthResponse {
   }
 
   Map<String, dynamic> toJson() => {
+    if (id != null) 'id': id,
     'token': token,
     'tokenType': tokenType,
     'username': username,
@@ -78,6 +89,7 @@ class AuthResponse {
   };
 
   UserProfile toUserProfile() => UserProfile(
+    id: id,
     username: username,
     email: email,
     fullName: fullName,
@@ -100,9 +112,16 @@ class UserProfile {
     required this.role,
   });
 
+  bool get isSuperAdmin =>
+      role == 'SUPER_ADMIN' || role == 'ROLE_SUPER_ADMIN';
+  bool get isCompanyUser =>
+      role == 'COMPANY_USER' || role == 'ROLE_COMPANY_USER';
+
   factory UserProfile.fromJson(Map<String, dynamic> json) {
     return UserProfile(
-      id: json['id'] as int?,
+      id: json['id'] is int
+          ? json['id'] as int
+          : int.tryParse(json['id']?.toString() ?? ''),
       username: json['username'] as String? ?? '',
       email: json['email'] as String? ?? '',
       fullName: json['fullName'] as String? ?? '',

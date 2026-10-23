@@ -154,6 +154,15 @@ class _LoginScreenState extends State<LoginScreen>
     });
   }
 
+  void _useDemoCompanyUser() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _usernameOrEmailController.text = 'DemoUser';
+      _passwordController.text = 'userPass123';
+      _errorMessage = null;
+    });
+  }
+
   void _useDemoPhone() {
     HapticFeedback.lightImpact();
     setState(() {
@@ -1995,15 +2004,15 @@ class _LoginScreenState extends State<LoginScreen>
                   borderRadius: BorderRadius.circular(6),
                 ),
                 child: const Icon(
-                  Icons.key_rounded,
-                  size: 14,
+                  Icons.shield_outlined,
+                  size: 15,
                   color: Color(0xFF4F46E5),
                 ),
               ),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Default Credentials',
+                  'Role-Based Test Accounts',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
@@ -2011,61 +2020,141 @@ class _LoginScreenState extends State<LoginScreen>
                   ),
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: _useDemoAdmin,
-                  borderRadius: BorderRadius.circular(6),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 5,
-                    ),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF4F46E5),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.flash_on_rounded,
-                          size: 13,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 3),
-                        Text(
-                          'Auto Fill',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11.5,
-                            fontWeight: FontWeight.w700,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 10),
+          // Super Admin Card
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.all(9),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
             ),
             child: Column(
               children: [
-                _buildCredentialRow('Username', 'SuperAdmin'),
-                const Divider(
-                  height: 12,
-                  thickness: 0.8,
-                  color: Color(0xFFF1F5F9),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0xFFC7D2FE)),
+                      ),
+                      child: Text(
+                        'SUPER_ADMIN',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF4338CA),
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _useDemoAdmin,
+                        borderRadius: BorderRadius.circular(5),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF4F46E5),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.flash_on_rounded, size: 11, color: Colors.white),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Auto Fill',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
+                const SizedBox(height: 6),
+                _buildCredentialRow('Username', 'SuperAdmin'),
+                const Divider(height: 8, thickness: 0.6, color: Color(0xFFF1F5F9)),
                 _buildCredentialRow('Password', 'companyAdmin'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 8),
+          // Company User Card
+          Container(
+            padding: const EdgeInsets.all(9),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFE2E8F0)),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(4),
+                        border: Border.all(color: const Color(0xFFA7F3D0)),
+                      ),
+                      child: Text(
+                        'COMPANY_USER',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF047857),
+                        ),
+                      ),
+                    ),
+                    Material(
+                      color: Colors.transparent,
+                      child: InkWell(
+                        onTap: _useDemoCompanyUser,
+                        borderRadius: BorderRadius.circular(5),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF059669),
+                            borderRadius: BorderRadius.circular(5),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.flash_on_rounded, size: 11, color: Colors.white),
+                              const SizedBox(width: 3),
+                              Text(
+                                'Auto Fill',
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 10.5,
+                                  fontWeight: FontWeight.w700,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+                _buildCredentialRow('Username', 'DemoUser'),
+                const Divider(height: 8, thickness: 0.6, color: Color(0xFFF1F5F9)),
+                _buildCredentialRow('Password', 'userPass123'),
               ],
             ),
           ),

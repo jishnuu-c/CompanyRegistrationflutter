@@ -26,17 +26,23 @@ class CompanyService {
       address: '2 Address: Riyadh- ksa',
       website: 'https://www.canadiansystems.sa',
       status: 'ACTIVE',
+      userId: 1,
+      userEmail: 'admin@corpregistry.com',
+      userFullName: 'System Administrator',
     ),
     CompanyResponse(
       id: 2,
       companyName: 'Azoo',
-      email: 'm.sadek@azood.com',
+      email: 'user@corpregistry.com',
       contactName: 'Eng. Mohamed Sadek',
       contactDesignation: 'Sales Account Manager',
-      contactEmail: 'm.sadek@azood.com',
+      contactEmail: 'user@corpregistry.com',
       contactMobileNumber: '+966 54 066 6580',
       country: 'KSA',
       status: 'ACTIVE',
+      userId: 2,
+      userEmail: 'user@corpregistry.com',
+      userFullName: 'Enterprise Officer',
     ),
     CompanyResponse(
       id: 3,
@@ -52,6 +58,8 @@ class CompanyService {
       address: 'ECZACIBASI BUILDING MATERIALS TRADING L.L.C, 2020 Building',
       website: 'https://www.amazon.in/',
       status: 'ACTIVE',
+      userId: 99,
+      userEmail: 'tamam.younso@vitra.com.tr',
     ),
     CompanyResponse(
       id: 4,
@@ -69,6 +77,9 @@ class CompanyService {
       description:
           'Enterprise cloud infrastructure and distributed IT systems provider.',
       status: 'ACTIVE',
+      userId: 1,
+      userEmail: 'admin@corpregistry.com',
+      userFullName: 'System Administrator',
     ),
   ];
 
@@ -92,25 +103,28 @@ class CompanyService {
       }
     } catch (_) {}
 
-    return _fallbackCompanies;
+    return List.from(_fallbackCompanies);
   }
 
   Future<CompanyResponse> getCompanyById(int id) async {
-    final response = await http
-        .get(
-          Uri.parse('$_apiUrl/$id'),
-          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
-        )
-        .timeout(const Duration(seconds: 10));
+    try {
+      final response = await http
+          .get(
+            Uri.parse('$_apiUrl/$id'),
+            headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
-      return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
-    } else {
-      throw Exception(
-        'Failed to load company #$id (status: ${response.statusCode})',
-      );
-    }
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
+      }
+    } catch (_) {}
+
+    return _fallbackCompanies.firstWhere(
+      (c) => c.id == id,
+      orElse: () => throw Exception('Failed to load company #$id'),
+    );
   }
 
   Future<CompanyResponse> createCompany(
@@ -119,45 +133,79 @@ class CompanyService {
     String? fileName,
     String? filePath,
   }) async {
-    final uri = Uri.parse('$_apiUrl/create');
-    final request = http.MultipartRequest('POST', uri);
-    request.headers.addAll(
-      _auth.getAuthHeaders({'Accept': 'application/json'}),
-    );
+    try {
+      final uri = Uri.parse('$_apiUrl/create');
+      final request = http.MultipartRequest('POST', uri);
+      request.headers.addAll(
+        _auth.getAuthHeaders({'Accept': 'application/json'}),
+      );
 
-    final jsonStr = jsonEncode(companyData.toJson());
-    request.files.add(
-      http.MultipartFile.fromString(
-        'data',
-        jsonStr,
-        contentType: http.MediaType('application', 'json'),
-      ),
-    );
-
-    if (fileBytes != null) {
+      final jsonStr = jsonEncode(companyData.toJson());
       request.files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          fileBytes,
-          filename: fileName ?? 'business_card.png',
+        http.MultipartFile.fromString(
+          'data',
+          jsonStr,
+          contentType: http.MediaType('application', 'json'),
         ),
       );
-    } else if (filePath != null && !kIsWeb) {
-      request.files.add(
-        await http.MultipartFile.fromPath('file', filePath, filename: fileName),
-      );
+
+      if (fileBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            fileBytes,
+            filename: fileName ?? 'business_card.png',
+          ),
+        );
+      } else if (filePath != null && !kIsWeb) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', filePath, filename: fileName),
+        );
+      }
+
+      final streamed = await request.send().timeout(const Duration(seconds: 15));
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
+      } else if (!_auth.isDemoSession) {
+        final body = response.body;
+        throw Exception('Failed to create company: $body');
+      }
+    } catch (e) {
+      if (!_auth.isDemoSession) rethrow;
     }
 
-    final streamed = await request.send().timeout(const Duration(seconds: 15));
-    final response = await http.Response.fromStream(streamed);
-
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
-      return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
-    } else {
-      final body = response.body;
-      throw Exception('Failed to create company: $body');
-    }
+    // Demo / offline fallback simulation
+    final newId = (_fallbackCompanies.isNotEmpty
+        ? _fallbackCompanies.map((c) => c.id).reduce((a, b) => a > b ? a : b)
+        : 0) + 1;
+    final created = CompanyResponse(
+      id: newId,
+      companyName: companyData.companyName,
+      email: companyData.email,
+      landline: companyData.landline,
+      address: companyData.address,
+      city: companyData.city,
+      country: companyData.country,
+      website: companyData.website,
+      description: companyData.description,
+      status: companyData.status,
+      contactName: companyData.contactName,
+      contactDesignation: companyData.contactDesignation,
+      contactEmail: companyData.contactEmail,
+      contactMobileNumber: companyData.contactMobileNumber,
+      brandIds: companyData.brandIds,
+      productIds: companyData.productIds,
+      userId: companyData.userId ?? _auth.currentUser?.id,
+      userEmail: _auth.currentUser?.email,
+      userFullName: _auth.currentUser?.fullName,
+      businessCard: fileName,
+      businessCards: fileName != null ? [fileName] : [],
+    );
+    _fallbackCompanies.insert(0, created);
+    return created;
   }
 
   Future<CompanyResponse> updateCompany(
@@ -167,60 +215,108 @@ class CompanyService {
     String? fileName,
     String? filePath,
   }) async {
-    final uri = Uri.parse('$_apiUrl/update/$id');
-    final request = http.MultipartRequest('PUT', uri);
-    request.headers.addAll(
-      _auth.getAuthHeaders({'Accept': 'application/json'}),
-    );
+    try {
+      final uri = Uri.parse('$_apiUrl/update/$id');
+      final request = http.MultipartRequest('PUT', uri);
+      request.headers.addAll(
+        _auth.getAuthHeaders({'Accept': 'application/json'}),
+      );
 
-    final jsonStr = jsonEncode(companyData.toJson());
-    request.files.add(
-      http.MultipartFile.fromString(
-        'data',
-        jsonStr,
-        contentType: http.MediaType('application', 'json'),
-      ),
-    );
-
-    if (fileBytes != null) {
+      final jsonStr = jsonEncode(companyData.toJson());
       request.files.add(
-        http.MultipartFile.fromBytes(
-          'file',
-          fileBytes,
-          filename: fileName ?? 'business_card.png',
+        http.MultipartFile.fromString(
+          'data',
+          jsonStr,
+          contentType: http.MediaType('application', 'json'),
         ),
       );
-    } else if (filePath != null && !kIsWeb) {
-      request.files.add(
-        await http.MultipartFile.fromPath('file', filePath, filename: fileName),
-      );
+
+      if (fileBytes != null) {
+        request.files.add(
+          http.MultipartFile.fromBytes(
+            'file',
+            fileBytes,
+            filename: fileName ?? 'business_card.png',
+          ),
+        );
+      } else if (filePath != null && !kIsWeb) {
+        request.files.add(
+          await http.MultipartFile.fromPath('file', filePath, filename: fileName),
+        );
+      }
+
+      final streamed = await request.send().timeout(const Duration(seconds: 15));
+      final response = await http.Response.fromStream(streamed);
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
+      } else if (!_auth.isDemoSession) {
+        final body = response.body;
+        throw Exception('Failed to update company: $body');
+      }
+    } catch (e) {
+      if (!_auth.isDemoSession) rethrow;
     }
 
-    final streamed = await request.send().timeout(const Duration(seconds: 15));
-    final response = await http.Response.fromStream(streamed);
+    // Demo / offline fallback simulation
+    final existingIndex = _fallbackCompanies.indexWhere((c) => c.id == id);
+    final existing = existingIndex >= 0 ? _fallbackCompanies[existingIndex] : null;
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
-      return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
+    final updated = CompanyResponse(
+      id: id,
+      companyName: companyData.companyName,
+      email: companyData.email,
+      landline: companyData.landline,
+      address: companyData.address,
+      city: companyData.city,
+      country: companyData.country,
+      website: companyData.website,
+      description: companyData.description,
+      status: companyData.status,
+      contactName: companyData.contactName,
+      contactDesignation: companyData.contactDesignation,
+      contactEmail: companyData.contactEmail,
+      contactMobileNumber: companyData.contactMobileNumber,
+      brandIds: companyData.brandIds,
+      productIds: companyData.productIds,
+      userId: companyData.userId ?? existing?.userId ?? _auth.currentUser?.id,
+      userEmail: existing?.userEmail ?? _auth.currentUser?.email,
+      userFullName: existing?.userFullName ?? _auth.currentUser?.fullName,
+      businessCard: fileName ?? existing?.businessCard,
+      businessCards: fileName != null
+          ? [fileName]
+          : (existing?.businessCards ?? []),
+    );
+
+    if (existingIndex >= 0) {
+      _fallbackCompanies[existingIndex] = updated;
     } else {
-      final body = response.body;
-      throw Exception('Failed to update company: $body');
+      _fallbackCompanies.insert(0, updated);
     }
+    return updated;
   }
 
   Future<void> deleteCompany(int id) async {
-    final response = await http
-        .delete(
-          Uri.parse('$_apiUrl/delete/$id'),
-          headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
-        )
-        .timeout(const Duration(seconds: 10));
+    try {
+      final response = await http
+          .delete(
+            Uri.parse('$_apiUrl/delete/$id'),
+            headers: _auth.getAuthHeaders({'Accept': 'application/json'}),
+          )
+          .timeout(const Duration(seconds: 10));
 
-    if (response.statusCode >= 200 && response.statusCode < 300) {
-      return;
-    } else {
-      throw Exception('Failed to delete company #$id');
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        _fallbackCompanies.removeWhere((c) => c.id == id);
+        return;
+      } else if (!_auth.isDemoSession) {
+        throw Exception('Failed to delete company #$id');
+      }
+    } catch (e) {
+      if (!_auth.isDemoSession) rethrow;
     }
+
+    _fallbackCompanies.removeWhere((c) => c.id == id);
   }
 
   Future<Uint8List> exportCompaniesToExcel() async {

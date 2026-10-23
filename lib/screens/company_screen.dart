@@ -12,6 +12,7 @@ import '../services/brand_service.dart';
 import '../services/category_service.dart';
 import '../services/company_service.dart';
 import '../services/product_service.dart';
+import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
 import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/feedback_toast.dart';
@@ -26,6 +27,8 @@ import 'package:http/http.dart' as http;
 import '../widgets/business_card_ocr_dialog.dart';
 import '../widgets/fast_autofill_banner.dart';
 import '../widgets/country_dropdown.dart';
+import '../widgets/city_autocomplete_field.dart';
+import '../utils/saudi_cities_util.dart';
 
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
@@ -39,6 +42,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   final BrandService _brandService = BrandService();
   final ProductService _productService = ProductService();
   final CategoryService _categoryService = CategoryService();
+  final AuthService _authService = AuthService();
 
   bool _isOcrPicking = false;
 
@@ -149,8 +153,18 @@ class CompanyScreenState extends State<CompanyScreen> {
       if (res.city != null && res.city!.trim().isNotEmpty) {
         _cityController.text = res.city!.trim();
       }
+      String finalCountry = '';
       if (res.country != null && res.country!.trim().isNotEmpty) {
-        _countryController.text = _normalizeCountry(res.country);
+        finalCountry = _normalizeCountry(res.country);
+      }
+      if (finalCountry.isEmpty &&
+          res.city != null &&
+          isSaudiCity(res.city!.trim())) {
+        finalCountry = _normalizeCountry('KSA');
+        _isAutoCountrySelected = true;
+      }
+      if (finalCountry.isNotEmpty) {
+        _countryController.text = finalCountry;
       }
 
       if (dialogResult.attachCardToForm) {
@@ -214,6 +228,39 @@ class CompanyScreenState extends State<CompanyScreen> {
   final _addressController = TextEditingController();
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
+  bool _isAutoCountrySelected = false;
+
+  void _onCityControllerChanged() {
+    _handleCityChanged(_cityController.text);
+  }
+
+  void _handleCityChanged(String val) {
+    final trimmed = val.trim();
+    if (trimmed.isNotEmpty && isSaudiCity(trimmed)) {
+      final current =
+          SearchableCountryDropdown.findCountry(_countryController.text);
+      if (current == null || current.code.toUpperCase() != 'KSA') {
+        _countryController.text = _normalizeCountry('KSA');
+        if (!_isAutoCountrySelected && mounted) {
+          setState(() {
+            _isAutoCountrySelected = true;
+          });
+        }
+      } else {
+        if (!_isAutoCountrySelected && mounted) {
+          setState(() {
+            _isAutoCountrySelected = true;
+          });
+        }
+      }
+    } else if (trimmed.isEmpty) {
+      if (_isAutoCountrySelected && mounted) {
+        setState(() {
+          _isAutoCountrySelected = false;
+        });
+      }
+    }
+  }
 
   String _normalizeCountry(String? raw) {
     if (raw == null || raw.trim().isEmpty) return '';
@@ -278,6 +325,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   void initState() {
     super.initState();
     _apiConfig.addListener(_onConfigChanged);
+    _authService.addListener(_onAuthChanged);
     _companyNameFocusNode.addListener(() {
       if (mounted) {
         setState(() {
@@ -285,6 +333,7 @@ class CompanyScreenState extends State<CompanyScreen> {
         });
       }
     });
+    _cityController.addListener(_onCityControllerChanged);
     _fetchAllData();
   }
 
@@ -292,6 +341,37 @@ class CompanyScreenState extends State<CompanyScreen> {
     if (mounted) {
       _fetchAllData();
     }
+  }
+
+  void _onAuthChanged() {
+    if (mounted) {
+      setState(() {});
+    }
+  }
+
+  // --- Role & Ownership Permissions ---
+  bool canEditCompany([CompanyResponse? company]) {
+    if (company == null) return false;
+    if (_authService.isSuperAdmin) {
+      return true;
+    }
+    final currentUser = _authService.currentUser;
+    if (currentUser == null) {
+      return false;
+    }
+    // Match by registered owner userId or fallback to company contact/creator email
+    if (company.userId != null && currentUser.id != null) {
+      return company.userId == currentUser.id;
+    }
+    if (company.email.isNotEmpty && currentUser.email.isNotEmpty) {
+      return company.email.toLowerCase().trim() ==
+          currentUser.email.toLowerCase().trim();
+    }
+    return false;
+  }
+
+  bool canDeleteCompany() {
+    return _authService.isSuperAdmin;
   }
 
   void _fetchAllData() {
@@ -304,11 +384,13 @@ class CompanyScreenState extends State<CompanyScreen> {
   @override
   void dispose() {
     _apiConfig.removeListener(_onConfigChanged);
+    _authService.removeListener(_onAuthChanged);
     _companyNameFocusNode.dispose();
     _nameController.dispose();
     _emailController.dispose();
     _landlineController.dispose();
     _addressController.dispose();
+    _cityController.removeListener(_onCityControllerChanged);
     _cityController.dispose();
     _countryController.dispose();
     _websiteController.dispose();
@@ -936,6 +1018,7 @@ class CompanyScreenState extends State<CompanyScreen> {
       _addressController.text = company.address ?? '';
       _cityController.text = company.city ?? '';
       _countryController.text = _normalizeCountry(company.country);
+      _isAutoCountrySelected = false;
       _websiteController.text = company.website ?? '';
       _descriptionController.text = company.description ?? '';
       _status = company.status.isNotEmpty ? company.status : 'ACTIVE';
@@ -983,6 +1066,18 @@ class CompanyScreenState extends State<CompanyScreen> {
 
   // --- Edit & Form Reset Handlers ---
   void _startEdit(CompanyResponse company) {
+    if (!canEditCompany(company)) {
+      setState(() {
+        _feedback = FeedbackData(
+          type: 'error',
+          title: 'Access Restricted',
+          message:
+              'You are only authorized to edit and update your own company.',
+        );
+      });
+      return;
+    }
+
     setState(() {
       _editingCompanyId = company.id;
       _activeTab = 'register';
@@ -994,6 +1089,7 @@ class CompanyScreenState extends State<CompanyScreen> {
       _addressController.text = company.address ?? '';
       _cityController.text = company.city ?? '';
       _countryController.text = _normalizeCountry(company.country);
+      _isAutoCountrySelected = false;
       _websiteController.text = company.website ?? '';
       _descriptionController.text = company.description ?? '';
       _status = company.status;
@@ -1042,6 +1138,7 @@ class CompanyScreenState extends State<CompanyScreen> {
     _addressController.clear();
     _cityController.clear();
     _countryController.clear();
+    _isAutoCountrySelected = false;
     _websiteController.clear();
     _descriptionController.clear();
     _status = 'ACTIVE';
@@ -1145,10 +1242,25 @@ class CompanyScreenState extends State<CompanyScreen> {
           : null,
       brandIds: allBrandIds,
       productIds: _selectedProductIds,
+      userId: _authService.currentUser?.id,
     );
 
     try {
       if (_editingCompanyId != null) {
+        final existing = _companies.where((c) => c.id == _editingCompanyId).firstOrNull;
+        if (existing != null && !canEditCompany(existing)) {
+          setState(() {
+            _isSubmitting = false;
+            _feedback = FeedbackData(
+              type: 'error',
+              title: 'Access Restricted',
+              message:
+                  'You are only authorized to edit and update your own company.',
+            );
+          });
+          return;
+        }
+
         final response = await _companyService.updateCompany(
           _editingCompanyId!,
           request,
@@ -1388,6 +1500,17 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   void _promptDelete(CompanyResponse company) {
+    if (!canDeleteCompany()) {
+      setState(() {
+        _feedback = FeedbackData(
+          type: 'error',
+          title: 'Access Restricted',
+          message: 'Only SUPER_ADMIN is authorized to delete company records.',
+        );
+      });
+      return;
+    }
+
     showDialog(
       context: context,
       builder: (_) => DeleteConfirmDialog(
@@ -4013,61 +4136,25 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   Widget _buildCityField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'City',
-          style: GoogleFonts.inter(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
-          ),
-        ),
-        const SizedBox(height: 6),
-        TextFormField(
-          controller: _cityController,
-          style: GoogleFonts.inter(fontSize: 13),
-          decoration: InputDecoration(
-            hintText: 'San Francisco',
-            isDense: true,
-            filled: true,
-            fillColor: Colors.white,
-            contentPadding: const EdgeInsets.symmetric(
-              horizontal: 14,
-              vertical: 12,
-            ),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: AppTheme.borderMedium,
-                width: 1,
-              ),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(
-                color: AppTheme.borderLight,
-                width: 1,
-              ),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-              borderSide: const BorderSide(color: AppTheme.primary, width: 1.5),
-            ),
-          ),
-          onChanged: (_) => setState(() {}),
-        ),
-      ],
+    return CityAutocompleteField(
+      controller: _cityController,
+      hintText: 'e.g. Riyadh, Jeddah...',
+      onChanged: _handleCityChanged,
+      onCitySelected: _handleCityChanged,
     );
   }
 
   Widget _buildCountryDropdownField() {
     return SearchableCountryDropdown(
       value: _countryController.text,
+      isAutoCountrySelected: _isAutoCountrySelected,
       onChanged: (val) {
         setState(() {
           _countryController.text = val ?? '';
+          final country = SearchableCountryDropdown.findCountry(val);
+          if (country == null || country.code.toUpperCase() != 'KSA') {
+            _isAutoCountrySelected = false;
+          }
         });
       },
     );
@@ -6345,40 +6432,45 @@ class CompanyScreenState extends State<CompanyScreen> {
                   const SizedBox(width: 4),
 
                   // Edit Button
-                  Expanded(
-                    flex: 9,
-                    child: _buildCardActionButton(
-                      label: 'Edit',
-                      icon: Icons.edit_outlined,
-                      bgColor: const Color(0xFFEFF6FF),
-                      borderColor: const Color(0xFFBFDBFE),
-                      textColor: const Color(0xFF2563EB),
-                      onTap: () => _startEdit(comp),
+                  if (canEditCompany(comp)) ...[
+                    const SizedBox(width: 4),
+                    Expanded(
+                      flex: 9,
+                      child: _buildCardActionButton(
+                        label: 'Edit',
+                        icon: Icons.edit_outlined,
+                        bgColor: const Color(0xFFEFF6FF),
+                        borderColor: const Color(0xFFBFDBFE),
+                        textColor: const Color(0xFF2563EB),
+                        onTap: () => _startEdit(comp),
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 4),
+                  ],
 
                   // Delete Button
-                  InkWell(
-                    onTap: () => _promptDelete(comp),
-                    borderRadius: BorderRadius.circular(6),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 8,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFFEF2F2),
-                        borderRadius: BorderRadius.circular(6),
-                        border: Border.all(color: const Color(0xFFFECACA)),
-                      ),
-                      child: const Icon(
-                        Icons.delete_outline_rounded,
-                        size: 14,
-                        color: Color(0xFFDC2626),
+                  if (canDeleteCompany()) ...[
+                    const SizedBox(width: 4),
+                    InkWell(
+                      onTap: () => _promptDelete(comp),
+                      borderRadius: BorderRadius.circular(6),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 5,
+                        ),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(6),
+                          border: Border.all(color: const Color(0xFFFECACA)),
+                        ),
+                        child: const Icon(
+                          Icons.delete_outline_rounded,
+                          size: 14,
+                          color: Color(0xFFDC2626),
+                        ),
                       ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
@@ -7116,64 +7208,72 @@ class CompanyScreenState extends State<CompanyScreen> {
                     // Secondary Actions Row: Delete, Edit, Close
                     Row(
                       children: [
-                        Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () {
-                              final target = comp;
-                              setState(() => _selectedCompany = null);
-                              _promptDelete(target);
-                            },
-                            icon: const Icon(
-                              Icons.delete_outline_rounded,
-                              size: 15,
-                              color: AppTheme.error,
-                            ),
-                            label: Text(
-                              'Delete',
-                              style: GoogleFonts.inter(
-                                fontSize: 11.5,
+                        if (canDeleteCompany()) ...[
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () {
+                                final target = comp;
+                                setState(() => _selectedCompany = null);
+                                _promptDelete(target);
+                              },
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 15,
                                 color: AppTheme.error,
-                                fontWeight: FontWeight.w600,
                               ),
-                            ),
-                            style: OutlinedButton.styleFrom(
-                              backgroundColor: const Color(0xFFFEF2F2),
-                              side: const BorderSide(color: Color(0xFFFECACA)),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.5,
+                              label: Text(
+                                'Delete',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  color: AppTheme.error,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _startEdit(comp),
-                            icon: const Icon(Icons.edit_rounded, size: 14),
-                            label: Text(
-                              'Edit',
-                              style: GoogleFonts.inter(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primary,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 8.5,
-                              ),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(8),
+                              style: OutlinedButton.styleFrom(
+                                backgroundColor: const Color(0xFFFEF2F2),
+                                side: const BorderSide(color: Color(0xFFFECACA)),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 8),
+                          const SizedBox(width: 8),
+                        ],
+                        if (canEditCompany(comp)) ...[
+                          Expanded(
+                            child: ElevatedButton.icon(
+                              onPressed: () {
+                                final target = comp;
+                                setState(() => _selectedCompany = null);
+                                _startEdit(target);
+                              },
+                              icon: const Icon(Icons.edit_rounded, size: 14),
+                              label: Text(
+                                'Edit',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8.5,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                        ],
                         Expanded(
                           child: OutlinedButton(
                             onPressed: () =>

@@ -101,6 +101,16 @@ class AuthService extends ChangeNotifier {
     return !isTokenExpired(t);
   }
 
+  bool get isSuperAdmin {
+    final role = _currentUser?.role;
+    return role == 'SUPER_ADMIN' || role == 'ROLE_SUPER_ADMIN';
+  }
+
+  bool get isCompanyUser {
+    final role = _currentUser?.role;
+    return role == 'COMPANY_USER' || role == 'ROLE_COMPANY_USER';
+  }
+
   String get authBaseUrl => '${_apiConfig.host}/api/auth';
 
   /// Switch authentication mode between DEMO and API
