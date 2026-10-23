@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/brand_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
+import '../utils/api_error_util.dart';
 
 class BrandService {
   final ApiConfig _config = ApiConfig();
@@ -101,8 +102,10 @@ class BrandService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return BrandResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to create brand: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to create brand: ${response.statusCode}',
+      );
     }
   }
 
@@ -156,8 +159,10 @@ class BrandService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return BrandResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to update brand: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to update brand: ${response.statusCode}',
+      );
     }
   }
 
@@ -172,7 +177,10 @@ class BrandService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     } else {
-      throw Exception('Failed to delete brand #$id');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to delete brand #$id',
+      );
     }
   }
 

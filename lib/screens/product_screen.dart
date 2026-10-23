@@ -12,6 +12,7 @@ import '../theme/app_theme.dart';
 import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/feedback_toast.dart';
 import '../widgets/file_upload_box.dart';
+import '../utils/api_error_util.dart';
 
 class ProductScreen extends StatefulWidget {
   final Function(int tabIndex)? onSwitchTab;
@@ -27,6 +28,7 @@ class ProductScreenState extends State<ProductScreen> {
   final CategoryService _categoryService = CategoryService();
   final BrandService _brandService = BrandService();
   final ApiConfig _apiConfig = ApiConfig();
+  final ScrollController _productScrollController = ScrollController();
 
   // Handle device back press
   bool handleBackPress() {
@@ -111,6 +113,7 @@ class ProductScreenState extends State<ProductScreen> {
     _nameController.dispose();
     _descriptionController.dispose();
     _searchController.dispose();
+    _productScrollController.dispose();
     super.dispose();
   }
 
@@ -258,37 +261,31 @@ class ProductScreenState extends State<ProductScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
-      setState(() {
-        _feedback = FeedbackData(
-          type: 'error',
-          title: 'Validation Error',
-          message:
-              'Please fill in all required fields (Product Name, Category, and Brand).',
-        );
-      });
-      return;
+    final missingFields = <String>[];
+    if (_nameController.text.trim().length < 2) {
+      missingFields.add('Product Name');
     }
-
     if (_selectedCategoryId == null) {
-      setState(() {
-        _feedback = FeedbackData(
-          type: 'error',
-          title: 'Validation Error',
-          message: 'Please select a Main Category for this product.',
-        );
-      });
-      return;
+      missingFields.add('Main Category');
+    }
+    if (_selectedBrandId == null) {
+      missingFields.add('Brand');
     }
 
-    if (_selectedBrandId == null) {
+    if (missingFields.isNotEmpty || !_formKey.currentState!.validate()) {
+      if (missingFields.isEmpty) {
+        missingFields.add('Product Details');
+      }
       setState(() {
-        _feedback = FeedbackData(
-          type: 'error',
-          title: 'Validation Error',
-          message: 'Please select a Brand for this product.',
-        );
+        _feedback = getFormIncompleteFeedback(missingFields);
       });
+      if (_productScrollController.hasClients) {
+        _productScrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
       return;
     }
 
@@ -352,12 +349,15 @@ class ProductScreenState extends State<ProductScreen> {
     } catch (e) {
       setState(() {
         _isSubmitting = false;
+        final fallback = _editingProductId != null
+            ? 'Server error occurred during product update.'
+            : 'Server error occurred during product creation.';
         _feedback = FeedbackData(
           type: 'error',
           title: _editingProductId != null
               ? 'Update Failed'
               : 'Registration Failed',
-          message: e.toString().replaceAll('Exception: ', ''),
+          message: getHumanReadableHttpError(e, fallback),
         );
       });
     }
@@ -371,23 +371,38 @@ class ProductScreenState extends State<ProductScreen> {
         itemName: product.name,
         itemId: product.id,
         onConfirm: () async {
-          await _productService.deleteProduct(product.id);
-          if (mounted) {
-            setState(() {
-              _feedback = FeedbackData(
-                type: 'success',
-                title: 'Product Deleted',
-                message:
-                    'Product "${product.name}" has been permanently deleted.',
-              );
-              if (_selectedProduct?.id == product.id) {
-                _selectedProduct = null;
-              }
-              if (_editingProductId == product.id) {
-                _resetFormFields();
-              }
-            });
-            _fetchProducts();
+          try {
+            await _productService.deleteProduct(product.id);
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'success',
+                  title: 'Product Deleted',
+                  message:
+                      'Product "${product.name}" has been permanently deleted.',
+                );
+                if (_selectedProduct?.id == product.id) {
+                  _selectedProduct = null;
+                }
+                if (_editingProductId == product.id) {
+                  _resetFormFields();
+                }
+              });
+              _fetchProducts();
+            }
+          } catch (e) {
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'error',
+                  title: 'Delete Failed',
+                  message: getHumanReadableHttpError(
+                    e,
+                    'Could not delete product record. Please verify server connection.',
+                  ),
+                );
+              });
+            }
           }
         },
       ),
@@ -435,7 +450,9 @@ class ProductScreenState extends State<ProductScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isMobile = screenWidth < 768;
 
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
@@ -444,11 +461,6 @@ class ProductScreenState extends State<ProductScreen> {
           Column(
             children: [
               _buildTopNavTabs(),
-              if (_feedback != null)
-                FeedbackToast(
-                  feedback: _feedback!,
-                  onClose: () => setState(() => _feedback = null),
-                ),
               Expanded(
                 child: _activeTab == 'register'
                     ? (isDesktop
@@ -458,6 +470,23 @@ class ProductScreenState extends State<ProductScreen> {
               ),
             ],
           ),
+
+          // Floating Viewport Notification Toast matching Angular
+          if (_feedback != null)
+            Positioned(
+              bottom: isMobile ? 16 : 24,
+              right: isDesktop ? 24 : 16,
+              left: isDesktop ? null : 16,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isDesktop ? 440 : double.infinity,
+                ),
+                child: FeedbackToast(
+                  feedback: _feedback!,
+                  onClose: () => setState(() => _feedback = null),
+                ),
+              ),
+            ),
 
           // View Detail Modal Dialog
           if (_selectedProduct != null)
@@ -687,6 +716,7 @@ class ProductScreenState extends State<ProductScreen> {
   // --- TAB 1: REGISTRATION / EDIT VIEW (MOBILE) ---
   Widget _buildMobileRegisterView() {
     return SingleChildScrollView(
+      controller: _productScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

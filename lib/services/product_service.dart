@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/product_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
+import '../utils/api_error_util.dart';
 
 class ProductService {
   final ApiConfig _config = ApiConfig();
@@ -101,8 +102,10 @@ class ProductService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return ProductResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to create product: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to create product: ${response.statusCode}',
+      );
     }
   }
 
@@ -156,8 +159,10 @@ class ProductService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return ProductResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to update product: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to update product: ${response.statusCode}',
+      );
     }
   }
 
@@ -172,7 +177,10 @@ class ProductService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     } else {
-      throw Exception('Failed to delete product #$id');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to delete product #$id',
+      );
     }
   }
 

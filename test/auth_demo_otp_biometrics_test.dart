@@ -237,7 +237,7 @@ void main() {
         expect(response.username, equals('SuperAdmin'));
         expect(response.isDemoSession, isTrue);
         expect(response.token, startsWith('DEMO_SESSION_SuperAdmin_'));
-        expect(response.role, equals('ROLE_ADMIN'));
+        expect(response.role, equals('SUPER_ADMIN'));
         expect(response.tokenType, equals('DemoBearer'));
       },
     );
@@ -250,7 +250,7 @@ void main() {
       expect(response.username, equals('DemoUser'));
       expect(response.isDemoSession, isTrue);
       expect(response.token, startsWith('DEMO_SESSION_DemoUser_'));
-      expect(response.role, equals('ROLE_USER'));
+      expect(response.role, equals('COMPANY_USER'));
     });
 
     test(

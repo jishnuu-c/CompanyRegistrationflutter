@@ -5,6 +5,7 @@ import '../models/company_model.dart';
 import '../models/product_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
+import '../utils/api_error_util.dart';
 
 class CompanyService {
   final ApiConfig _config = ApiConfig();
@@ -170,8 +171,10 @@ class CompanyService {
         final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
         return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
       } else if (!_auth.isDemoSession) {
-        final body = response.body;
-        throw Exception('Failed to create company: $body');
+        throw ApiException.fromResponse(
+          response,
+          fallbackMessage: 'Failed to create company (status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       if (!_auth.isDemoSession) rethrow;
@@ -252,8 +255,10 @@ class CompanyService {
         final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
         return CompanyResponse.fromJson(decoded as Map<String, dynamic>);
       } else if (!_auth.isDemoSession) {
-        final body = response.body;
-        throw Exception('Failed to update company: $body');
+        throw ApiException.fromResponse(
+          response,
+          fallbackMessage: 'Failed to update company (status: ${response.statusCode})',
+        );
       }
     } catch (e) {
       if (!_auth.isDemoSession) rethrow;
@@ -310,7 +315,10 @@ class CompanyService {
         _fallbackCompanies.removeWhere((c) => c.id == id);
         return;
       } else if (!_auth.isDemoSession) {
-        throw Exception('Failed to delete company #$id');
+        throw ApiException.fromResponse(
+          response,
+          fallbackMessage: 'Failed to delete company #$id',
+        );
       }
     } catch (e) {
       if (!_auth.isDemoSession) rethrow;
@@ -371,8 +379,9 @@ class CompanyService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return response.bodyBytes;
     } else {
-      throw Exception(
-        'Failed to export company PDF profile (status: ${response.statusCode})',
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to export company PDF profile (status: ${response.statusCode})',
       );
     }
   }

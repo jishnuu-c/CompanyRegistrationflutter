@@ -29,6 +29,7 @@ import '../widgets/fast_autofill_banner.dart';
 import '../widgets/country_dropdown.dart';
 import '../widgets/city_autocomplete_field.dart';
 import '../utils/saudi_cities_util.dart';
+import '../utils/api_error_util.dart';
 
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
@@ -44,6 +45,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   final CategoryService _categoryService = CategoryService();
   final AuthService _authService = AuthService();
 
+  final ScrollController _formScrollController = ScrollController();
   bool _isOcrPicking = false;
 
   Future<void> _handleOcrCardUpload([
@@ -400,6 +402,7 @@ class CompanyScreenState extends State<CompanyScreen> {
     _contactEmailController.dispose();
     _contactMobileController.dispose();
     _searchController.dispose();
+    _formScrollController.dispose();
     super.dispose();
   }
 
@@ -1184,15 +1187,38 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
+    final missingFields = <String>[];
+    if (_nameController.text.trim().length < 2) {
+      missingFields.add('Company Legal Name');
+    }
+    final email = _emailController.text.trim();
+    if (email.isEmpty ||
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+      missingFields.add('Corporate Email');
+    }
+    if (_countryController.text.trim().isEmpty) {
+      missingFields.add('Country Jurisdiction');
+    }
+    final contactEmail = _contactEmailController.text.trim();
+    if (contactEmail.isNotEmpty &&
+        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(contactEmail)) {
+      missingFields.add('Direct Executive Email');
+    }
+
+    if (missingFields.isNotEmpty || !_formKey.currentState!.validate()) {
+      if (missingFields.isEmpty) {
+        missingFields.add('Required Form Fields');
+      }
       setState(() {
-        _feedback = FeedbackData(
-          type: 'error',
-          title: 'Validation Error',
-          message:
-              'Please fill in all mandatory fields correctly before proceeding.',
-        );
+        _feedback = getFormIncompleteFeedback(missingFields);
       });
+      if (_formScrollController.hasClients) {
+        _formScrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
       return;
     }
 
@@ -1303,12 +1329,15 @@ class CompanyScreenState extends State<CompanyScreen> {
     } catch (e) {
       setState(() {
         _isSubmitting = false;
+        final fallback = _editingCompanyId != null
+            ? 'Unable to update company record. Please try again.'
+            : 'Unable to establish company record. Please try again.';
         _feedback = FeedbackData(
           type: 'error',
           title: _editingCompanyId != null
               ? 'Update Failed'
               : 'Registration Failed',
-          message: e.toString().replaceAll('Exception: ', ''),
+          message: getHumanReadableHttpError(e, fallback),
         );
       });
     }
@@ -1352,8 +1381,10 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message:
-                'Could not export Excel file: ${e.toString().replaceAll('Exception: ', '')}',
+            message: getHumanReadableHttpError(
+              e,
+              'Could not generate the Excel file. Please ensure the backend server is reachable.',
+            ),
           );
         });
       }
@@ -1397,8 +1428,10 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message:
-                'Could not export PDF document: ${e.toString().replaceAll('Exception: ', '')}',
+            message: getHumanReadableHttpError(
+              e,
+              'Could not generate the PDF file. Please ensure the backend server is reachable.',
+            ),
           );
         });
       }
@@ -1443,7 +1476,10 @@ class CompanyScreenState extends State<CompanyScreen> {
           _feedback = FeedbackData(
             type: 'error',
             title: 'Export Failed',
-            message: 'Could not generate company PDF profile: $e',
+            message: getHumanReadableHttpError(
+              e,
+              'Could not generate company PDF profile with business cards. Please try again.',
+            ),
           );
         });
       }
@@ -1518,23 +1554,38 @@ class CompanyScreenState extends State<CompanyScreen> {
         itemName: company.companyName,
         itemId: company.id,
         onConfirm: () async {
-          await _companyService.deleteCompany(company.id);
-          if (mounted) {
-            setState(() {
-              _feedback = FeedbackData(
-                type: 'success',
-                title: 'Company Deleted',
-                message:
-                    '"${company.companyName}" has been successfully deleted.',
-              );
-              if (_selectedCompany?.id == company.id) {
-                _selectedCompany = null;
-              }
-              if (_editingCompanyId == company.id) {
-                _resetFormFields();
-              }
-            });
-            _fetchCompanies();
+          try {
+            await _companyService.deleteCompany(company.id);
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'success',
+                  title: 'Company Deleted',
+                  message:
+                      '"${company.companyName}" has been successfully deleted.',
+                );
+                if (_selectedCompany?.id == company.id) {
+                  _selectedCompany = null;
+                }
+                if (_editingCompanyId == company.id) {
+                  _resetFormFields();
+                }
+              });
+              _fetchCompanies();
+            }
+          } catch (e) {
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'error',
+                  title: 'Delete Failed',
+                  message: getHumanReadableHttpError(
+                    e,
+                    'Could not delete the company record. Please verify server connection.',
+                  ),
+                );
+              });
+            }
           }
         },
       ),
@@ -1543,7 +1594,9 @@ class CompanyScreenState extends State<CompanyScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isMobile = screenWidth < 768;
 
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
@@ -1552,11 +1605,6 @@ class CompanyScreenState extends State<CompanyScreen> {
           Column(
             children: [
               _buildTopNavTabs(),
-              if (_feedback != null)
-                FeedbackToast(
-                  feedback: _feedback!,
-                  onClose: () => setState(() => _feedback = null),
-                ),
               Expanded(
                 child: _activeTab == 'register'
                     ? (isDesktop
@@ -1566,6 +1614,23 @@ class CompanyScreenState extends State<CompanyScreen> {
               ),
             ],
           ),
+
+          // Floating Viewport Notification Toast matching Angular
+          if (_feedback != null)
+            Positioned(
+              bottom: isMobile ? 16 : 24,
+              right: isDesktop ? 24 : 16,
+              left: isDesktop ? null : 16,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isDesktop ? 440 : double.infinity,
+                ),
+                child: FeedbackToast(
+                  feedback: _feedback!,
+                  onClose: () => setState(() => _feedback = null),
+                ),
+              ),
+            ),
 
           // View Detail Modal Dialog
           if (_selectedCompany != null)
@@ -1791,6 +1856,7 @@ class CompanyScreenState extends State<CompanyScreen> {
   // --- TAB 1: REGISTRATION / EDIT VIEW (MOBILE) ---
   Widget _buildMobileRegisterView() {
     return SingleChildScrollView(
+      controller: _formScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

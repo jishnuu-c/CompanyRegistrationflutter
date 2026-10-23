@@ -8,6 +8,7 @@ import '../theme/app_theme.dart';
 import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/feedback_toast.dart';
 import '../widgets/file_upload_box.dart';
+import '../utils/api_error_util.dart';
 
 class CategoryScreen extends StatefulWidget {
   const CategoryScreen({super.key});
@@ -19,6 +20,7 @@ class CategoryScreen extends StatefulWidget {
 class CategoryScreenState extends State<CategoryScreen> {
   final CategoryService _categoryService = CategoryService();
   final ApiConfig _apiConfig = ApiConfig();
+  final ScrollController _categoryScrollController = ScrollController();
 
   // Handle device back press
   bool handleBackPress() {
@@ -95,6 +97,7 @@ class CategoryScreenState extends State<CategoryScreen> {
     _apiConfig.removeListener(_onConfigChanged);
     _nameController.dispose();
     _searchController.dispose();
+    _categoryScrollController.dispose();
     super.dispose();
   }
 
@@ -240,14 +243,22 @@ class CategoryScreenState extends State<CategoryScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_nameController.text.trim().length < 2 || !_formKey.currentState!.validate()) {
       setState(() {
         _feedback = FeedbackData(
           type: 'error',
-          title: 'Validation Error',
-          message: 'Please provide a valid category name (min 2 characters).',
+          title: 'Form Incomplete',
+          message:
+              'Please provide a valid category name (min 2 characters). Scrolled to the field.',
         );
       });
+      if (_categoryScrollController.hasClients) {
+        _categoryScrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
       return;
     }
 
@@ -311,12 +322,15 @@ class CategoryScreenState extends State<CategoryScreen> {
     } catch (e) {
       setState(() {
         _isSubmitting = false;
+        final fallback = _editingCategoryId != null
+            ? 'Server error occurred during category update.'
+            : 'Server error occurred during category creation.';
         _feedback = FeedbackData(
           type: 'error',
           title: _editingCategoryId != null
               ? 'Update Failed'
               : 'Registration Failed',
-          message: e.toString().replaceAll('Exception: ', ''),
+          message: getHumanReadableHttpError(e, fallback),
         );
       });
     }
@@ -330,22 +344,37 @@ class CategoryScreenState extends State<CategoryScreen> {
         itemName: cat.name,
         itemId: cat.id,
         onConfirm: () async {
-          await _categoryService.deleteCategory(cat.id);
-          if (mounted) {
-            setState(() {
-              _feedback = FeedbackData(
-                type: 'success',
-                title: 'Category Deleted',
-                message: 'Category "${cat.name}" has been removed.',
-              );
-              if (_selectedCategory?.id == cat.id) {
-                _selectedCategory = null;
-              }
-              if (_editingCategoryId == cat.id) {
-                _resetFormFields();
-              }
-            });
-            _fetchCategories();
+          try {
+            await _categoryService.deleteCategory(cat.id);
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'success',
+                  title: 'Category Deleted',
+                  message: 'Category "${cat.name}" has been removed.',
+                );
+                if (_selectedCategory?.id == cat.id) {
+                  _selectedCategory = null;
+                }
+                if (_editingCategoryId == cat.id) {
+                  _resetFormFields();
+                }
+              });
+              _fetchCategories();
+            }
+          } catch (e) {
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'error',
+                  title: 'Delete Failed',
+                  message: getHumanReadableHttpError(
+                    e,
+                    'Could not delete category record. Please verify server connection.',
+                  ),
+                );
+              });
+            }
           }
         },
       ),
@@ -354,7 +383,9 @@ class CategoryScreenState extends State<CategoryScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final isDesktop = MediaQuery.of(context).size.width >= 1024;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isMobile = screenWidth < 768;
 
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
@@ -363,11 +394,6 @@ class CategoryScreenState extends State<CategoryScreen> {
           Column(
             children: [
               _buildTopNavTabs(),
-              if (_feedback != null)
-                FeedbackToast(
-                  feedback: _feedback!,
-                  onClose: () => setState(() => _feedback = null),
-                ),
               Expanded(
                 child: _activeTab == 'register'
                     ? (isDesktop
@@ -377,6 +403,23 @@ class CategoryScreenState extends State<CategoryScreen> {
               ),
             ],
           ),
+
+          // Floating Viewport Notification Toast matching Angular
+          if (_feedback != null)
+            Positioned(
+              bottom: isMobile ? 16 : 24,
+              right: isDesktop ? 24 : 16,
+              left: isDesktop ? null : 16,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isDesktop ? 440 : double.infinity,
+                ),
+                child: FeedbackToast(
+                  feedback: _feedback!,
+                  onClose: () => setState(() => _feedback = null),
+                ),
+              ),
+            ),
 
           // View Detail Modal Dialog
           if (_selectedCategory != null)
@@ -609,6 +652,7 @@ class CategoryScreenState extends State<CategoryScreen> {
   // --- TAB 1: REGISTRATION / EDIT VIEW (MOBILE) ---
   Widget _buildMobileRegisterView() {
     return SingleChildScrollView(
+      controller: _categoryScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

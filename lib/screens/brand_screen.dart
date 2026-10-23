@@ -9,6 +9,7 @@ import '../widgets/delete_confirm_dialog.dart';
 import '../widgets/feedback_toast.dart';
 import '../widgets/file_upload_box.dart';
 import '../widgets/status_badge_chip.dart';
+import '../utils/api_error_util.dart';
 
 class BrandScreen extends StatefulWidget {
   const BrandScreen({super.key});
@@ -20,6 +21,7 @@ class BrandScreen extends StatefulWidget {
 class BrandScreenState extends State<BrandScreen> {
   final BrandService _brandService = BrandService();
   final ApiConfig _apiConfig = ApiConfig();
+  final ScrollController _brandScrollController = ScrollController();
 
   // Handle device back press
   bool handleBackPress() {
@@ -93,6 +95,7 @@ class BrandScreenState extends State<BrandScreen> {
     _apiConfig.removeListener(_onConfigChanged);
     _nameController.dispose();
     _searchController.dispose();
+    _brandScrollController.dispose();
     super.dispose();
   }
 
@@ -146,14 +149,22 @@ class BrandScreenState extends State<BrandScreen> {
   }
 
   Future<void> _handleSubmit() async {
-    if (!_formKey.currentState!.validate()) {
+    if (_nameController.text.trim().length < 2 || !_formKey.currentState!.validate()) {
       setState(() {
         _feedback = FeedbackData(
           type: 'error',
-          title: 'Validation Error',
-          message: 'Please provide a valid brand name (min 2 characters).',
+          title: 'Form Incomplete',
+          message:
+              'Please provide a valid brand name (min 2 characters). Scrolled to the field.',
         );
       });
+      if (_brandScrollController.hasClients) {
+        _brandScrollController.animateTo(
+          0.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
       return;
     }
 
@@ -211,12 +222,15 @@ class BrandScreenState extends State<BrandScreen> {
     } catch (e) {
       setState(() {
         _isSubmitting = false;
+        final fallback = _editingBrandId != null
+            ? 'Server error occurred during brand update.'
+            : 'Server error occurred during brand creation.';
         _feedback = FeedbackData(
           type: 'error',
           title: _editingBrandId != null
               ? 'Update Failed'
               : 'Registration Failed',
-          message: e.toString().replaceAll('Exception: ', ''),
+          message: getHumanReadableHttpError(e, fallback),
         );
       });
     }
@@ -230,22 +244,37 @@ class BrandScreenState extends State<BrandScreen> {
         itemName: brand.brandName,
         itemId: brand.id,
         onConfirm: () async {
-          await _brandService.deleteBrand(brand.id);
-          if (mounted) {
-            setState(() {
-              _feedback = FeedbackData(
-                type: 'success',
-                title: 'Brand Deleted',
-                message: 'Brand "${brand.brandName}" has been removed.',
-              );
-              if (_selectedBrand?.id == brand.id) {
-                _selectedBrand = null;
-              }
-              if (_editingBrandId == brand.id) {
-                _resetForm();
-              }
-            });
-            _fetchBrands();
+          try {
+            await _brandService.deleteBrand(brand.id);
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'success',
+                  title: 'Brand Deleted',
+                  message: 'Brand "${brand.brandName}" has been removed.',
+                );
+                if (_selectedBrand?.id == brand.id) {
+                  _selectedBrand = null;
+                }
+                if (_editingBrandId == brand.id) {
+                  _resetForm();
+                }
+              });
+              _fetchBrands();
+            }
+          } catch (e) {
+            if (mounted) {
+              setState(() {
+                _feedback = FeedbackData(
+                  type: 'error',
+                  title: 'Delete Failed',
+                  message: getHumanReadableHttpError(
+                    e,
+                    'Could not delete brand record. Please verify server connection.',
+                  ),
+                );
+              });
+            }
           }
         },
       ),
@@ -269,6 +298,10 @@ class BrandScreenState extends State<BrandScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isDesktop = screenWidth >= 1024;
+    final isMobile = screenWidth < 768;
+
     return Scaffold(
       backgroundColor: AppTheme.bgPage,
       body: Stack(
@@ -278,13 +311,6 @@ class BrandScreenState extends State<BrandScreen> {
               // Sub-Navigation Tabs Bar
               _buildSubNavTabs(),
 
-              // Feedback Alert Toast
-              if (_feedback != null)
-                FeedbackToast(
-                  feedback: _feedback!,
-                  onClose: () => setState(() => _feedback = null),
-                ),
-
               // Main View Content
               Expanded(
                 child: _activeTab == 'register'
@@ -293,6 +319,23 @@ class BrandScreenState extends State<BrandScreen> {
               ),
             ],
           ),
+
+          // Floating Viewport Notification Toast matching Angular
+          if (_feedback != null)
+            Positioned(
+              bottom: isMobile ? 16 : 24,
+              right: isDesktop ? 24 : 16,
+              left: isDesktop ? null : 16,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: isDesktop ? 440 : double.infinity,
+                ),
+                child: FeedbackToast(
+                  feedback: _feedback!,
+                  onClose: () => setState(() => _feedback = null),
+                ),
+              ),
+            ),
 
           // Brand Detail Modal Overlay (Exact Angular feature match)
           if (_selectedBrand != null) _buildBrandDetailModal(_selectedBrand!),
@@ -476,6 +519,7 @@ class BrandScreenState extends State<BrandScreen> {
   // ==========================================
   Widget _buildRegisterView() {
     return SingleChildScrollView(
+      controller: _brandScrollController,
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

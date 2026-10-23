@@ -4,6 +4,7 @@ import 'package:http/http.dart' as http;
 import '../models/category_model.dart';
 import 'api_config.dart';
 import 'auth_service.dart';
+import '../utils/api_error_util.dart';
 
 class CategoryService {
   final ApiConfig _config = ApiConfig();
@@ -101,8 +102,10 @@ class CategoryService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return CategoryResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to create category: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to create category: ${response.statusCode}',
+      );
     }
   }
 
@@ -156,8 +159,10 @@ class CategoryService {
       final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
       return CategoryResponse.fromJson(decoded as Map<String, dynamic>);
     } else {
-      final body = response.body;
-      throw Exception('Failed to update category: $body');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to update category: ${response.statusCode}',
+      );
     }
   }
 
@@ -172,7 +177,10 @@ class CategoryService {
     if (response.statusCode >= 200 && response.statusCode < 300) {
       return;
     } else {
-      throw Exception('Failed to delete category #$id');
+      throw ApiException.fromResponse(
+        response,
+        fallbackMessage: 'Failed to delete category #$id',
+      );
     }
   }
 

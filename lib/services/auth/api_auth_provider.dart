@@ -123,8 +123,18 @@ class ApiAuthProvider implements AuthProvider {
             'Invalid registration details. Please verify the input fields.';
         try {
           final errBody = jsonDecode(utf8.decode(response.bodyBytes));
-          if (errBody is Map && errBody['message'] != null) {
-            msg = errBody['message'].toString();
+          if (errBody is Map) {
+            if (errBody['message'] != null && errBody['message'].toString().trim().isNotEmpty) {
+              msg = errBody['message'].toString();
+            } else if (errBody['errors'] != null) {
+              if (errBody['errors'] is Map) {
+                final firstErr = (errBody['errors'] as Map).values.firstOrNull;
+                if (firstErr != null) msg = firstErr.toString();
+              } else if (errBody['errors'] is List) {
+                final firstErr = (errBody['errors'] as List).firstOrNull;
+                if (firstErr != null) msg = firstErr.toString();
+              }
+            }
           }
         } catch (_) {}
         throw Exception(msg);
@@ -132,8 +142,18 @@ class ApiAuthProvider implements AuthProvider {
         String msg = 'Registration failed (Status: ${response.statusCode}).';
         try {
           final errBody = jsonDecode(utf8.decode(response.bodyBytes));
-          if (errBody is Map && errBody['message'] != null) {
-            msg = errBody['message'].toString();
+          if (errBody is Map) {
+            if (errBody['message'] != null && errBody['message'].toString().trim().isNotEmpty) {
+              msg = errBody['message'].toString();
+            } else if (errBody['errors'] != null) {
+              if (errBody['errors'] is Map) {
+                final firstErr = (errBody['errors'] as Map).values.firstOrNull;
+                if (firstErr != null) msg = firstErr.toString();
+              } else if (errBody['errors'] is List) {
+                final firstErr = (errBody['errors'] as List).firstOrNull;
+                if (firstErr != null) msg = firstErr.toString();
+              }
+            }
           }
         } catch (_) {}
         throw Exception(msg);
