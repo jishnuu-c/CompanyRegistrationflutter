@@ -86,7 +86,7 @@ class ApiAuthProvider implements AuthProvider {
             msg.contains('Failed host lookup') ||
             msg.contains('timed out')) {
           throw Exception(
-            'Authentication failed. Please verify that the Spring Boot server is online at ${_apiConfig.host}.',
+            'Authentication failed. Unable to reach corporate server. Please check your network connection and try again.',
           );
         }
         throw Exception(msg);
@@ -168,7 +168,7 @@ class ApiAuthProvider implements AuthProvider {
             msg.contains('Failed host lookup') ||
             msg.contains('timed out')) {
           throw Exception(
-            'Registration failed. Please verify that the Spring Boot server is online at ${_apiConfig.host}.',
+            'Registration failed. Unable to reach corporate server. Please check your network connection and try again.',
           );
         }
         throw Exception(msg);

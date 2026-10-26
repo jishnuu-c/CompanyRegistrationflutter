@@ -431,195 +431,214 @@ class CategoryScreenState extends State<CategoryScreen> {
 
   // --- Top Navigation Tabs Bar ---
   Widget _buildTopNavTabs() {
+    final isRegister = _activeTab == 'register';
+    final isDirectory = _activeTab == 'directory';
+
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       decoration: const BoxDecoration(
         color: AppTheme.bgSurface,
         border: Border(
           bottom: BorderSide(color: AppTheme.borderLight, width: 1),
         ),
       ),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Add Category Button
-            InkWell(
-              onTap: _switchToRegister,
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: _activeTab == 'register' && _editingCategoryId == null
-                      ? AppTheme.primaryLight
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color:
-                        _activeTab == 'register' && _editingCategoryId == null
-                        ? AppTheme.primary.withValues(alpha: 0.3)
-                        : Colors.transparent,
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.add_circle,
-                      size: 16,
-                      color:
-                          _activeTab == 'register' && _editingCategoryId == null
-                          ? AppTheme.primary
-                          : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Add Category',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color:
-                            _activeTab == 'register' &&
-                                _editingCategoryId == null
-                            ? AppTheme.primary
-                            : AppTheme.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Segmented Capsule Navigation Bar
+          Container(
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF1F5F9),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
             ),
-            const SizedBox(width: 8),
-
-            // Edit Category Pill (when in edit mode)
-            if (_editingCategoryId != null) ...[
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.warningBg,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: AppTheme.warning.withValues(alpha: 0.4),
-                  ),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    InkWell(
-                      onTap: () => setState(() => _activeTab = 'register'),
+            child: Row(
+              children: [
+                // Register / Add Category Segment
+                Expanded(
+                  child: InkWell(
+                    onTap: _switchToRegister,
+                    borderRadius: BorderRadius.circular(9),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      decoration: BoxDecoration(
+                        color: isRegister ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: isRegister
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
+                      ),
                       child: Row(
-                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(
-                            Icons.edit,
-                            size: 14,
-                            color: AppTheme.warning,
+                          Icon(
+                            Icons.add_circle_outline_rounded,
+                            size: 16,
+                            color: isRegister
+                                ? AppTheme.primary
+                                : const Color(0xFF64748B),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 6),
                           Text(
-                            'Edit #$_editingCategoryId',
+                            _editingCategoryId != null ? 'Edit Category' : 'Add Category',
                             style: GoogleFonts.plusJakartaSans(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFFB45309),
+                              fontSize: 13,
+                              fontWeight: isRegister ? FontWeight.w700 : FontWeight.w600,
+                              color: isRegister
+                                  ? AppTheme.primary
+                                  : const Color(0xFF64748B),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
-                    InkWell(
-                      onTap: _switchToRegister,
-                      borderRadius: BorderRadius.circular(10),
-                      child: const Icon(
-                        Icons.close,
-                        size: 14,
-                        color: Color(0xFFB45309),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 8),
-            ],
-
-            // Directory Tab Button
-            InkWell(
-              onTap: () => setState(() => _activeTab = 'directory'),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 14,
-                  vertical: 8,
-                ),
-                decoration: BoxDecoration(
-                  color: _activeTab == 'directory'
-                      ? AppTheme.primaryLight
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _activeTab == 'directory'
-                        ? AppTheme.primary.withValues(alpha: 0.3)
-                        : Colors.transparent,
                   ),
                 ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      Icons.grid_view_rounded,
-                      size: 16,
-                      color: _activeTab == 'directory'
-                          ? AppTheme.primary
-                          : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Directory',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: _activeTab == 'directory'
-                            ? AppTheme.primary
-                            : AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
+                const SizedBox(width: 4),
+
+                // Directory Segment
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _activeTab = 'directory'),
+                    borderRadius: BorderRadius.circular(9),
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      padding: const EdgeInsets.symmetric(vertical: 8),
                       decoration: BoxDecoration(
-                        color: _activeTab == 'directory'
-                            ? AppTheme.primary
-                            : AppTheme.bgSubtle,
-                        borderRadius: BorderRadius.circular(10),
+                        color: isDirectory ? Colors.white : Colors.transparent,
+                        borderRadius: BorderRadius.circular(9),
+                        boxShadow: isDirectory
+                            ? [
+                                BoxShadow(
+                                  color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 1),
+                                ),
+                              ]
+                            : null,
                       ),
-                      child: Text(
-                        '${_categories.length}',
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          color: _activeTab == 'directory'
-                              ? Colors.white
-                              : AppTheme.textSecondary,
-                        ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.grid_view_rounded,
+                            size: 16,
+                            color: isDirectory
+                                ? AppTheme.primary
+                                : const Color(0xFF64748B),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            'Directory',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight: isDirectory ? FontWeight.w700 : FontWeight.w600,
+                              color: isDirectory
+                                  ? AppTheme.primary
+                                  : const Color(0xFF64748B),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 1.5,
+                            ),
+                            decoration: BoxDecoration(
+                              color: isDirectory
+                                  ? AppTheme.primaryLight
+                                  : const Color(0xFFE2E8F0),
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: Text(
+                              '${_categories.length}',
+                              style: GoogleFonts.inter(
+                                fontSize: 10.5,
+                                fontWeight: FontWeight.w700,
+                                color: isDirectory
+                                    ? AppTheme.primary
+                                    : const Color(0xFF64748B),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
                 ),
+              ],
+            ),
+          ),
+
+          // If in edit mode, show a sleek secondary banner underneath
+          if (_editingCategoryId != null) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFFBEB),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFDE68A)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.edit_note_rounded,
+                    size: 16,
+                    color: Color(0xFFD97706),
+                  ),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      'Editing Category #$_editingCategoryId (${_nameController.text.isNotEmpty ? _nameController.text : "Active"})',
+                      style: GoogleFonts.inter(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFFB45309),
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  InkWell(
+                    onTap: _switchToRegister,
+                    borderRadius: BorderRadius.circular(6),
+                    child: Padding(
+                      padding: const EdgeInsets.all(2),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Cancel',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: const Color(0xFFB45309),
+                            ),
+                          ),
+                          const SizedBox(width: 2),
+                          const Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: Color(0xFFB45309),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
           ],
-        ),
+        ],
       ),
     );
   }
@@ -1711,10 +1730,10 @@ class CategoryScreenState extends State<CategoryScreen> {
 
   Widget _buildDirectoryHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppTheme.bgSurface,
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppTheme.borderLight),
         boxShadow: AppTheme.shadowSm,
       ),
@@ -1724,52 +1743,61 @@ class CategoryScreenState extends State<CategoryScreen> {
           Text(
             'Categories Directory',
             style: GoogleFonts.plusJakartaSans(
-              fontSize: 16,
+              fontSize: 17,
               fontWeight: FontWeight.w700,
               color: AppTheme.textPrimary,
             ),
           ),
-          const SizedBox(height: 2),
+          const SizedBox(height: 3),
           Text(
-            'Explore, inspect, edit, and organize product categories.',
+            'Explore, organize, and manage product catalog categories.',
             style: GoogleFonts.inter(
-              fontSize: 11,
+              fontSize: 11.5,
               color: AppTheme.textSecondary,
             ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 10),
+          const SizedBox(height: 12),
+          // Search & Action Controls
           Row(
             children: [
               // Search Field
               Expanded(
                 child: SizedBox(
-                  height: 36,
+                  height: 42,
                   child: TextField(
                     controller: _searchController,
-                    style: GoogleFonts.inter(fontSize: 12.5),
+                    style: GoogleFonts.inter(
+                      fontSize: 13,
+                      color: AppTheme.textPrimary,
+                    ),
                     decoration: InputDecoration(
                       hintText: 'Search categories...',
                       hintStyle: GoogleFonts.inter(
-                        fontSize: 11.5,
+                        fontSize: 12.5,
                         color: AppTheme.textMuted,
                       ),
                       prefixIcon: const Icon(
-                        Icons.search,
-                        size: 16,
-                        color: AppTheme.textMuted,
+                        Icons.search_rounded,
+                        size: 18,
+                        color: AppTheme.primary,
                       ),
-                      contentPadding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 0,
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 12),
+                      filled: true,
+                      fillColor: const Color(0xFFF8FAFC),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
                       ),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(10),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(
+                          color: AppTheme.primary,
+                          width: 1.5,
+                        ),
                       ),
                       suffixIcon: _searchQuery.isNotEmpty
                           ? IconButton(
-                              icon: const Icon(Icons.clear, size: 14),
+                              icon: const Icon(Icons.clear_rounded, size: 16),
                               onPressed: () {
                                 _searchController.clear();
                                 setState(() => _searchQuery = '');
@@ -1783,39 +1811,20 @@ class CategoryScreenState extends State<CategoryScreen> {
               ),
               const SizedBox(width: 8),
               // Refresh Button
-              IconButton(
-                onPressed: _fetchCategories,
-                icon: const Icon(Icons.refresh, size: 18),
-                tooltip: 'Refresh Database',
-                constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
-                style: IconButton.styleFrom(
-                  backgroundColor: AppTheme.bgSubtle,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
+              Container(
+                height: 42,
+                width: 42,
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
                 ),
-              ),
-              const SizedBox(width: 8),
-              // New Category Button
-              ElevatedButton.icon(
-                onPressed: _switchToRegister,
-                icon: const Icon(Icons.add, size: 14),
-                label: const Text('New Category'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppTheme.primary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 8,
-                  ),
-                  visualDensity: VisualDensity.compact,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  textStyle: GoogleFonts.plusJakartaSans(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w600,
-                  ),
+                child: IconButton(
+                  onPressed: _fetchCategories,
+                  icon: const Icon(Icons.refresh_rounded, size: 19),
+                  tooltip: 'Refresh Categories',
+                  color: AppTheme.textSecondary,
+                  padding: EdgeInsets.zero,
                 ),
               ),
             ],
@@ -1826,244 +1835,221 @@ class CategoryScreenState extends State<CategoryScreen> {
   }
 
   Widget _buildViewToggleBar() {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final isNarrow = constraints.maxWidth < 600;
-        return Flex(
-          direction: isNarrow ? Axis.vertical : Axis.horizontal,
-          crossAxisAlignment: isNarrow
-              ? CrossAxisAlignment.start
-              : CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            // View Toggle Tabs (Expanded on mobile so they never overflow)
-            Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
-                color: AppTheme.bgSurface,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppTheme.borderLight),
-              ),
-              child: Row(
-                mainAxisSize: isNarrow ? MainAxisSize.max : MainAxisSize.min,
-                children: [
-                  // Main Categories Toggle
-                  Expanded(
-                    flex: isNarrow ? 1 : 0,
-                    child: InkWell(
-                      onTap: () => setState(() => _categoryViewTab = 'main'),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 7,
+    final isMain = _categoryViewTab == 'main';
+    final isSub = _categoryViewTab == 'sub';
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+      ),
+      child: Column(
+        children: [
+          Row(
+            children: [
+              // Main Categories Tab
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _categoryViewTab = 'main'),
+                  borderRadius: BorderRadius.circular(9),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isMain ? AppTheme.primary : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                      boxShadow: isMain
+                          ? [
+                              BoxShadow(
+                                color: AppTheme.primary.withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.folder_rounded,
+                          size: 15,
+                          color: isMain ? Colors.white : const Color(0xFF64748B),
                         ),
-                        decoration: BoxDecoration(
-                          color: _categoryViewTab == 'main'
-                              ? AppTheme.primary
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Main Categories',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isMain ? Colors.white : const Color(0xFF64748B),
+                          ),
                         ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.folder,
-                              size: 14,
-                              color: _categoryViewTab == 'main'
-                                  ? Colors.white
-                                  : AppTheme.textSecondary,
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isMain
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_parentCategories.length}',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: isMain ? Colors.white : const Color(0xFF475569),
                             ),
-                            const SizedBox(width: 5),
-                            Flexible(
-                              child: Text(
-                                'Main Categories',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _categoryViewTab == 'main'
-                                      ? Colors.white
-                                      : AppTheme.textSecondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                            ),
-                            const SizedBox(width: 5),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _categoryViewTab == 'main'
-                                    ? Colors.white.withValues(alpha: 0.25)
-                                    : AppTheme.bgSubtle,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '${_parentCategories.length}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: _categoryViewTab == 'main'
-                                      ? Colors.white
-                                      : AppTheme.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
+                          ),
                         ),
-                      ),
+                      ],
                     ),
                   ),
-                  const SizedBox(width: 4),
+                ),
+              ),
+              const SizedBox(width: 4),
 
-                  // Subcategories Toggle
+              // Subcategories Tab
+              Expanded(
+                child: InkWell(
+                  onTap: () => setState(() => _categoryViewTab = 'sub'),
+                  borderRadius: BorderRadius.circular(9),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 150),
+                    padding: const EdgeInsets.symmetric(vertical: 8),
+                    decoration: BoxDecoration(
+                      color: isSub ? const Color(0xFF7C3AED) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(9),
+                      boxShadow: isSub
+                          ? [
+                              BoxShadow(
+                                color: const Color(0xFF7C3AED).withValues(alpha: 0.3),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ]
+                          : null,
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.account_tree_rounded,
+                          size: 15,
+                          color: isSub ? Colors.white : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 5),
+                        Text(
+                          'Subcategories',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w700,
+                            color: isSub ? Colors.white : const Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(width: 5),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSub
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : const Color(0xFFE2E8F0),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            '${_subCategories.length}',
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: isSub ? Colors.white : const Color(0xFF475569),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          // In Subcategories View: Filter by Parent Dropdown
+          if (isSub && _parentCategories.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(
+                    Icons.filter_list_rounded,
+                    size: 15,
+                    color: Color(0xFF7C3AED),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    'Parent:',
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w600,
+                      color: AppTheme.textSecondary,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
                   Expanded(
-                    flex: isNarrow ? 1 : 0,
-                    child: InkWell(
-                      onTap: () => setState(() => _categoryViewTab = 'sub'),
-                      borderRadius: BorderRadius.circular(8),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 7,
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedParentFilter,
+                        isExpanded: true,
+                        style: GoogleFonts.inter(
+                          fontSize: 11.5,
+                          color: AppTheme.textPrimary,
                         ),
-                        decoration: BoxDecoration(
-                          color: _categoryViewTab == 'sub'
-                              ? const Color(0xFF7C3AED)
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(
-                              Icons.account_tree,
-                              size: 14,
-                              color: _categoryViewTab == 'sub'
-                                  ? Colors.white
-                                  : AppTheme.textSecondary,
+                        items: [
+                          DropdownMenuItem(
+                            value: 'all',
+                            child: Text(
+                              'All Main Categories (${_subCategories.length})',
                             ),
-                            const SizedBox(width: 5),
-                            Flexible(
+                          ),
+                          ..._parentCategories.map((p) {
+                            return DropdownMenuItem(
+                              value: p.id.toString(),
                               child: Text(
-                                'Subcategories',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: _categoryViewTab == 'sub'
-                                      ? Colors.white
-                                      : AppTheme.textSecondary,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
+                                '${p.name} (${_getSubCount(p.id)})',
                               ),
-                            ),
-                            const SizedBox(width: 5),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 5,
-                                vertical: 1,
-                              ),
-                              decoration: BoxDecoration(
-                                color: _categoryViewTab == 'sub'
-                                    ? Colors.white.withValues(alpha: 0.25)
-                                    : AppTheme.bgSubtle,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                '${_subCategories.length}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w700,
-                                  color: _categoryViewTab == 'sub'
-                                      ? Colors.white
-                                      : AppTheme.textSecondary,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
+                            );
+                          }),
+                        ],
+                        onChanged: (val) {
+                          if (val != null) {
+                            setState(() => _selectedParentFilter = val);
+                          }
+                        },
                       ),
                     ),
                   ),
                 ],
               ),
             ),
-
-            // In Subcategories View: Filter by Parent Dropdown
-            if (_categoryViewTab == 'sub' && _parentCategories.isNotEmpty) ...[
-              SizedBox(height: isNarrow ? 8 : 0),
-              Container(
-                width: isNarrow ? double.infinity : null,
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 2,
-                ),
-                decoration: BoxDecoration(
-                  color: AppTheme.bgSurface,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: AppTheme.borderLight),
-                ),
-                child: Row(
-                  children: [
-                    const Icon(
-                      Icons.filter_list,
-                      size: 15,
-                      color: AppTheme.primary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Parent:',
-                      style: GoogleFonts.inter(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<String>(
-                          value: _selectedParentFilter,
-                          isExpanded: true,
-                          style: GoogleFonts.inter(
-                            fontSize: 11.5,
-                            color: AppTheme.textPrimary,
-                          ),
-                          items: [
-                            DropdownMenuItem(
-                              value: 'all',
-                              child: Text(
-                                'All Main Categories (${_subCategories.length})',
-                              ),
-                            ),
-                            ..._parentCategories.map((p) {
-                              return DropdownMenuItem(
-                                value: p.id.toString(),
-                                child: Text(
-                                  '${p.name} (${_getSubCount(p.id)})',
-                                ),
-                              );
-                            }),
-                          ],
-                          onChanged: (val) {
-                            if (val != null) {
-                              setState(() => _selectedParentFilter = val);
-                            }
-                          },
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
           ],
-        );
-      },
+        ],
+      ),
     );
   }
 
@@ -2147,7 +2133,7 @@ class CategoryScreenState extends State<CategoryScreen> {
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 16,
             mainAxisSpacing: 16,
-            mainAxisExtent: 220,
+            mainAxisExtent: 240,
           ),
           itemCount: items.length,
           itemBuilder: (context, index) {
@@ -2161,112 +2147,143 @@ class CategoryScreenState extends State<CategoryScreen> {
 
   Widget _buildCategoryCard(CategoryResponse cat, bool isMain) {
     final subCount = _getSubCount(cat.id);
+    final hasImage = cat.categoryImage != null && cat.categoryImage!.isNotEmpty;
 
-    return InkWell(
-      onTap: () => setState(() => _selectedCategory = cat),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        decoration: BoxDecoration(
-          color: AppTheme.bgSurface,
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppTheme.borderLight),
-          boxShadow: AppTheme.shadowSm,
-        ),
-        clipBehavior: Clip.antiAlias,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Top Media Image / Banner
-            Container(
-              height: 90,
+    return Container(
+      decoration: BoxDecoration(
+        color: AppTheme.bgSurface,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppTheme.borderLight),
+        boxShadow: AppTheme.shadowSm,
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Top Media Image / Banner
+          InkWell(
+            onTap: () => setState(() => _selectedCategory = cat),
+            child: SizedBox(
+              height: 120,
               width: double.infinity,
-              decoration: const BoxDecoration(
-                gradient: AppTheme.cardGlossGradient,
-              ),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (cat.categoryImage != null &&
-                      cat.categoryImage!.isNotEmpty)
-                    Image.network(
-                      _categoryService.getFileUrl(cat.categoryImage),
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Center(
-                        child: Icon(
-                          isMain
-                              ? Icons.folder_rounded
-                              : Icons.account_tree_rounded,
-                          size: 36,
-                          color: Colors.white38,
-                        ),
-                      ),
-                    )
-                  else
-                    Center(
-                      child: Icon(
-                        isMain
-                            ? Icons.folder_rounded
-                            : Icons.account_tree_rounded,
-                        size: 36,
-                        color: Colors.white30,
-                      ),
-                    ),
-                  // Overlay gradient
+                  // Clean studio backdrop so product visuals render crisply
                   Container(
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       gradient: LinearGradient(
+                        colors: [Color(0xFFF8FAFC), Color(0xFFF1F5F9)],
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [
-                          Colors.black.withValues(alpha: 0.1),
-                          Colors.black.withValues(alpha: 0.5),
-                        ],
                       ),
                     ),
+                    child: hasImage
+                        ? Padding(
+                            padding: const EdgeInsets.all(8),
+                            child: Image.network(
+                              _categoryService.getFileUrl(cat.categoryImage),
+                              fit: BoxFit.contain,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Center(
+                                child: Icon(
+                                  isMain
+                                      ? Icons.folder_rounded
+                                      : Icons.account_tree_rounded,
+                                  size: 44,
+                                  color: const Color(0xFFCBD5E1),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Center(
+                            child: Icon(
+                              isMain
+                                  ? Icons.folder_rounded
+                                  : Icons.account_tree_rounded,
+                              size: 44,
+                              color: const Color(0xFFCBD5E1),
+                            ),
+                          ),
                   ),
-                  // Badges
+
+                  // Top Left Role / Type Badge
                   Positioned(
-                    top: 8,
-                    left: 8,
+                    top: 10,
+                    left: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 8,
+                        vertical: 3.5,
                       ),
                       decoration: BoxDecoration(
                         color: isMain
                             ? AppTheme.primary
                             : const Color(0xFF7C3AED),
-                        borderRadius: BorderRadius.circular(6),
+                        borderRadius: BorderRadius.circular(7),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.15),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
-                      child: Text(
-                        isMain ? 'Main' : 'Sub',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isMain
+                                ? Icons.folder_rounded
+                                : Icons.subdirectory_arrow_right,
+                            size: 11,
+                            color: Colors.white,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            isMain ? 'Main' : 'Sub',
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white,
+                              letterSpacing: 0.3,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
+
+                  // Top Right ID Badge
                   Positioned(
-                    top: 8,
-                    right: 8,
+                    top: 10,
+                    right: 10,
                     child: Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
+                        horizontal: 8,
+                        vertical: 3.5,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withValues(alpha: 0.6),
-                        borderRadius: BorderRadius.circular(6),
+                        color: Colors.white.withValues(alpha: 0.92),
+                        borderRadius: BorderRadius.circular(7),
+                        border: Border.all(
+                          color: const Color(0xFFE2E8F0),
+                          width: 0.8,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withValues(alpha: 0.06),
+                            blurRadius: 4,
+                            offset: const Offset(0, 1),
+                          ),
+                        ],
                       ),
                       child: Text(
                         'ID #${cat.id}',
                         style: GoogleFonts.inter(
                           fontSize: 10,
                           fontWeight: FontWeight.w700,
-                          color: Colors.white,
+                          color: AppTheme.textPrimary,
                         ),
                       ),
                     ),
@@ -2274,202 +2291,211 @@ class CategoryScreenState extends State<CategoryScreen> {
                 ],
               ),
             ),
+          ),
 
-            // Card Body
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.fromLTRB(14, 10, 14, 6),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      cat.name,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: AppTheme.textPrimary,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
+          // Card Body
+          InkWell(
+            onTap: () => setState(() => _selectedCategory = cat),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    cat.name,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15.5,
+                      fontWeight: FontWeight.w700,
+                      color: AppTheme.textPrimary,
                     ),
-                    const SizedBox(height: 4),
-                    if (isMain) ...[
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: AppTheme.primaryLight,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            const Icon(
-                              Icons.account_tree,
-                              size: 11,
-                              color: AppTheme.primary,
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              '$subCount Subcategories',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.primary,
-                              ),
-                            ),
-                          ],
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  if (isMain) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFEEF2FF),
+                        borderRadius: BorderRadius.circular(6),
+                        border: Border.all(
+                          color: const Color(0xFFC7D2FE),
+                          width: 0.6,
                         ),
                       ),
-                    ] else ...[
-                      Row(
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
                         children: [
                           const Icon(
-                            Icons.subdirectory_arrow_right,
+                            Icons.account_tree_rounded,
                             size: 12,
-                            color: AppTheme.textMuted,
+                            color: Color(0xFF4F46E5),
                           ),
-                          const SizedBox(width: 3),
-                          Expanded(
-                            child: Text(
-                              'Parent: ${cat.parentName ?? _getParentName(cat.parentId)}',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: AppTheme.textSecondary,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          const SizedBox(width: 5),
+                          Text(
+                            '$subCount Subcategories',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF4338CA),
                             ),
                           ),
                         ],
                       ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-
-            // Card Footer Actions
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              decoration: const BoxDecoration(
-                color: AppTheme.bgSubtle,
-                border: Border(top: BorderSide(color: AppTheme.borderLight)),
-              ),
-              child: Row(
-                children: [
-                  // View
-                  Expanded(
-                    child: InkWell(
-                      onTap: () => setState(() => _selectedCategory = cat),
-                      borderRadius: BorderRadius.circular(6),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(
-                              Icons.visibility_outlined,
-                              size: 14,
+                    ),
+                  ] else ...[
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.subdirectory_arrow_right,
+                          size: 13,
+                          color: Color(0xFF7C3AED),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            'Parent: ${cat.parentName ?? _getParentName(cat.parentId)}',
+                            style: GoogleFonts.inter(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w500,
                               color: AppTheme.textSecondary,
                             ),
-                            const SizedBox(width: 3),
-                            Text(
-                              'View',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: AppTheme.textSecondary,
-                              ),
-                            ),
-                          ],
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ),
+
+          const Spacer(),
+          const Divider(height: 1, color: AppTheme.borderLight),
+
+          // Card Footer Actions
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            color: const Color(0xFFFAFAFA),
+            child: Row(
+              children: [
+                // View Details Button
+                Expanded(
+                  child: InkWell(
+                    onTap: () => setState(() => _selectedCategory = cat),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.visibility_outlined,
+                            size: 15,
+                            color: AppTheme.textSecondary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'View',
+                            style: GoogleFonts.inter(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textSecondary,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
+                ),
 
-                  // Quick + Sub for Main Categories
-                  if (isMain) ...[
-                    Expanded(
-                      child: InkWell(
-                        onTap: () => _addSubCategoryForParent(cat),
-                        borderRadius: BorderRadius.circular(6),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                Icons.add_circle_outline,
-                                size: 14,
-                                color: AppTheme.primary,
-                              ),
-                              const SizedBox(width: 3),
-                              Text(
-                                '+ Sub',
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.primary,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-
-                  // Edit
+                // Quick + Sub for Main Categories
+                if (isMain) ...[
                   Expanded(
                     child: InkWell(
-                      onTap: () => _startEdit(cat),
-                      borderRadius: BorderRadius.circular(6),
+                      onTap: () => _addSubCategoryForParent(cat),
+                      borderRadius: BorderRadius.circular(8),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 6),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             const Icon(
-                              Icons.edit_outlined,
-                              size: 14,
-                              color: Color(0xFF2563EB),
+                              Icons.add_circle_outline_rounded,
+                              size: 15,
+                              color: AppTheme.primary,
                             ),
-                            const SizedBox(width: 3),
+                            const SizedBox(width: 4),
                             Text(
-                              'Edit',
+                              '+ Sub',
                               style: GoogleFonts.inter(
-                                fontSize: 11,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2563EB),
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppTheme.primary,
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    ),
-                  ),
-
-                  // Delete
-                  InkWell(
-                    onTap: () => _promptDelete(cat),
-                    borderRadius: BorderRadius.circular(6),
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                      child: Icon(
-                        Icons.delete_outline,
-                        size: 15,
-                        color: AppTheme.error,
                       ),
                     ),
                   ),
                 ],
-              ),
+
+                // Edit Button
+                Expanded(
+                  child: InkWell(
+                    onTap: () => _startEdit(cat),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 6),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.edit_outlined,
+                            size: 15,
+                            color: Color(0xFF2563EB),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'Edit',
+                            style: GoogleFonts.inter(
+                              fontSize: 11.5,
+                              fontWeight: FontWeight.w600,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                // Delete Button
+                InkWell(
+                  onTap: () => _promptDelete(cat),
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 6,
+                    ),
+                    child: const Icon(
+                      Icons.delete_outline_rounded,
+                      size: 17,
+                      color: AppTheme.error,
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -2482,454 +2508,631 @@ class CategoryScreenState extends State<CategoryScreen> {
         .where((s) => s.parentId == cat.id)
         .toList();
 
-    return Container(
-      color: Colors.black54,
-      alignment: Alignment.center,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Container(
-          width: 580,
-          decoration: BoxDecoration(
-            color: AppTheme.bgSurface,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: AppTheme.shadowLg,
-          ),
-          clipBehavior: Clip.antiAlias,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Header
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: const BoxDecoration(
-                  color: AppTheme.bgSubtle,
-                  border: Border(
-                    bottom: BorderSide(color: AppTheme.borderLight),
+    return GestureDetector(
+      onTap: () => setState(() => _selectedCategory = null),
+      child: Container(
+        color: const Color(0x73000000),
+        alignment: Alignment.center,
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 24),
+            child: GestureDetector(
+              onTap: () {}, // Prevent tap through to dismiss
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(
+                  maxWidth: 480,
+                  minWidth: 280,
+                ),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: AppTheme.bgSurface,
+                    borderRadius: BorderRadius.circular(18),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.16),
+                        blurRadius: 24,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
                   ),
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Row(
-                            children: [
-                              Text(
-                                'Category Detail • ID #${cat.id}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: AppTheme.textMuted,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 2,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: isSub
-                                      ? const Color(0xFFF3E8FF)
-                                      : AppTheme.primaryLight,
-                                  borderRadius: BorderRadius.circular(6),
-                                ),
-                                child: Text(
-                                  isSub ? 'Subcategory' : 'Main Category',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w700,
-                                    color: isSub
-                                        ? const Color(0xFF7C3AED)
-                                        : AppTheme.primary,
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            cat.name,
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: AppTheme.textPrimary,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _selectedCategory = null),
-                      icon: const Icon(Icons.close),
-                    ),
-                  ],
-                ),
-              ),
-
-              // Modal Body
-              Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // Meta Bar
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSubtle,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceAround,
-                        children: [
-                          _buildModalMetaItem('Category ID', '#${cat.id}'),
-                          _buildModalMetaItem('Name', cat.name),
-                          _buildModalMetaItem(
-                            'Type',
-                            isSub ? 'Subcategory' : 'Main Category',
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-
-                    // If Subcategory: Parent Reference
-                    if (isSub) ...[
+                  clipBehavior: Clip.antiAlias,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Header
                       Container(
-                        padding: const EdgeInsets.all(14),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF8FAFC),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.borderLight),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.bgSubtle,
+                          border: Border(
+                            bottom: BorderSide(color: AppTheme.borderLight),
+                          ),
                         ),
                         child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
+                            // Category Icon Avatar
                             Container(
-                              width: 36,
-                              height: 36,
+                              width: 40,
+                              height: 40,
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                borderRadius: BorderRadius.circular(8),
+                                color: isSub
+                                    ? const Color(0xFFF3E8FF)
+                                    : const Color(0xFFEEF2FF),
+                                borderRadius: BorderRadius.circular(10),
+                                border: Border.all(
+                                  color: isSub
+                                      ? const Color(0xFFE9D5FF)
+                                      : const Color(0xFFC7D2FE),
+                                  width: 0.8,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.folder,
+                              child: Icon(
+                                isSub
+                                    ? Icons.subdirectory_arrow_right_rounded
+                                    : Icons.folder_rounded,
                                 size: 20,
-                                color: AppTheme.primary,
+                                color: isSub
+                                    ? const Color(0xFF7C3AED)
+                                    : AppTheme.primary,
                               ),
                             ),
                             const SizedBox(width: 12),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  'Parent Category',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: AppTheme.textMuted,
-                                  ),
-                                ),
-                                Text(
-                                  '$parentName (ID #${cat.parentId})',
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
 
-                    // If Main Category: Nested Subcategories List
-                    if (!isSub) ...[
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              const Icon(
-                                Icons.account_tree_rounded,
-                                size: 16,
-                                color: AppTheme.primary,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'Nested Subcategories (${nestedSubs.length})',
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppTheme.textPrimary,
-                                ),
-                              ),
-                            ],
-                          ),
-                          InkWell(
-                            onTap: () {
-                              _addSubCategoryForParent(cat);
-                            },
-                            borderRadius: BorderRadius.circular(8),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 10,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: AppTheme.primaryLight,
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
+                            // Title & Subtitle in Expanded Column
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                mainAxisSize: MainAxisSize.min,
                                 children: [
-                                  const Icon(
-                                    Icons.add,
-                                    size: 13,
-                                    color: AppTheme.primary,
-                                  ),
-                                  const SizedBox(width: 3),
                                   Text(
-                                    'Add Subcategory',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 11,
+                                    cat.name,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 16,
                                       fontWeight: FontWeight.w700,
-                                      color: AppTheme.primary,
+                                      color: AppTheme.textPrimary,
                                     ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Row(
+                                    children: [
+                                      // Type pill
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 6,
+                                          vertical: 2,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: isSub
+                                              ? const Color(0xFFF3E8FF)
+                                              : AppTheme.primaryLight,
+                                          borderRadius: BorderRadius.circular(5),
+                                        ),
+                                        child: Text(
+                                          isSub ? 'Subcategory' : 'Main Category',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w700,
+                                            color: isSub
+                                                ? const Color(0xFF7C3AED)
+                                                : AppTheme.primary,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      // ID tag
+                                      Text(
+                                        'ID #${cat.id}',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w600,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ],
                               ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
 
-                      if (nestedSubs.isEmpty)
-                        Container(
-                          padding: const EdgeInsets.all(12),
-                          decoration: BoxDecoration(
-                            color: AppTheme.bgSubtle,
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          child: Text(
-                            'No subcategories created yet under ${cat.name}.',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              color: AppTheme.textMuted,
-                            ),
-                          ),
-                        )
-                      else
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: nestedSubs.map((sub) {
-                            return InkWell(
-                              onTap: () {
-                                setState(() => _selectedCategory = sub);
-                              },
-                              borderRadius: BorderRadius.circular(8),
+                            // Compact Close Button
+                            const SizedBox(width: 8),
+                            InkWell(
+                              onTap: () => setState(() => _selectedCategory = null),
+                              borderRadius: BorderRadius.circular(16),
                               child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 6,
-                                ),
+                                width: 32,
+                                height: 32,
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFFF3E8FF),
-                                  borderRadius: BorderRadius.circular(8),
+                                  color: Colors.white,
+                                  shape: BoxShape.circle,
                                   border: Border.all(
-                                    color: const Color(0xFFE9D5FF),
+                                    color: const Color(0xFFE2E8F0),
+                                    width: 1,
                                   ),
                                 ),
+                                child: const Icon(
+                                  Icons.close_rounded,
+                                  size: 16,
+                                  color: AppTheme.textSecondary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+
+                      // Modal Body
+                      Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // 3 Structured Stat Cards Row
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildModalStatCard(
+                                    label: 'CATEGORY ID',
+                                    value: '#${cat.id}',
+                                    accentColor: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildModalStatCard(
+                                    label: 'TYPE',
+                                    value: isSub ? 'Subcategory' : 'Main Category',
+                                    accentColor: isSub
+                                        ? const Color(0xFF7C3AED)
+                                        : AppTheme.primary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: _buildModalStatCard(
+                                    label: isSub ? 'PARENT ID' : 'SUBCATS',
+                                    value: isSub
+                                        ? (cat.parentId != null ? '#${cat.parentId}' : '-')
+                                        : '${nestedSubs.length}',
+                                    accentColor: const Color(0xFF0F766E),
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 14),
+
+                            // If Subcategory: Parent Reference
+                            if (isSub) ...[
+                              Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: AppTheme.borderLight),
+                                ),
                                 child: Row(
-                                  mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    const Icon(
-                                      Icons.label,
-                                      size: 12,
-                                      color: Color(0xFF7C3AED),
-                                    ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      sub.name,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: const Color(0xFF6B21A8),
+                                    Container(
+                                      width: 32,
+                                      height: 32,
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFEEF2FF),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: const Icon(
+                                        Icons.folder_outlined,
+                                        size: 18,
+                                        color: AppTheme.primary,
                                       ),
                                     ),
-                                    const SizedBox(width: 5),
-                                    Text(
-                                      '#${sub.id}',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 10,
-                                        color: Color(0xFF9333EA),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            'PARENT CATEGORY',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w700,
+                                              letterSpacing: 0.4,
+                                              color: AppTheme.textMuted,
+                                            ),
+                                          ),
+                                          const SizedBox(height: 1),
+                                          Text(
+                                            '$parentName (ID #${cat.parentId})',
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.textPrimary,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   ],
                                 ),
                               ),
-                            );
-                          }).toList(),
-                        ),
-                      const SizedBox(height: 16),
-                    ],
+                              const SizedBox(height: 14),
+                            ],
 
-                    // Image Display
-                    if (cat.categoryImage != null &&
-                        cat.categoryImage!.isNotEmpty) ...[
-                      Text(
-                        'Category Banner / Image',
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: AppTheme.textSecondary,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Container(
-                        height: 160,
-                        width: double.infinity,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: AppTheme.borderLight),
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: Image.network(
-                          _categoryService.getFileUrl(cat.categoryImage),
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              const Center(
-                                child: Icon(
-                                  Icons.broken_image,
-                                  size: 40,
-                                  color: AppTheme.textMuted,
+                            // If Main Category: Nested Subcategories List
+                            if (!isSub) ...[
+                              Row(
+                                children: [
+                                  Container(
+                                    width: 22,
+                                    height: 22,
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFEEF2FF),
+                                      borderRadius: BorderRadius.circular(5),
+                                    ),
+                                    child: const Icon(
+                                      Icons.account_tree_rounded,
+                                      size: 13,
+                                      color: AppTheme.primary,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Nested Subcategories (${nestedSubs.length})',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppTheme.textPrimary,
+                                      ),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  InkWell(
+                                    onTap: () {
+                                      _addSubCategoryForParent(cat);
+                                    },
+                                    borderRadius: BorderRadius.circular(7),
+                                    child: Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppTheme.primaryLight,
+                                        borderRadius: BorderRadius.circular(7),
+                                        border: Border.all(
+                                          color: AppTheme.primary.withValues(alpha: 0.15),
+                                        ),
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.add_rounded,
+                                            size: 13,
+                                            color: AppTheme.primary,
+                                          ),
+                                          const SizedBox(width: 3),
+                                          Text(
+                                            'Add Sub',
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10.5,
+                                              fontWeight: FontWeight.w700,
+                                              color: AppTheme.primary,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+
+                              if (nestedSubs.isEmpty)
+                                Container(
+                                  width: double.infinity,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 14,
+                                    vertical: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: const Color(0xFFF8FAFC),
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.info_outline_rounded,
+                                        size: 16,
+                                        color: Color(0xFF94A3B8),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        child: Text(
+                                          'No subcategories created yet under ${cat.name}.',
+                                          style: GoogleFonts.inter(
+                                            fontSize: 11.5,
+                                            color: AppTheme.textMuted,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              else
+                                Wrap(
+                                  spacing: 6,
+                                  runSpacing: 6,
+                                  children: nestedSubs.map((sub) {
+                                    return InkWell(
+                                      onTap: () {
+                                        setState(() => _selectedCategory = sub);
+                                      },
+                                      borderRadius: BorderRadius.circular(7),
+                                      child: Container(
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 8,
+                                          vertical: 5,
+                                        ),
+                                        decoration: BoxDecoration(
+                                          color: const Color(0xFFF3E8FF),
+                                          borderRadius: BorderRadius.circular(7),
+                                          border: Border.all(
+                                            color: const Color(0xFFE9D5FF),
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.label_rounded,
+                                              size: 11,
+                                              color: Color(0xFF7C3AED),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              sub.name,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 11.5,
+                                                fontWeight: FontWeight.w600,
+                                                color: const Color(0xFF6B21A8),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              '#${sub.id}',
+                                              style: GoogleFonts.inter(
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w700,
+                                                color: const Color(0xFF9333EA),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ),
+                                    );
+                                  }).toList(),
+                                ),
+                              const SizedBox(height: 14),
+                            ],
+
+                            // Image Display (Studio Pedestal)
+                            if (cat.categoryImage != null &&
+                                cat.categoryImage!.isNotEmpty) ...[
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.image_outlined,
+                                    size: 13,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                  const SizedBox(width: 5),
+                                  Text(
+                                    'Category Banner / Image',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppTheme.textSecondary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              Container(
+                                height: 140,
+                                width: double.infinity,
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: const Color(0xFFF8FAFC),
+                                  borderRadius: BorderRadius.circular(10),
+                                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: Image.network(
+                                  _categoryService.getFileUrl(cat.categoryImage),
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (context, error, stackTrace) =>
+                                      const Center(
+                                    child: Icon(
+                                      Icons.broken_image_rounded,
+                                      size: 36,
+                                      color: AppTheme.textMuted,
+                                    ),
+                                  ),
                                 ),
                               ),
+                            ],
+                          ],
+                        ),
+                      ),
+
+                      // Modal Footer Actions
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
+                        decoration: const BoxDecoration(
+                          color: AppTheme.bgSubtle,
+                          border: Border(top: BorderSide(color: AppTheme.borderLight)),
+                        ),
+                        child: Row(
+                          children: [
+                            // Delete Button on Left
+                            OutlinedButton.icon(
+                              onPressed: () {
+                                final target = cat;
+                                setState(() => _selectedCategory = null);
+                                _promptDelete(target);
+                              },
+                              icon: const Icon(
+                                Icons.delete_outline_rounded,
+                                size: 15,
+                                color: AppTheme.error,
+                              ),
+                              label: Text(
+                                'Delete',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppTheme.error,
+                                ),
+                              ),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFFECACA)),
+                                backgroundColor: const Color(0xFFFEF2F2),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 9,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                            const Spacer(),
+
+                            // Close Button
+                            OutlinedButton(
+                              onPressed: () => setState(() => _selectedCategory = null),
+                              style: OutlinedButton.styleFrom(
+                                side: const BorderSide(color: Color(0xFFCBD5E1)),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 9,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                              child: Text(
+                                'Close',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF475569),
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 8),
+
+                            // Edit Button
+                            ElevatedButton.icon(
+                              onPressed: () {
+                                _startEdit(cat);
+                              },
+                              icon: const Icon(Icons.edit_rounded, size: 14),
+                              label: const Text('Edit'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppTheme.primary,
+                                foregroundColor: Colors.white,
+                                elevation: 0,
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 14,
+                                  vertical: 9,
+                                ),
+                                minimumSize: Size.zero,
+                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                textStyle: GoogleFonts.inter(
+                                  fontSize: 11.5,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
-                  ],
+                  ),
                 ),
               ),
-
-              // Modal Footer Actions
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 14,
-                ),
-                decoration: const BoxDecoration(
-                  color: AppTheme.bgSubtle,
-                  border: Border(top: BorderSide(color: AppTheme.borderLight)),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        OutlinedButton.icon(
-                          onPressed: () {
-                            final target = cat;
-                            setState(() => _selectedCategory = null);
-                            _promptDelete(target);
-                          },
-                          icon: const Icon(
-                            Icons.delete_outline,
-                            size: 16,
-                            color: AppTheme.error,
-                          ),
-                          label: Text(
-                            'Delete',
-                            style: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AppTheme.error,
-                            ),
-                          ),
-                          style: OutlinedButton.styleFrom(
-                            side: const BorderSide(color: Color(0xFFFECACA)),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 8),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _startEdit(cat);
-                          },
-                          icon: const Icon(Icons.edit, size: 14),
-                          label: const Text('Edit'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppTheme.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 14,
-                              vertical: 10,
-                            ),
-                            textStyle: GoogleFonts.inter(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    OutlinedButton(
-                      onPressed: () => setState(() => _selectedCategory = null),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 16,
-                          vertical: 10,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'Close',
-                        style: GoogleFonts.inter(fontSize: 12),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildModalMetaItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          label,
-          style: GoogleFonts.inter(fontSize: 11, color: AppTheme.textMuted),
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: AppTheme.textPrimary,
+  Widget _buildModalStatCard({
+    required String label,
+    required String value,
+    required Color accentColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFFF8FAFC),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: GoogleFonts.inter(
+              fontSize: 9.5,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 0.4,
+              color: const Color(0xFF64748B),
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-        ),
-      ],
+          const SizedBox(height: 3),
+          Text(
+            value,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 12.5,
+              fontWeight: FontWeight.w700,
+              color: accentColor,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 }

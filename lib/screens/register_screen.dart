@@ -2,9 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/auth_model.dart';
-import '../services/api_config.dart';
 import '../services/auth_service.dart';
-import '../widgets/server_config_dialog.dart';
 import 'login_screen.dart';
 import 'main_shell_screen.dart';
 
@@ -40,7 +38,6 @@ class _RegisterScreenState extends State<RegisterScreen>
   late Animation<Offset> _slideAnimation;
 
   final AuthService _authService = AuthService();
-  final ApiConfig _apiConfig = ApiConfig();
 
   @override
   void initState() {
@@ -836,91 +833,35 @@ class _RegisterScreenState extends State<RegisterScreen>
     );
   }
 
-  /// Server Configuration & Connectivity Pill + Footer Note
+  /// Enterprise Security & Footer Note
   Widget _buildServerStatusAndFooter() {
     return Column(
       children: [
-        ListenableBuilder(
-          listenable: _apiConfig,
-          builder: (context, _) {
-            final isOnline = _apiConfig.isOnline;
-            final isChecking = _apiConfig.isChecking;
-
-            return InkWell(
-              onTap: () {
-                showDialog(
-                  context: context,
-                  builder: (_) => const ServerConfigDialog(),
-                );
-              },
-              borderRadius: BorderRadius.circular(20),
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: const Color(0xFFE2E8F0), width: 1),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF0F172A).withValues(alpha: 0.03),
-                      blurRadius: 6,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Container(
-                      width: 7,
-                      height: 7,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isChecking
-                            ? const Color(0xFFF59E0B)
-                            : (isOnline
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFFEF4444)),
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      isChecking
-                          ? 'Checking Server...'
-                          : (isOnline
-                                ? 'Server: ${_apiConfig.host.replaceFirst('http://', '')} (Online)'
-                                : 'Server: Offline (Tap to configure)'),
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 11.5,
-                        fontWeight: FontWeight.w600,
-                        color: isOnline
-                            ? const Color(0xFF334155)
-                            : const Color(0xFF64748B),
-                      ),
-                    ),
-                    const SizedBox(width: 5),
-                    const Icon(
-                      Icons.settings_outlined,
-                      size: 13,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ],
-                ),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.lock_outline_rounded,
+              size: 13,
+              color: Color(0xFF94A3B8),
+            ),
+            const SizedBox(width: 5),
+            Text(
+              'Enterprise Grade 256-bit TLS Security',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF64748B),
               ),
-            );
-          },
+            ),
+          ],
         ),
-        const SizedBox(height: 12),
-
-        // Footer copyright note
+        const SizedBox(height: 10),
         Text(
-          '© 2026 CorpRegistry. System Protected by Spring Security & Angular Enterprise Architecture.',
+          '© 2026 CorpRegistry Enterprise. All rights reserved.',
           textAlign: TextAlign.center,
           style: GoogleFonts.plusJakartaSans(
-            fontSize: 11.5,
+            fontSize: 11,
             color: const Color(0xFF94A3B8),
             height: 1.4,
           ),

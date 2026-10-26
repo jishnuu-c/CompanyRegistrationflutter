@@ -43,8 +43,6 @@ void main() {
     });
 
     testWidgets('Renders error feedback with Form Incomplete title', (tester) async {
-      bool closed = false;
-
       final feedback = FeedbackData(
         type: 'error',
         title: 'Form Incomplete',
@@ -57,7 +55,7 @@ void main() {
           home: Scaffold(
             body: FeedbackToast(
               feedback: feedback,
-              onClose: () => closed = true,
+              onClose: () {},
               animate: false,
             ),
           ),

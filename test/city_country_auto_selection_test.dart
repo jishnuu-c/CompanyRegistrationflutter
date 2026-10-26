@@ -3,7 +3,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:company_reg_flutter/screens/company_screen.dart';
 import 'package:company_reg_flutter/widgets/city_autocomplete_field.dart';
 import 'package:company_reg_flutter/widgets/country_dropdown.dart';
-import 'package:company_reg_flutter/utils/saudi_cities_util.dart';
 
 void main() {
   group('City & Country Auto-Selection Tests (Matching Angular Behavior)', () {

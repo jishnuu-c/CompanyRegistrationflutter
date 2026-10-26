@@ -345,171 +345,170 @@ class BrandScreenState extends State<BrandScreen> {
   }
 
   Widget _buildSubNavTabs() {
+    final isRegister = _activeTab == 'register';
+    final isDirectory = _activeTab == 'directory';
+    final isEditing = _editingBrandId != null;
+
     return Container(
-      color: AppTheme.bgSurface,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          // Add Brand Tab
-          Expanded(
-            child: InkWell(
-              onTap: () {
-                if (_editingBrandId != null) {
-                  _resetForm();
-                }
-                setState(() => _activeTab = 'register');
-              },
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                decoration: BoxDecoration(
-                  color: _activeTab == 'register' && _editingBrandId == null
-                      ? AppTheme.primaryLight
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _activeTab == 'register' && _editingBrandId == null
-                        ? AppTheme.primary
-                        : AppTheme.borderLight,
+      decoration: const BoxDecoration(
+        color: AppTheme.bgSurface,
+        border: Border(
+          bottom: BorderSide(color: AppTheme.borderLight, width: 1),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: const Color(0xFFF1F5F9),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+        ),
+        child: Row(
+          children: [
+            // Add / Edit Brand Tab
+            Expanded(
+              child: InkWell(
+                onTap: () {
+                  if (isEditing) {
+                    _resetForm();
+                  }
+                  setState(() => _activeTab = 'register');
+                },
+                borderRadius: BorderRadius.circular(9),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isRegister ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(9),
+                    boxShadow: isRegister
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ]
+                        : null,
                   ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.add_circle_rounded,
-                      size: 16,
-                      color: _activeTab == 'register' && _editingBrandId == null
-                          ? AppTheme.primary
-                          : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Add Brand',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color:
-                            _activeTab == 'register' && _editingBrandId == null
-                            ? AppTheme.primary
-                            : AppTheme.textSecondary,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        isEditing
+                            ? Icons.edit_rounded
+                            : Icons.add_circle_outline_rounded,
+                        size: 16,
+                        color: isRegister
+                            ? (isEditing ? const Color(0xFFD97706) : AppTheme.primary)
+                            : const Color(0xFF64748B),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 8),
-
-          // Edit Tab Pill (if in edit mode)
-          if (_editingBrandId != null) ...[
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xFFFEF3C7),
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: const Color(0xFFF59E0B)),
-              ),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.edit_rounded,
-                    size: 14,
-                    color: Color(0xFFB45309),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'Edit #$_editingBrandId',
-                    style: GoogleFonts.inter(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: const Color(0xFFB45309),
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  InkWell(
-                    onTap: _resetForm,
-                    child: const Icon(
-                      Icons.close,
-                      size: 14,
-                      color: Color(0xFFB45309),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const SizedBox(width: 8),
-          ],
-
-          // Directory Tab
-          Expanded(
-            child: InkWell(
-              onTap: () => setState(() => _activeTab = 'directory'),
-              borderRadius: BorderRadius.circular(10),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 9),
-                decoration: BoxDecoration(
-                  color: _activeTab == 'directory'
-                      ? AppTheme.primaryLight
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: _activeTab == 'directory'
-                        ? AppTheme.primary
-                        : AppTheme.borderLight,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.grid_view_rounded,
-                      size: 16,
-                      color: _activeTab == 'directory'
-                          ? AppTheme.primary
-                          : AppTheme.textSecondary,
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      'Directory',
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w700,
-                        color: _activeTab == 'directory'
-                            ? AppTheme.primary
-                            : AppTheme.textSecondary,
-                      ),
-                    ),
-                    const SizedBox(width: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 6,
-                        vertical: 2,
-                      ),
-                      decoration: BoxDecoration(
-                        color: _activeTab == 'directory'
-                            ? AppTheme.primary
-                            : AppTheme.bgSubtle,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Text(
-                        '${_brands.length}',
-                        style: GoogleFonts.inter(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: _activeTab == 'directory'
-                              ? Colors.white
-                              : AppTheme.textSecondary,
+                      const SizedBox(width: 6),
+                      Flexible(
+                        child: Text(
+                          isEditing ? 'Editing #$_editingBrandId' : 'Add Brand',
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: isRegister ? FontWeight.w700 : FontWeight.w600,
+                            color: isRegister
+                                ? (isEditing ? const Color(0xFFB45309) : AppTheme.primary)
+                                : const Color(0xFF64748B),
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ),
-                  ],
+                      if (isEditing) ...[
+                        const SizedBox(width: 4),
+                        InkWell(
+                          onTap: _resetForm,
+                          child: const Icon(
+                            Icons.close_rounded,
+                            size: 14,
+                            color: Color(0xFFB45309),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        ],
+            const SizedBox(width: 4),
+
+            // Directory Tab
+            Expanded(
+              child: InkWell(
+                onTap: () => setState(() => _activeTab = 'directory'),
+                borderRadius: BorderRadius.circular(9),
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDirectory ? Colors.white : Colors.transparent,
+                    borderRadius: BorderRadius.circular(9),
+                    boxShadow: isDirectory
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                              blurRadius: 4,
+                              offset: const Offset(0, 1),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.grid_view_rounded,
+                        size: 16,
+                        color: isDirectory
+                            ? AppTheme.primary
+                            : const Color(0xFF64748B),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        'Directory',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 12.5,
+                          fontWeight: isDirectory ? FontWeight.w700 : FontWeight.w600,
+                          color: isDirectory
+                              ? AppTheme.primary
+                              : const Color(0xFF64748B),
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isDirectory
+                              ? AppTheme.primaryLight
+                              : const Color(0xFFE2E8F0),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Text(
+                          '${_brands.length}',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w700,
+                            color: isDirectory
+                                ? AppTheme.primary
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -1116,10 +1115,11 @@ class BrandScreenState extends State<BrandScreen> {
                             color: AppTheme.textPrimary,
                           ),
                         ),
+                        const SizedBox(height: 2),
                         Text(
                           'Explore, filter, inspect, edit, and delete manufacturer brands.',
                           style: GoogleFonts.inter(
-                            fontSize: 12,
+                            fontSize: 11.5,
                             color: AppTheme.textMuted,
                           ),
                         ),
@@ -1166,81 +1166,148 @@ class BrandScreenState extends State<BrandScreen> {
               ),
               const SizedBox(height: 10),
 
-              // Filter Mode Selector (All, Featured, Standard)
-              Row(
-                children: [
-                  _buildFilterChip('All Brands', 'all', _brands.length),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    'Featured',
-                    'featured',
-                    _brands.where((b) => b.isFeatured).length,
-                  ),
-                  const SizedBox(width: 8),
-                  _buildFilterChip(
-                    'Standard',
-                    'standard',
-                    _brands.where((b) => !b.isFeatured).length,
-                  ),
-                ],
+              // Filter Mode Segmented Capsule Selector (All, Featured, Standard)
+              Container(
+                padding: const EdgeInsets.all(3.5),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: const Color(0xFFE2E8F0), width: 0.8),
+                ),
+                child: Row(
+                  children: [
+                    _buildFilterChip('All Brands', 'all', _brands.length),
+                    const SizedBox(width: 4),
+                    _buildFilterChip(
+                      'Featured',
+                      'featured',
+                      _brands.where((b) => b.isFeatured).length,
+                    ),
+                    const SizedBox(width: 4),
+                    _buildFilterChip(
+                      'Standard',
+                      'standard',
+                      _brands.where((b) => !b.isFeatured).length,
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
 
-        // List of Brands
+        // List of Brands or Zero-Overflow Scrollable Empty State
         Expanded(
           child: _isLoadingList
               ? const Center(child: CircularProgressIndicator())
               : _filteredBrands.isEmpty
-              ? Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(32),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            color: AppTheme.primaryLight,
-                            shape: BoxShape.circle,
+              ? RefreshIndicator(
+                  onRefresh: _fetchBrands,
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      return SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 24,
+                          vertical: 20,
+                        ),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 40 > 0
+                                ? constraints.maxHeight - 40
+                                : 0,
                           ),
-                          child: const Icon(
-                            Icons.verified_outlined,
-                            color: AppTheme.primary,
-                            size: 32,
+                          child: Center(
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Container(
+                                  width: 56,
+                                  height: 56,
+                                  decoration: BoxDecoration(
+                                    color: AppTheme.primaryLight,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: AppTheme.primary.withValues(alpha: 0.15),
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: const Icon(
+                                    Icons.verified_outlined,
+                                    color: AppTheme.primary,
+                                    size: 28,
+                                  ),
+                                ),
+                                const SizedBox(height: 14),
+                                Text(
+                                  'No Brands Found',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppTheme.textPrimary,
+                                  ),
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  _searchQuery.isNotEmpty
+                                      ? 'No brands match "$_searchQuery". Try clearing your search.'
+                                      : 'No records match your filters or none have been added yet.',
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 12.5,
+                                    color: AppTheme.textMuted,
+                                    height: 1.4,
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                if (_searchQuery.isNotEmpty)
+                                  OutlinedButton.icon(
+                                    onPressed: () {
+                                      _searchController.clear();
+                                      setState(() => _searchQuery = '');
+                                    },
+                                    icon: const Icon(Icons.clear_rounded, size: 15),
+                                    label: const Text('Clear Search'),
+                                    style: OutlinedButton.styleFrom(
+                                      foregroundColor: AppTheme.primary,
+                                      side: const BorderSide(color: Color(0xFFC7D2FE)),
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 14,
+                                        vertical: 9,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  )
+                                else
+                                  ElevatedButton.icon(
+                                    onPressed: () {
+                                      _resetForm();
+                                      setState(() => _activeTab = 'register');
+                                    },
+                                    icon: const Icon(Icons.add_rounded, size: 16),
+                                    label: const Text('Register New Brand'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppTheme.primary,
+                                      foregroundColor: Colors.white,
+                                      elevation: 0,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 16,
+                                        vertical: 10,
+                                      ),
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
                           ),
                         ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No Brands Found',
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 16,
-                            fontWeight: FontWeight.w700,
-                            color: AppTheme.textPrimary,
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Text(
-                          'No records match your filters or none have been added yet.',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: AppTheme.textMuted,
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        ElevatedButton.icon(
-                          onPressed: () {
-                            _resetForm();
-                            setState(() => _activeTab = 'register');
-                          },
-                          icon: const Icon(Icons.add, size: 18),
-                          label: const Text('Register New Brand'),
-                        ),
-                      ],
-                    ),
+                      );
+                    },
                   ),
                 )
               : RefreshIndicator(
@@ -1266,51 +1333,60 @@ class BrandScreenState extends State<BrandScreen> {
       child: InkWell(
         onTap: () => setState(() => _filterMode = mode),
         borderRadius: BorderRadius.circular(8),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 6),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 180),
+          padding: const EdgeInsets.symmetric(vertical: 7, horizontal: 4),
           decoration: BoxDecoration(
-            color: isSelected ? AppTheme.primaryLight : AppTheme.bgPage,
+            color: isSelected ? Colors.white : Colors.transparent,
             borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? AppTheme.primary : AppTheme.borderLight,
-            ),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: const Color(0xFF0F172A).withValues(alpha: 0.08),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
+                    ),
+                  ]
+                : null,
           ),
-          child: FittedBox(
-            fit: BoxFit.scaleDown,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Flexible(
+                child: Text(
                   label,
                   style: GoogleFonts.inter(
                     fontSize: 11,
                     fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                     color: isSelected
                         ? AppTheme.primary
-                        : AppTheme.textSecondary,
+                        : const Color(0xFF64748B),
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 5,
+                  vertical: 1.5,
+                ),
+                decoration: BoxDecoration(
+                  color: isSelected ? AppTheme.primaryLight : const Color(0xFFE2E8F0),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Text(
+                  '$count',
+                  style: GoogleFonts.inter(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w700,
+                    color: isSelected ? AppTheme.primary : const Color(0xFF64748B),
                   ),
                 ),
-                const SizedBox(width: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 5,
-                    vertical: 1,
-                  ),
-                  decoration: BoxDecoration(
-                    color: isSelected ? AppTheme.primary : AppTheme.bgSubtle,
-                    borderRadius: BorderRadius.circular(6),
-                  ),
-                  child: Text(
-                    '$count',
-                    style: GoogleFonts.inter(
-                      fontSize: 9,
-                      fontWeight: FontWeight.w700,
-                      color: isSelected ? Colors.white : AppTheme.textMuted,
-                    ),
-                  ),
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),

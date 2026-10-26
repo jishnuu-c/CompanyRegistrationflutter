@@ -4,7 +4,6 @@ import '../screens/login_screen.dart';
 import '../services/api_config.dart';
 import '../services/auth_service.dart';
 import '../theme/app_theme.dart';
-import 'server_config_dialog.dart';
 
 class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
   final String title;
@@ -105,7 +104,6 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
     final auth = AuthService();
     final user = auth.currentUser;
     final isSuper = auth.isSuperAdmin;
-    final apiConfig = ApiConfig();
 
     showModalBottomSheet(
       context: context,
@@ -286,77 +284,64 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
               ),
               const SizedBox(height: 12),
 
-              // Server Connectivity Tile
-              ListenableBuilder(
-                listenable: apiConfig,
-                builder: (context, _) {
-                  final isOnline = apiConfig.isOnline;
-                  return InkWell(
-                    onTap: () {
-                      Navigator.pop(ctx);
-                      showDialog(
-                        context: context,
-                        builder: (_) => const ServerConfigDialog(),
-                      );
-                    },
-                    borderRadius: BorderRadius.circular(12),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 12,
-                      ),
+              // Enterprise Session Security Status Card
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: AppTheme.bgPage,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: AppTheme.borderLight),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
-                        color: AppTheme.bgPage,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.borderLight),
+                        color: const Color(0xFFECFDF5),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Row(
+                      child: const Icon(
+                        Icons.verified_user_rounded,
+                        size: 16,
+                        color: Color(0xFF059669),
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            width: 8,
-                            height: 8,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              color: isOnline
-                                  ? const Color(0xFF10B981)
-                                  : const Color(0xFF94A3B8),
+                          Text(
+                            'Enterprise Session Active',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: AppTheme.textPrimary,
                             ),
                           ),
-                          const SizedBox(width: 10),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  isOnline
-                                      ? 'Backend: Online (${apiConfig.host})'
-                                      : 'Backend: Offline (Demo Mode)',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppTheme.textPrimary,
-                                  ),
-                                ),
-                                Text(
-                                  'Tap to configure IP and port settings',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10.5,
-                                    color: AppTheme.textMuted,
-                                  ),
-                                ),
-                              ],
+                          Text(
+                            'Corporate Single Sign-On Verified',
+                            style: GoogleFonts.inter(
+                              fontSize: 10.5,
+                              color: AppTheme.textMuted,
                             ),
-                          ),
-                          const Icon(
-                            Icons.chevron_right_rounded,
-                            size: 18,
-                            color: AppTheme.textMuted,
                           ),
                         ],
                       ),
                     ),
-                  );
-                },
+                    Container(
+                      width: 8,
+                      height: 8,
+                      decoration: const BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: Color(0xFF10B981),
+                      ),
+                    ),
+                  ],
+                ),
               ),
               const SizedBox(height: 16),
 
@@ -540,11 +525,7 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                                 // Online Status Pill
                                 InkWell(
                                   onTap: () {
-                                    showDialog(
-                                      context: context,
-                                      builder: (_) =>
-                                          const ServerConfigDialog(),
-                                    );
+                                    apiConfig.checkConnection();
                                   },
                                   borderRadius: BorderRadius.circular(4),
                                   child: Padding(
@@ -577,7 +558,7 @@ class AppHeaderBar extends StatelessWidget implements PreferredSizeWidget {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          isOnline ? 'Online' : 'Config',
+                                          isOnline ? 'Online' : 'Offline',
                                           style: GoogleFonts.inter(
                                             fontSize: 10,
                                             fontWeight: FontWeight.w600,
