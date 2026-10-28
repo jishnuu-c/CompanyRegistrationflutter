@@ -130,14 +130,6 @@ class _RegisterScreenState extends State<RegisterScreen>
     }
 
     final password = _passwordController.text;
-    final confirmPassword = _confirmPasswordController.text;
-
-    if (password != confirmPassword) {
-      setState(() {
-        _errorMessage = 'Passwords do not match. Please verify both fields.';
-      });
-      return;
-    }
 
     setState(() {
       _isLoading = true;
@@ -194,8 +186,18 @@ class _RegisterScreenState extends State<RegisterScreen>
 
       setState(() {
         _isLoading = false;
-        final rawMsg = e.toString().replaceFirst('Exception: ', '');
-        _errorMessage = rawMsg;
+        final rawMsg = e.toString().replaceFirst('Exception: ', '').trim();
+        if (rawMsg.contains('SocketException') ||
+            rawMsg.contains('Connection refused') ||
+            rawMsg.contains('Failed host lookup') ||
+            rawMsg.contains('timed out') ||
+            rawMsg.contains('Unable to reach corporate server') ||
+            rawMsg.isEmpty) {
+          _errorMessage =
+              'Registration failed. Please check details or ensure the server is online.';
+        } else {
+          _errorMessage = rawMsg;
+        }
       });
     }
   }
@@ -484,9 +486,9 @@ class _RegisterScreenState extends State<RegisterScreen>
                   return 'A valid email address is required';
                 }
                 if (!RegExp(
-                  r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+                  r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$',
                 ).hasMatch(value.trim())) {
-                  return 'Please enter a valid email format';
+                  return 'A valid email address is required';
                 }
                 return null;
               },

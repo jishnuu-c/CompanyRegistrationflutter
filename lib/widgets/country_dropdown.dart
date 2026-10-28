@@ -42,6 +42,9 @@ class SearchableCountryDropdown extends StatefulWidget {
   /// Whether country was automatically selected based on city input (matches Angular isAutoCountrySelected)
   final bool isAutoCountrySelected;
 
+  /// Optional explicit error text from parent FormField
+  final String? errorText;
+
   const SearchableCountryDropdown({
     super.key,
     required this.value,
@@ -53,6 +56,7 @@ class SearchableCountryDropdown extends StatefulWidget {
     this.validator,
     this.countries,
     this.isAutoCountrySelected = false,
+    this.errorText,
   });
 
   /// Default country options matching the Angular application
@@ -570,6 +574,8 @@ class _SearchableCountryDropdownState extends State<SearchableCountryDropdown>
     final selectedCountry =
         SearchableCountryDropdown.findCountry(widget.value, _countryList);
 
+    final effectiveError = widget.errorText ?? _errorText;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
@@ -620,14 +626,14 @@ class _SearchableCountryDropdownState extends State<SearchableCountryDropdown>
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(
-                    color: _errorText != null
+                    color: effectiveError != null
                         ? AppTheme.error
                         : _isOpen
                             ? const Color(0xFF6366F1) // Active indigo border
                             : _isHovered
                                 ? AppTheme.borderMedium
                                 : AppTheme.borderLight,
-                    width: _isOpen ? 1.5 : 1.0,
+                    width: (effectiveError != null || _isOpen) ? 1.5 : 1.0,
                   ),
                   boxShadow: _isOpen
                       ? const [
@@ -776,17 +782,30 @@ class _SearchableCountryDropdownState extends State<SearchableCountryDropdown>
           ),
         ],
 
-        if (_errorText != null) ...[
-          const SizedBox(height: 4),
+        if (effectiveError != null && effectiveError.isNotEmpty) ...[
+          const SizedBox(height: 5),
           Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Text(
-              _errorText!,
-              style: GoogleFonts.inter(
-                fontSize: 11.5,
-                fontWeight: FontWeight.w500,
-                color: AppTheme.error,
-              ),
+            padding: const EdgeInsets.only(left: 2),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.info_outline_rounded,
+                  size: 13.5,
+                  color: AppTheme.error,
+                ),
+                const SizedBox(width: 4),
+                Expanded(
+                  child: Text(
+                    effectiveError,
+                    style: GoogleFonts.inter(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: AppTheme.error,
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
         ],

@@ -26,10 +26,12 @@ import '../widgets/business_card_ocr_banner.dart';
 import 'package:http/http.dart' as http;
 import '../widgets/business_card_ocr_dialog.dart';
 import '../widgets/fast_autofill_banner.dart';
+import 'package:flutter/services.dart';
 import '../widgets/country_dropdown.dart';
 import '../widgets/city_autocomplete_field.dart';
 import '../utils/saudi_cities_util.dart';
 import '../utils/api_error_util.dart';
+import '../utils/phone_validator.dart';
 
 class CompanyScreen extends StatefulWidget {
   const CompanyScreen({super.key});
@@ -1191,21 +1193,24 @@ class CompanyScreenState extends State<CompanyScreen> {
     if (_nameController.text.trim().length < 2) {
       missingFields.add('Company Legal Name');
     }
-    final email = _emailController.text.trim();
-    if (email.isEmpty ||
-        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(email)) {
+    if (PhoneValidator.validateExecutiveEmail(_contactEmailController.text) != null) {
+      missingFields.add('Direct Executive Email');
+    }
+    if (PhoneValidator.validateMobileNumber(_contactMobileController.text) != null) {
+      missingFields.add('Mobile Number');
+    }
+    if (PhoneValidator.validateCorporateEmail(_emailController.text) != null) {
       missingFields.add('Corporate Email');
+    }
+    if (PhoneValidator.validateLandline(_landlineController.text) != null) {
+      missingFields.add('Landline Number');
     }
     if (_countryController.text.trim().isEmpty) {
       missingFields.add('Country Jurisdiction');
     }
-    final contactEmail = _contactEmailController.text.trim();
-    if (contactEmail.isNotEmpty &&
-        !RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(contactEmail)) {
-      missingFields.add('Direct Executive Email');
-    }
 
-    if (missingFields.isNotEmpty || !_formKey.currentState!.validate()) {
+    final isFormValid = _formKey.currentState!.validate();
+    if (missingFields.isNotEmpty || !isFormValid) {
       if (missingFields.isEmpty) {
         missingFields.add('Required Form Fields');
       }
@@ -1213,8 +1218,19 @@ class CompanyScreenState extends State<CompanyScreen> {
         _feedback = getFormIncompleteFeedback(missingFields);
       });
       if (_formScrollController.hasClients) {
+        double targetOffset = 0.0;
+        final first = missingFields.first;
+        if (first == 'Company Legal Name') {
+          targetOffset = 0.0;
+        } else if (first == 'Direct Executive Email' || first == 'Mobile Number') {
+          targetOffset = 380.0;
+        } else if (first == 'Corporate Email' || first == 'Landline Number') {
+          targetOffset = 680.0;
+        } else if (first == 'Country Jurisdiction') {
+          targetOffset = 1050.0;
+        }
         _formScrollController.animateTo(
-          0.0,
+          targetOffset,
           duration: const Duration(milliseconds: 300),
           curve: Curves.easeOut,
         );
@@ -2121,6 +2137,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                         const SizedBox(height: 12),
                         Flex(
                           direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               flex: isNarrow ? 0 : 1,
@@ -2148,6 +2165,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         color: AppTheme.textMuted,
                                       ),
                                     ),
+                                    validator: PhoneValidator.validateExecutiveEmail,
                                     onChanged: (_) => setState(() {}),
                                   ),
                                 ],
@@ -2175,6 +2193,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                     controller: _contactMobileController,
                                     keyboardType: TextInputType.phone,
                                     style: GoogleFonts.inter(fontSize: 13),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s().]')),
+                                    ],
                                     decoration: InputDecoration(
                                       hintText: '+1 (555) 987-6543',
                                       prefixIcon: const Icon(
@@ -2183,6 +2204,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                                         color: AppTheme.textMuted,
                                       ),
                                     ),
+                                    validator: PhoneValidator.validateMobileNumber,
                                     onChanged: (_) => setState(() {}),
                                   ),
                                 ],
@@ -2211,6 +2233,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                       children: [
                         Flex(
                           direction: isNarrow ? Axis.vertical : Axis.horizontal,
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Expanded(
                               flex: isNarrow ? 0 : 1,
@@ -2239,12 +2262,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                                       ),
                                     ),
                                     onChanged: (_) => setState(() {}),
-                                    validator: (val) {
-                                      if (val == null || !val.contains('@')) {
-                                        return 'Valid corporate email is required';
-                                      }
-                                      return null;
-                                    },
+                                    validator: PhoneValidator.validateCorporateEmail,
                                   ),
                                 ],
                               ),
@@ -2271,6 +2289,9 @@ class CompanyScreenState extends State<CompanyScreen> {
                                     controller: _landlineController,
                                     keyboardType: TextInputType.phone,
                                     style: GoogleFonts.inter(fontSize: 13),
+                                    inputFormatters: [
+                                      FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s().]')),
+                                    ],
                                     decoration: InputDecoration(
                                       hintText: '+1 (555) 019-2834',
                                       prefixIcon: const Icon(
@@ -2280,6 +2301,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                                       ),
                                     ),
                                     onChanged: (_) => setState(() {}),
+                                    validator: PhoneValidator.validateLandline,
                                   ),
                                 ],
                               ),
@@ -2516,6 +2538,7 @@ class CompanyScreenState extends State<CompanyScreen> {
                           _buildCountryDropdownField(),
                         ] else ...[
                           Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Expanded(child: _buildCityField()),
                               const SizedBox(width: 12),
@@ -4211,17 +4234,31 @@ class CompanyScreenState extends State<CompanyScreen> {
   }
 
   Widget _buildCountryDropdownField() {
-    return SearchableCountryDropdown(
-      value: _countryController.text,
-      isAutoCountrySelected: _isAutoCountrySelected,
-      onChanged: (val) {
-        setState(() {
-          _countryController.text = val ?? '';
-          final country = SearchableCountryDropdown.findCountry(val);
-          if (country == null || country.code.toUpperCase() != 'KSA') {
-            _isAutoCountrySelected = false;
-          }
-        });
+    return FormField<String>(
+      initialValue: _countryController.text,
+      validator: (val) {
+        final text = _countryController.text.trim();
+        if (text.isEmpty) {
+          return 'Country jurisdiction is required';
+        }
+        return null;
+      },
+      builder: (formFieldState) {
+        return SearchableCountryDropdown(
+          value: _countryController.text,
+          isAutoCountrySelected: _isAutoCountrySelected,
+          errorText: formFieldState.errorText,
+          onChanged: (val) {
+            setState(() {
+              _countryController.text = val ?? '';
+              formFieldState.didChange(val);
+              final country = SearchableCountryDropdown.findCountry(val);
+              if (country == null || country.code.toUpperCase() != 'KSA') {
+                _isAutoCountrySelected = false;
+              }
+            });
+          },
+        );
       },
     );
   }

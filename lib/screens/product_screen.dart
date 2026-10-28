@@ -266,18 +266,24 @@ class ProductScreenState extends State<ProductScreen> {
       missingFields.add('Product Name');
     }
     if (_selectedCategoryId == null) {
-      missingFields.add('Main Category');
+      missingFields.add('Category');
     }
     if (_selectedBrandId == null) {
       missingFields.add('Brand');
     }
 
-    if (missingFields.isNotEmpty || !_formKey.currentState!.validate()) {
-      if (missingFields.isEmpty) {
-        missingFields.add('Product Details');
-      }
+    final isFormValid = _formKey.currentState!.validate();
+    if (missingFields.isNotEmpty || !isFormValid) {
+      final firstName = missingFields.isNotEmpty
+          ? missingFields.first
+          : 'Product Details';
       setState(() {
-        _feedback = getFormIncompleteFeedback(missingFields);
+        _feedback = FeedbackData(
+          type: 'error',
+          title: 'Form Incomplete',
+          message:
+              'Please complete or correct "$firstName". Scrolled to the field.',
+        );
       });
       if (_productScrollController.hasClients) {
         _productScrollController.animateTo(
@@ -844,8 +850,10 @@ class ProductScreenState extends State<ProductScreen> {
                       ),
                       onChanged: (_) => setState(() {}),
                       validator: (value) {
-                        if (value == null || value.trim().length < 2) {
-                          return 'Product name is required (min 2 characters, max 200)';
+                        if (value == null ||
+                            value.trim().length < 2 ||
+                            value.trim().length > 200) {
+                          return 'Product name is required (min 2 characters, max 200).';
                         }
                         return null;
                       },
@@ -875,87 +883,144 @@ class ProductScreenState extends State<ProductScreen> {
                                     ),
                                   ),
                                   const SizedBox(height: 6),
-                                  Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: AppTheme.bgSurface,
-                                      borderRadius: BorderRadius.circular(12),
-                                      border: Border.all(
-                                        color: AppTheme.borderLight,
-                                      ),
-                                    ),
-                                    child: DropdownButtonHideUnderline(
-                                      child: DropdownButton<int?>(
-                                        isExpanded: true,
-                                        value: _selectedCategoryId,
-                                        icon: const Icon(
-                                          Icons.keyboard_arrow_down,
-                                          color: AppTheme.textSecondary,
-                                        ),
-                                        hint: Row(
-                                          children: [
-                                            const Icon(
-                                              Icons.folder_open,
-                                              size: 18,
-                                              color: AppTheme.textMuted,
+                                  FormField<int?>(
+                                    initialValue: _selectedCategoryId,
+                                    validator: (val) {
+                                      if (_selectedCategoryId == null) {
+                                        return 'Please select a valid category.';
+                                      }
+                                      return null;
+                                    },
+                                    builder: (fieldState) {
+                                      final hasError = fieldState.hasError;
+                                      return Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 14,
+                                              vertical: 4,
                                             ),
-                                            const SizedBox(width: 8),
-                                            Text(
-                                              (_isLoadingPrereqs
-                                                  ? 'Loading Categories...'
-                                                  : '-- Select Main Category --'),
-                                              style: GoogleFonts.inter(
-                                                fontSize: 13,
-                                                color: AppTheme.textMuted,
+                                            decoration: BoxDecoration(
+                                              color: AppTheme.bgSurface,
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
+                                              border: Border.all(
+                                                color: hasError
+                                                    ? AppTheme.error
+                                                    : AppTheme.borderLight,
+                                                width: hasError ? 1.5 : 1.0,
+                                              ),
+                                            ),
+                                            child: DropdownButtonHideUnderline(
+                                              child: DropdownButton<int?>(
+                                                isExpanded: true,
+                                                value: _selectedCategoryId,
+                                                icon: const Icon(
+                                                  Icons.keyboard_arrow_down,
+                                                  color: AppTheme.textSecondary,
+                                                ),
+                                                hint: Row(
+                                                  children: [
+                                                    const Icon(
+                                                      Icons.folder_open,
+                                                      size: 18,
+                                                      color: AppTheme.textMuted,
+                                                    ),
+                                                    const SizedBox(width: 8),
+                                                    Text(
+                                                      (_isLoadingPrereqs
+                                                          ? 'Loading Categories...'
+                                                          : '-- Select Main Category --'),
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 13,
+                                                        color:
+                                                            AppTheme.textMuted,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                                items: _parentCategories.map((cat) {
+                                                  return DropdownMenuItem<int?>(
+                                                    value: cat.id,
+                                                    child: Row(
+                                                      children: [
+                                                        const Icon(
+                                                          Icons.folder,
+                                                          size: 16,
+                                                          color: AppTheme.primary,
+                                                        ),
+                                                        const SizedBox(width: 8),
+                                                        Text(
+                                                          '${cat.name} (ID #${cat.id})',
+                                                          style:
+                                                              GoogleFonts.inter(
+                                                            fontSize: 13,
+                                                            color: AppTheme
+                                                                .textPrimary,
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    ),
+                                                  );
+                                                }).toList(),
+                                                onChanged: (val) {
+                                                  setState(() {
+                                                    _selectedCategoryId = val;
+                                                    fieldState.didChange(val);
+                                                    // Check if current subcategory is still valid under new parent
+                                                    if (_selectedSubCategoryId !=
+                                                        null) {
+                                                      final isValid =
+                                                          _availableFormSubCategories
+                                                              .any(
+                                                        (s) =>
+                                                            s.id ==
+                                                            _selectedSubCategoryId,
+                                                      );
+                                                      if (!isValid) {
+                                                        _selectedSubCategoryId =
+                                                            null;
+                                                      }
+                                                    }
+                                                  });
+                                                },
+                                              ),
+                                            ),
+                                          ),
+                                          if (hasError &&
+                                              fieldState.errorText != null) ...[
+                                            const SizedBox(height: 5),
+                                            Padding(
+                                              padding:
+                                                  const EdgeInsets.only(left: 2),
+                                              child: Row(
+                                                children: [
+                                                  const Icon(
+                                                    Icons.info_outline_rounded,
+                                                    size: 13.5,
+                                                    color: AppTheme.error,
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Expanded(
+                                                    child: Text(
+                                                      fieldState.errorText!,
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 11.5,
+                                                        fontWeight:
+                                                            FontWeight.w500,
+                                                        color: AppTheme.error,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
                                               ),
                                             ),
                                           ],
-                                        ),
-                                        items: _parentCategories.map((cat) {
-                                          return DropdownMenuItem<int?>(
-                                            value: cat.id,
-                                            child: Row(
-                                              children: [
-                                                const Icon(
-                                                  Icons.folder,
-                                                  size: 16,
-                                                  color: AppTheme.primary,
-                                                ),
-                                                const SizedBox(width: 8),
-                                                Text(
-                                                  '${cat.name} (ID #${cat.id})',
-                                                  style: GoogleFonts.inter(
-                                                    fontSize: 13,
-                                                    color: AppTheme.textPrimary,
-                                                  ),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-                                        }).toList(),
-                                        onChanged: (val) {
-                                          setState(() {
-                                            _selectedCategoryId = val;
-                                            // Check if current subcategory is still valid under new parent
-                                            if (_selectedSubCategoryId !=
-                                                null) {
-                                              final isValid =
-                                                  _availableFormSubCategories.any(
-                                                    (s) =>
-                                                        s.id ==
-                                                        _selectedSubCategoryId,
-                                                  );
-                                              if (!isValid) {
-                                                _selectedSubCategoryId = null;
-                                              }
-                                            }
-                                          });
-                                        },
-                                      ),
-                                    ),
+                                        ],
+                                      );
+                                    },
                                   ),
                                 ],
                               ),
@@ -1087,106 +1152,162 @@ class ProductScreenState extends State<ProductScreen> {
                       ),
                     ),
                     const SizedBox(height: 6),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 14,
-                        vertical: 4,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppTheme.bgSurface,
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: AppTheme.borderLight),
-                      ),
-                      child: DropdownButtonHideUnderline(
-                        child: DropdownButton<int?>(
-                          isExpanded: true,
-                          value: _selectedBrandId,
-                          icon: const Icon(
-                            Icons.keyboard_arrow_down,
-                            color: AppTheme.textSecondary,
-                          ),
-                          hint: Row(
-                            children: [
-                              const Icon(
-                                Icons.verified_outlined,
-                                size: 18,
-                                color: AppTheme.textMuted,
+                    FormField<int?>(
+                      initialValue: _selectedBrandId,
+                      validator: (val) {
+                        if (_selectedBrandId == null) {
+                          return 'Please select a valid brand.';
+                        }
+                        return null;
+                      },
+                      builder: (fieldState) {
+                        final hasError = fieldState.hasError;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 4,
                               ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '-- Select Brand --',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: AppTheme.textMuted,
+                              decoration: BoxDecoration(
+                                color: AppTheme.bgSurface,
+                                borderRadius: BorderRadius.circular(12),
+                                border: Border.all(
+                                  color: hasError
+                                      ? AppTheme.error
+                                      : AppTheme.borderLight,
+                                  width: hasError ? 1.5 : 1.0,
                                 ),
                               ),
-                            ],
-                          ),
-                          items: _brands.map((b) {
-                            return DropdownMenuItem<int?>(
-                              value: b.id,
-                              child: Row(
-                                children: [
-                                  if (b.brandLogo != null &&
-                                      b.brandLogo!.isNotEmpty)
-                                    ClipRRect(
-                                      borderRadius: BorderRadius.circular(4),
-                                      child: Image.network(
-                                        _brandService.getFileUrl(b.brandLogo),
-                                        width: 20,
-                                        height: 20,
-                                        fit: BoxFit.cover,
-                                        errorBuilder:
-                                            (context, error, stackTrace) =>
-                                                const Icon(
+                              child: DropdownButtonHideUnderline(
+                                child: DropdownButton<int?>(
+                                  isExpanded: true,
+                                  value: _selectedBrandId,
+                                  icon: const Icon(
+                                    Icons.keyboard_arrow_down,
+                                    color: AppTheme.textSecondary,
+                                  ),
+                                  hint: Row(
+                                    children: [
+                                      const Icon(
+                                        Icons.verified_outlined,
+                                        size: 18,
+                                        color: AppTheme.textMuted,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        '-- Select Brand --',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          color: AppTheme.textMuted,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  items: _brands.map((b) {
+                                    return DropdownMenuItem<int?>(
+                                      value: b.id,
+                                      child: Row(
+                                        children: [
+                                          if (b.brandLogo != null &&
+                                              b.brandLogo!.isNotEmpty)
+                                            ClipRRect(
+                                              borderRadius:
+                                                  BorderRadius.circular(4),
+                                              child: Image.network(
+                                                _brandService
+                                                    .getFileUrl(b.brandLogo),
+                                                width: 20,
+                                                height: 20,
+                                                fit: BoxFit.cover,
+                                                errorBuilder:
+                                                    (context, error,
+                                                            stackTrace) =>
+                                                        const Icon(
                                                   Icons.verified,
                                                   size: 16,
                                                   color: AppTheme.primary,
                                                 ),
+                                              ),
+                                            )
+                                          else
+                                            Container(
+                                              width: 20,
+                                              height: 20,
+                                              decoration: BoxDecoration(
+                                                color: AppTheme.primaryLight,
+                                                borderRadius:
+                                                    BorderRadius.circular(4),
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Text(
+                                                b.initials,
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 9,
+                                                  fontWeight: FontWeight.w700,
+                                                  color: AppTheme.primary,
+                                                ),
+                                              ),
+                                            ),
+                                          const SizedBox(width: 10),
+                                          Text(
+                                            b.brandName,
+                                            style: GoogleFonts.inter(
+                                              fontSize: 13,
+                                              color: AppTheme.textPrimary,
+                                            ),
+                                          ),
+                                          if (b.isFeatured) ...[
+                                            const SizedBox(width: 6),
+                                            const Icon(
+                                              Icons.star,
+                                              size: 13,
+                                              color: Color(0xFFF59E0B),
+                                            ),
+                                          ],
+                                        ],
                                       ),
-                                    )
-                                  else
-                                    Container(
-                                      width: 20,
-                                      height: 20,
-                                      decoration: BoxDecoration(
-                                        color: AppTheme.primaryLight,
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      alignment: Alignment.center,
+                                    );
+                                  }).toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _selectedBrandId = val;
+                                      fieldState.didChange(val);
+                                    });
+                                  },
+                                ),
+                              ),
+                            ),
+                            if (hasError && fieldState.errorText != null) ...[
+                              const SizedBox(height: 5),
+                              Padding(
+                                padding: const EdgeInsets.only(left: 2),
+                                child: Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.info_outline_rounded,
+                                      size: 13.5,
+                                      color: AppTheme.error,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
                                       child: Text(
-                                        b.initials,
+                                        fieldState.errorText!,
                                         style: GoogleFonts.inter(
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.w700,
-                                          color: AppTheme.primary,
+                                          fontSize: 11.5,
+                                          fontWeight: FontWeight.w500,
+                                          color: AppTheme.error,
                                         ),
                                       ),
                                     ),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    b.brandName,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      color: AppTheme.textPrimary,
-                                    ),
-                                  ),
-                                  if (b.isFeatured) ...[
-                                    const SizedBox(width: 6),
-                                    const Icon(
-                                      Icons.star,
-                                      size: 13,
-                                      color: Color(0xFFF59E0B),
-                                    ),
                                   ],
-                                ],
+                                ),
                               ),
-                            );
-                          }).toList(),
-                          onChanged: (val) =>
-                              setState(() => _selectedBrandId = val),
-                        ),
-                      ),
+                            ],
+                          ],
+                        );
+                      },
                     ),
                     const SizedBox(height: 18),
 

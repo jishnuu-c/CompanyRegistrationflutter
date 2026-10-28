@@ -206,7 +206,18 @@ class _LoginScreenState extends State<LoginScreen>
       HapticFeedback.heavyImpact();
       setState(() {
         _isLoading = false;
-        _errorMessage = e.toString().replaceFirst('Exception: ', '');
+        final rawMsg = e.toString().replaceFirst('Exception: ', '').trim();
+        if (rawMsg.contains('SocketException') ||
+            rawMsg.contains('Connection refused') ||
+            rawMsg.contains('Failed host lookup') ||
+            rawMsg.contains('timed out') ||
+            rawMsg.contains('Unable to reach corporate server') ||
+            rawMsg.isEmpty) {
+          _errorMessage =
+              'Authentication failed. Please verify that the server is online.';
+        } else {
+          _errorMessage = rawMsg;
+        }
       });
     }
   }

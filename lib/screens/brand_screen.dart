@@ -251,7 +251,8 @@ class BrandScreenState extends State<BrandScreen> {
                 _feedback = FeedbackData(
                   type: 'success',
                   title: 'Brand Deleted',
-                  message: 'Brand "${brand.brandName}" has been removed.',
+                  message:
+                      'Brand "${brand.brandName}" has been permanently removed.',
                 );
                 if (_selectedBrand?.id == brand.id) {
                   _selectedBrand = null;
@@ -662,8 +663,8 @@ class BrandScreenState extends State<BrandScreen> {
                         ),
                       ),
                       validator: (v) {
-                        if (v == null || v.trim().length < 2) {
-                          return 'Brand name is required (min 2 characters)';
+                        if (v == null || v.trim().length < 2 || v.trim().length > 150) {
+                          return 'Brand name is required (minimum 2 characters, max 150).';
                         }
                         return null;
                       },

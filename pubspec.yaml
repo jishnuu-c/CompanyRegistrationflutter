@@ -45,6 +45,7 @@ dependencies:
   syncfusion_flutter_pdf: ^35.1.39
   local_auth: ^3.0.2
   flutter_secure_storage: ^11.2.0
+  speech_to_text: ^7.5.0
 
 dev_dependencies:
   flutter_test:
